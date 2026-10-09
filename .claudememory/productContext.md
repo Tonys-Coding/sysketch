@@ -54,7 +54,8 @@ Owner wants a mix of **clean & corporate** and **dark & techy**. Themes built (`
 - `midnight`: navy + dot grid, neon outline cards, cyan badges, mono annotations (most "techy").
 - `graphite`: corporate dark, graphite cards with a colored accent strip, amber badges, solid containers.
 - `blueprint`: corporate light, white cards with accent strip on a faint grid, navy badges, mono annotations.
-- `light`: original friendly Nunito look.
+- `classic`: original friendly Nunito look.
+- `sketch`: hand-drawn (rough.js wobbly ink lines, crayon hachure fills, Patrick Hand font, paper background).
   Fonts: Inter (labels/titles) + JetBrains Mono (edge labels, group labels), both SIL OFL, bundled as WOFF in `packages/sysketch/assets/`. Spec can set `theme: midnight` (about 3 tokens).
   **Decided (2026-10-09):** `graphite` is the default; `blueprint` for light pages; `midnight` as the bold option; old `light` renamed `classic`.
 

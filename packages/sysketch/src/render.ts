@@ -1,6 +1,7 @@
 import { layout, NODE, PILL, type Pt } from './layout.js';
 import type { Model } from './model.js';
 import { defaultTheme, type Theme } from './themes.js';
+import { sketch, sketchIcon } from './sketch.js';
 import { textPathData, type Anchor, type FontRef } from './text.js';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -55,6 +56,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
   const out: string[] = [];
   const defs: string[] = [];
   const { card } = theme;
+  const sk = theme.sketch;
 
   if (theme.backdrop) {
     const { kind, color, size } = theme.backdrop;
@@ -91,8 +93,25 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
   for (const g of model.groups) {
     const b = lay.groups.get(g.id);
     if (!b) continue;
+    const box = sk
+      ? sketch.rect(
+          b.x,
+          b.y,
+          b.w,
+          b.h,
+          card.radius + 4,
+          {
+            fill: theme.group.fill,
+            fillStyle: 'solid',
+            stroke: theme.group.stroke,
+            strokeWidth: 1.75,
+          },
+          `g:${g.id}`,
+          sk,
+        )
+      : `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${card.radius + 4}" fill="${theme.group.fill}" stroke="${theme.group.stroke}" stroke-width="1.75"${theme.group.dashed ? ' stroke-dasharray="8 6"' : ''}/>`;
     out.push(
-      `<g><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${card.radius + 4}" fill="${theme.group.fill}" stroke="${theme.group.stroke}" stroke-width="1.75"${theme.group.dashed ? ' stroke-dasharray="8 6"' : ''}/>` +
+      `<g>${box}` +
         textPath(
           theme.group.uppercase ? g.label.toUpperCase() : g.label,
           b.x + 20,
@@ -119,7 +138,26 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
       y: r2(tip.y - uy * (ARROW.len - 1)),
     };
     const base = { x: tip.x - ux * ARROW.len, y: tip.y - uy * ARROW.len };
-    const head = `${r2(tip.x)},${r2(tip.y)} ${r2(base.x - uy * ARROW.half)},${r2(base.y + ux * ARROW.half)} ${r2(base.x + uy * ARROW.half)},${r2(base.y - ux * ARROW.half)}`;
+    const headPts: [number, number][] = [
+      [r2(tip.x), r2(tip.y)],
+      [r2(base.x - uy * ARROW.half), r2(base.y + ux * ARROW.half)],
+      [r2(base.x + uy * ARROW.half), r2(base.y - ux * ARROW.half)],
+    ];
+    if (sk) {
+      const ink = { stroke: theme.edge, strokeWidth: theme.edgeWidth };
+      out.push(
+        `<g>${sketch.path(roundedPath(pts, 12), ink, `e:${e.id}`, sk)}` +
+          sketch.polygon(
+            headPts,
+            { ...ink, fill: theme.edge, fillStyle: 'solid', strokeWidth: 1 },
+            `a:${e.id}`,
+            sk,
+          ) +
+          `</g>`,
+      );
+      continue;
+    }
+    const head = headPts.map((p) => p.join(',')).join(' ');
     out.push(
       `<g><path d="${roundedPath(pts, 12)}" fill="none" stroke="${theme.edge}" stroke-width="${theme.edgeWidth}" stroke-linecap="round" stroke-linejoin="round"/>` +
         `<polygon points="${head}" fill="${theme.edge}" stroke="${theme.edge}" stroke-width="1" stroke-linejoin="round"/></g>`,
@@ -136,6 +174,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
       .replaceAll('{A}', hue.a)
       .replaceAll('{M}', hue.m)
       .replaceAll('{L}', theme.iconLight);
+    const iconMarkup = sk ? sketchIcon(body, `i:${n.id}`, sk, [theme.iconLight, hue.a]) : body;
     const labelY0 = b.y + 14 + iconSize + NODE.labelGap + 12;
     const labels = b.lines
       .map((line, i) =>
@@ -152,7 +191,23 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
       .join('');
     const rect = `x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${card.radius}"`;
     let shell: string;
-    if (card.style === 'bar') {
+    if (sk) {
+      shell = sketch.rect(
+        b.x,
+        b.y,
+        b.w,
+        b.h,
+        card.radius,
+        {
+          fill: card.fill ?? hue.card,
+          fillStyle: 'solid',
+          stroke: hue.a,
+          strokeWidth: card.stroke,
+        },
+        `n:${n.id}`,
+        sk,
+      );
+    } else if (card.style === 'bar') {
       const clip = `sk-clip-${ni}`;
       defs.push(`<clipPath id="${clip}"><rect ${rect}/></clipPath>`);
       shell =
@@ -164,7 +219,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     out.push(
       `<g><title>${esc(n.label)}</title>` +
         shell +
-        `<g transform="translate(${ix} ${iy}) scale(${r2(iconSize / 48)})">${body}</g>` +
+        `<g transform="translate(${ix} ${iy}) scale(${r2(iconSize / 48)})">${iconMarkup}</g>` +
         labels +
         `</g>`,
     );
@@ -176,7 +231,16 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     const cy = r2(pill.y + pill.h / 2);
     const num = e.step === undefined ? '' : String(e.step);
     const badge = (cx: number) =>
-      `<circle cx="${r2(cx)}" cy="${cy}" r="${PILL.badge / 2}" fill="${theme.badge}"/>` +
+      (sk
+        ? sketch.circle(
+            r2(cx),
+            cy,
+            PILL.badge / 2,
+            { fill: theme.badge, fillStyle: 'solid', stroke: theme.edge, strokeWidth: 1.5 },
+            `b:${e.id}`,
+            sk,
+          )
+        : `<circle cx="${r2(cx)}" cy="${cy}" r="${PILL.badge / 2}" fill="${theme.badge}"/>`) +
       textPath(num, cx, r2(cy + 4.6), 13, theme.fonts.badge, theme.badgeText, 'middle');
     if (!e.label) {
       out.push(`<g>${badge(pill.x + pill.w / 2)}</g>`);
@@ -184,8 +248,25 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     }
     const hasBadge = num !== '';
     const textX = hasBadge ? pill.x + PILL.badge + 4 : pill.x + 11;
+    const pillBox = sk
+      ? sketch.rect(
+          pill.x,
+          pill.y,
+          pill.w,
+          pill.h,
+          pill.h / 2,
+          {
+            fill: theme.pill.fill,
+            fillStyle: 'solid',
+            stroke: theme.pill.stroke,
+            strokeWidth: 1.5,
+          },
+          `p:${e.id}`,
+          sk,
+        )
+      : `<rect x="${pill.x}" y="${pill.y}" width="${pill.w}" height="${pill.h}" rx="${pill.h / 2}" fill="${theme.pill.fill}" stroke="${theme.pill.stroke}" stroke-width="1.5"/>`;
     out.push(
-      `<g><rect x="${pill.x}" y="${pill.y}" width="${pill.w}" height="${pill.h}" rx="${pill.h / 2}" fill="${theme.pill.fill}" stroke="${theme.pill.stroke}" stroke-width="1.5"/>` +
+      `<g>${pillBox}` +
         (hasBadge ? badge(pill.x + pill.h / 2) : '') +
         textPath(e.label, textX, r2(cy + 4.6), PILL.labelSize, theme.fonts.edge, theme.pill.text) +
         `</g>`,

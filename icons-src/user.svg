@@ -1,0 +1,5 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Clean redraw of the owner's hand-drawn user_icon (head + shoulders). -->
+<circle cx="24" cy="14.5" r="9" fill="#00FF00" stroke="#0000FF" stroke-width="2.5"/>
+<path d="M7 40.5C7 31.9 14.6 26.5 24 26.5S41 31.9 41 40.5V41.5C41 42.3 40.3 43 39.5 43H8.5C7.7 43 7 42.3 7 41.5Z" fill="#00FF00" stroke="#0000FF" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>

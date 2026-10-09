@@ -67,7 +67,7 @@ const svg = await render('edges:\n  - client > lb > api > db');
 | `nodes`     | `id: icon` or `id: icon \| Label`. Optional: icon names/aliases auto-create nodes |
 | `groups`    | `Label: [node ids]` draws a labeled container                                     |
 | `edges`     | `a > b`, `a > b > c`, `a > b \| label` (label goes on the last hop)               |
-| `theme`     | `graphite` (default), `blueprint`, `midnight`, `classic`                          |
+| `theme`     | `graphite` (default), `blueprint`, `midnight`, `classic`, `sketch`                |
 | `steps`     | `false` to hide the numbered step badges (default: numbered in edge order)        |
 | `direction` | `right` (default) or `down`                                                       |
 
@@ -75,9 +75,9 @@ Icons: user, server, database, cache, queue, load-balancer, api-gateway, cdn, st
 
 ## Themes
 
-| Graphite (default)                    | Blueprint                               | Midnight                              | Classic                             |
-| ------------------------------------- | --------------------------------------- | ------------------------------------- | ----------------------------------- |
-| ![graphite](docs/themes/graphite.svg) | ![blueprint](docs/themes/blueprint.svg) | ![midnight](docs/themes/midnight.svg) | ![classic](docs/themes/classic.svg) |
+| Graphite (default)                    | Blueprint                               | Midnight                              | Classic                             | Sketch                            |
+| ------------------------------------- | --------------------------------------- | ------------------------------------- | ----------------------------------- | --------------------------------- |
+| ![graphite](docs/themes/graphite.svg) | ![blueprint](docs/themes/blueprint.svg) | ![midnight](docs/themes/midnight.svg) | ![classic](docs/themes/classic.svg) | ![sketch](docs/themes/sketch.svg) |
 
 Errors are short and fixable, e.g. `unknown node "databse". Did you mean: database?`
 
@@ -85,6 +85,6 @@ Errors are short and fixable, e.g. `unknown node "databse". Did you mean: databa
 
 Early development. Renderer, themes, PNG export and MCP server work; the icon set is being expanded. See `.claudememory/progress.md`.
 
-Icons and palette are original. The look is inspired by flat educational system design diagrams, with no third-party artwork. Fonts: Inter, JetBrains Mono and Nunito (all SIL OFL, see `packages/sysketch/assets/`).
+Icons and palette are original. The look is inspired by flat educational system design diagrams, with no third-party artwork. Fonts: Inter, JetBrains Mono, Nunito and Patrick Hand (all SIL OFL, see `packages/sysketch/assets/`). The sketch theme uses rough.js (MIT).
 
 License: MIT

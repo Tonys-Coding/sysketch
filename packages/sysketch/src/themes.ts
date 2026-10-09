@@ -1,3 +1,4 @@
+import type { SketchStyle } from './sketch.js';
 import type { FontRef } from './text.js';
 
 export interface Hue {
@@ -36,12 +37,15 @@ export interface Theme {
   };
   /** the {L} highlight color inside icons */
   iconLight: string;
+  /** draw every shape hand-made (rough strokes, crayon fills) */
+  sketch?: SketchStyle;
   hues: Record<string, Hue>;
 }
 
 const nunito = (weight: number): FontRef => ({ family: 'nunito', weight });
 const inter = (weight: number): FontRef => ({ family: 'inter', weight });
 const mono = (weight: number): FontRef => ({ family: 'jetbrains-mono', weight });
+const hand: FontRef = { family: 'patrick-hand', weight: 400 };
 
 /** Bright accents over deep fills, for dark canvases. */
 const darkHues: Record<string, Hue> = {
@@ -197,6 +201,38 @@ export const blueprintTheme: Theme = {
   },
 };
 
+const INK = '#1f2328';
+
+/** Hand-drawn: ink outlines, crayon-scribbled icon fills, paper background. */
+export const sketchTheme: Theme = {
+  name: 'sketch',
+  fonts: { title: hand, label: hand, edge: hand, group: hand, badge: hand },
+  bg: '#fffdf7',
+  title: INK,
+  text: INK,
+  edge: INK,
+  edgeWidth: 2,
+  badge: '#ffd43b',
+  badgeText: INK,
+  pill: { fill: '#fffdf7', stroke: INK, text: INK },
+  group: { fill: '#f5f1e6', stroke: '#8a8577', dashed: false, label: '#5c574b', uppercase: false },
+  card: { radius: 12, stroke: 2.25, style: 'outline', fill: '#ffffff' },
+  iconLight: '#ffffff',
+  sketch: { roughness: 1.2, bowing: 1, iconRoughness: 0.8, hachureGap: 1.9 },
+  hues: {
+    blue: { a: INK, m: '#4cc3fc', card: '#ffffff' },
+    green: { a: INK, m: '#69db7c', card: '#ffffff' },
+    amber: { a: INK, m: '#ffc93c', card: '#ffffff' },
+    red: { a: INK, m: '#ff6b6b', card: '#ffffff' },
+    violet: { a: INK, m: '#b197fc', card: '#ffffff' },
+    teal: { a: INK, m: '#38d9a9', card: '#ffffff' },
+    pink: { a: INK, m: '#f783ac', card: '#ffffff' },
+    sky: { a: INK, m: '#74c0fc', card: '#ffffff' },
+    orange: { a: INK, m: '#ffa94d', card: '#ffffff' },
+    slate: { a: INK, m: '#adb5bd', card: '#ffffff' },
+  },
+};
+
 /** Default: corporate dark. */
 export const defaultTheme = graphiteTheme;
 
@@ -205,4 +241,5 @@ export const themes: Record<string, Theme> = {
   blueprint: blueprintTheme,
   midnight: midnightTheme,
   classic: classicTheme,
+  sketch: sketchTheme,
 };

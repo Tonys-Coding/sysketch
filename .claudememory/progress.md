@@ -92,6 +92,8 @@ _(fill in after Phase 0 search)_
 | 2026-10-09 | Root build order is explicit (sysketch then sysketch-mcp); CI runs build before typecheck/test                                | mcp imports sysketch's dist types                                                                                                                                          |
 | 2026-10-09 | Icon catalog with fallbacks + `npm run icons` import pipeline                                                                 | Owner adds icons one at a time; specs can use any catalog name today                                                                                                       |
 | 2026-10-09 | MCP saves inline specs as `<out>.yaml`                                                                                        | Enables one-line edits instead of resending specs                                                                                                                          |
+| 2026-10-09 | `sketch` theme: rough.js (seeded per shape, deterministic) + Patrick Hand font; ink outlines, crayon hachure icon fills       | Owner's own drawing was hand-drawn style; renderer adds the look so icon files stay clean vectors                                                                          |
+| 2026-10-09 | Traced bitmaps (VTracer etc.) are not usable as icons                                                                         | 1.2 MB, 3,457 paths, 1,986 colors; can't be recolored per theme                                                                                                            |
 | 2026-10-09 | MCP/CLI return file path + short summary, never SVG text                                                                      | Prevents re-creating the token cost we are eliminating                                                                                                                     |
 
 ## Open Questions
@@ -147,3 +149,9 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - Fixes from the test: inline specs are now saved next to the output (`spec: diagrams/x.yaml` in the reply) so edits work; replies use cwd-relative paths; `preview` description says "only when the user asks".
 - Feature gaps the raw baseline showed (backlog, cheap in spec tokens): node sublabel/description line, dashed "response" edges, colored edges, step legend, subtitle.
 - `list_icons` returns 61 lines (~1k tokens) per fresh session when the model calls it; consider a `query` filter.
+
+## Sketch theme + first owner icon (2026-10-09)
+
+- Owner's first icon: `icons-src/user.svg` (clean redraw by Claude of the owner's crayon drawing). Their original traced file was moved to `.shots/old/user_icon.svg` (gitignored).
+- `src/sketch.ts`: rough.js generator, seed = FNV hash of a per-shape key; `sketchIcon()` re-draws icon elements (rect/circle/ellipse/path/line/polygon/polyline, inherits g attrs). Fills equal to highlight or accent stay solid; mid fills are hachured.
+- Icon style directions sample: `docs/icon-styles.png` (duotone line, offset print, solid glyph, app tile, isometric 3D). Owner to pick one; all fit the 3-color system.

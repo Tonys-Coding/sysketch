@@ -31,23 +31,40 @@ describe('render', () => {
     expect(example('url-shortener').length).toBeLessThan(260);
   });
 
-  it.each(['url-shortener', 'web-scale', 'microservices'])('matches the golden SVG for %s', async (name) => {
-    await expect(await render(example(name))).toMatchFileSnapshot(`../../../examples/${name}.svg`);
-  });
+  it.each(['url-shortener', 'web-scale', 'microservices'])(
+    'matches the golden SVG for %s',
+    async (name) => {
+      await expect(await render(example(name))).toMatchFileSnapshot(
+        `../../../examples/${name}.svg`,
+      );
+    },
+  );
 });
 
 describe('themes', () => {
-  it.each(['graphite', 'blueprint', 'midnight', 'classic'])('renders with %s', async (theme) => {
-    const svg = await render(example('web-scale'), { theme });
-    expect(svg.startsWith('<svg')).toBe(true);
-    expect(svg).not.toContain('<text');
-  });
+  it.each(['graphite', 'blueprint', 'midnight', 'classic', 'sketch'])(
+    'renders with %s',
+    async (theme) => {
+      const svg = await render(example('web-scale'), { theme });
+      expect(svg.startsWith('<svg')).toBe(true);
+      expect(svg).not.toContain('<text');
+    },
+  );
 
   it('reads the theme from the spec, and rejects unknown themes', async () => {
     const dark = await render('theme: midnight\nedges:\n  - client > api');
     expect(dark).toContain('#070b16');
     await expect(render('theme: neon\nedges:\n  - client > api')).rejects.toThrow(
-      /Unknown theme "neon"\. Available: graphite, blueprint, midnight, classic/,
+      /Unknown theme "neon"\. Available: graphite, blueprint, midnight, classic, sketch/,
     );
+  });
+});
+
+describe('sketch theme', () => {
+  it('is deterministic and draws rough paths instead of crisp shapes', async () => {
+    const spec = example('url-shortener');
+    const a = await render(spec, { theme: 'sketch' });
+    expect(a).toBe(await render(spec, { theme: 'sketch' }));
+    expect(a).not.toMatch(/<rect x=|<circle |<ellipse /);
   });
 });
