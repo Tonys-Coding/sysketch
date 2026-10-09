@@ -47,6 +47,23 @@ Design rules for the spec:
 - Friendly rounded font (permissive license, e.g. Nunito / Quicksand — confirm license when picking).
 - All colors/radii/stroke widths are **design tokens** in a theme object, so themes are data, not code.
 
+## Custom Look (owner direction, 2026-10-09)
+
+Owner wants a mix of **clean & corporate** and **dark & techy**. Themes built (`src/themes.ts`, gallery in `docs/themes/`):
+
+- `midnight`: navy + dot grid, neon outline cards, cyan badges, mono annotations (most "techy").
+- `graphite`: corporate dark, graphite cards with a colored accent strip, amber badges, solid containers.
+- `blueprint`: corporate light, white cards with accent strip on a faint grid, navy badges, mono annotations.
+- `light`: original friendly Nunito look.
+  Fonts: Inter (labels/titles) + JetBrains Mono (edge labels, group labels), both SIL OFL, bundled as WOFF in `packages/sysketch/assets/`. Spec can set `theme: midnight` (about 3 tokens).
+  Pending: owner picks a default (or a hybrid) before more polish.
+
+## Brand Logos Policy (decision, not legal advice)
+
+- Core package ships **only original generic icons**. No third-party logos bundled.
+- Logos are trademarks: generally OK to reference a product (nominative use) but each brand has its own rules. PostgreSQL allows Slonik use under its trademark policy (approved forms, attribution line). Redis restricts logo use more tightly than the name. AWS/Azure/GCP publish official architecture icon sets meant for diagrams, under their own terms. Simple Icons is CC0 for its SVG data, but the trademarks still apply.
+- Plan: an optional, separately documented "brand icons" mechanism where the _user_ supplies logos (or a separate opt-in pack with per-brand license notes). Default stays generic icon + brand name as the label (`redis` -> "Redis").
+
 ## Icon Set (target ~40–60, original)
 
 Starter 10 for MVP: user/client, server, database, cache (redis-style), queue, load-balancer, api-gateway, cdn, storage/bucket, cloud/internet.

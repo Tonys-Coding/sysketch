@@ -1,7 +1,7 @@
 import { layout, NODE, PILL, type Pt } from './layout.js';
 import type { Model } from './model.js';
 import { lightTheme, type Theme } from './themes.js';
-import { textPathData, type Anchor, type Weight } from './text.js';
+import { textPathData, type Anchor, type FontRef } from './text.js';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const esc = (s: string) =>
@@ -12,11 +12,11 @@ function textPath(
   x: number,
   y: number,
   size: number,
-  weight: Weight,
+  font: FontRef,
   fill: string,
   anchor: Anchor = 'start',
 ): string {
-  return `<path d="${textPathData(text, x, y, size, weight, anchor)}" fill="${fill}"/>`;
+  return `<path d="${textPathData(text, x, y, size, font, anchor)}" fill="${fill}"/>`;
 }
 
 /** Polyline with rounded corners. */
@@ -51,19 +51,56 @@ export interface RenderOptions {
 
 export async function renderModel(model: Model, opts: RenderOptions = {}): Promise<string> {
   const theme = opts.theme ?? lightTheme;
-  const lay = await layout(model);
+  const lay = await layout(model, theme);
   const out: string[] = [];
+  const defs: string[] = [];
+  const { card } = theme;
+
+  if (theme.backdrop) {
+    const { kind, color, size } = theme.backdrop;
+    const mark =
+      kind === 'dots'
+        ? `<circle cx="${size / 2}" cy="${size / 2}" r="1.1" fill="${color}"/>`
+        : `<path d="M${size} 0H0V${size}" fill="none" stroke="${color}" stroke-width="1"/>`;
+    defs.push(
+      `<pattern id="sk-bg" width="${size}" height="${size}" patternUnits="userSpaceOnUse">${mark}</pattern>`,
+    );
+  }
+  if (card.shadow) {
+    const sh = card.shadow;
+    defs.push(
+      `<filter id="sk-shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="${sh.dy}" stdDeviation="${sh.blur / 2}" flood-color="${sh.color}" flood-opacity="${sh.opacity}"/></filter>`,
+    );
+  }
+  const shadowAttr = card.shadow ? ' filter="url(#sk-shadow)"' : '';
 
   if (model.title) {
-    out.push(textPath(model.title, lay.width / 2, lay.titleY, 30, 800, theme.text, 'middle'));
+    out.push(
+      textPath(
+        model.title,
+        lay.width / 2,
+        lay.titleY,
+        30,
+        theme.fonts.title,
+        theme.title,
+        'middle',
+      ),
+    );
   }
 
   for (const g of model.groups) {
     const b = lay.groups.get(g.id);
     if (!b) continue;
     out.push(
-      `<g><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="20" fill="${theme.groupFill}" stroke="${theme.groupStroke}" stroke-width="2" stroke-dasharray="9 7"/>` +
-        textPath(g.label, b.x + 20, b.y + 29, 16, 800, theme.muted) +
+      `<g><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${card.radius + 4}" fill="${theme.group.fill}" stroke="${theme.group.stroke}" stroke-width="1.75"${theme.group.dashed ? ' stroke-dasharray="8 6"' : ''}/>` +
+        textPath(
+          theme.group.uppercase ? g.label.toUpperCase() : g.label,
+          b.x + 20,
+          b.y + 29,
+          theme.group.uppercase ? 13 : 16,
+          theme.fonts.group,
+          theme.group.label,
+        ) +
         `</g>`,
     );
   }
@@ -89,7 +126,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     );
   }
 
-  for (const n of model.nodes) {
+  for (const [ni, n] of model.nodes.entries()) {
     const b = lay.nodes.get(n.id)!;
     const hue = theme.hues[n.icon.hue] ?? theme.hues.slate!;
     const iconSize = NODE.icon;
@@ -98,7 +135,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     const body = n.icon.body
       .replaceAll('{A}', hue.a)
       .replaceAll('{M}', hue.m)
-      .replaceAll('{L}', '#ffffff');
+      .replaceAll('{L}', theme.iconLight);
     const labelY0 = b.y + 14 + iconSize + NODE.labelGap + 12;
     const labels = b.lines
       .map((line, i) =>
@@ -107,15 +144,26 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
           b.x + b.w / 2,
           r2(labelY0 + i * 19),
           NODE.labelSize,
-          700,
+          theme.fonts.label,
           theme.text,
           'middle',
         ),
       )
       .join('');
+    const rect = `x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${card.radius}"`;
+    let shell: string;
+    if (card.style === 'bar') {
+      const clip = `sk-clip-${ni}`;
+      defs.push(`<clipPath id="${clip}"><rect ${rect}/></clipPath>`);
+      shell =
+        `<rect ${rect} fill="${card.fill ?? hue.card}" stroke="${card.border ?? hue.a}" stroke-width="${card.stroke}"${shadowAttr}/>` +
+        `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="5" fill="${hue.a}" clip-path="url(#${clip})"/>`;
+    } else {
+      shell = `<rect ${rect} fill="${card.fill ?? hue.card}" stroke="${hue.a}" stroke-width="${card.stroke}"${shadowAttr}/>`;
+    }
     out.push(
       `<g><title>${esc(n.label)}</title>` +
-        `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${theme.cardRadius}" fill="${hue.card}" stroke="${hue.a}" stroke-width="${theme.cardStroke}"/>` +
+        shell +
         `<g transform="translate(${ix} ${iy}) scale(${r2(iconSize / 48)})">${body}</g>` +
         labels +
         `</g>`,
@@ -129,7 +177,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     const num = e.step === undefined ? '' : String(e.step);
     const badge = (cx: number) =>
       `<circle cx="${r2(cx)}" cy="${cy}" r="${PILL.badge / 2}" fill="${theme.badge}"/>` +
-      textPath(num, cx, r2(cy + 4.6), 13, 800, theme.badgeText, 'middle');
+      textPath(num, cx, r2(cy + 4.6), 13, theme.fonts.badge, theme.badgeText, 'middle');
     if (!e.label) {
       out.push(`<g>${badge(pill.x + pill.w / 2)}</g>`);
       continue;
@@ -137,9 +185,9 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     const hasBadge = num !== '';
     const textX = hasBadge ? pill.x + PILL.badge + 4 : pill.x + 11;
     out.push(
-      `<g><rect x="${pill.x}" y="${pill.y}" width="${pill.w}" height="${pill.h}" rx="${pill.h / 2}" fill="${theme.pillFill}" stroke="${theme.pillStroke}" stroke-width="1.5"/>` +
+      `<g><rect x="${pill.x}" y="${pill.y}" width="${pill.w}" height="${pill.h}" rx="${pill.h / 2}" fill="${theme.pill.fill}" stroke="${theme.pill.stroke}" stroke-width="1.5"/>` +
         (hasBadge ? badge(pill.x + pill.h / 2) : '') +
-        textPath(e.label, textX, r2(cy + 4.6), PILL.labelSize, 700, theme.text) +
+        textPath(e.label, textX, r2(cy + 4.6), PILL.labelSize, theme.fonts.edge, theme.pill.text) +
         `</g>`,
     );
   }
@@ -154,7 +202,11 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${lay.width} ${lay.height}" width="${lay.width}" height="${lay.height}" role="img" aria-label="${esc(title)}">` +
     `<title>${esc(title)}</title><desc>${esc(desc)}</desc>` +
+    (defs.length ? `<defs>${defs.join('')}</defs>` : '') +
     `<rect width="${lay.width}" height="${lay.height}" fill="${theme.bg}"/>` +
+    (theme.backdrop
+      ? `<rect width="${lay.width}" height="${lay.height}" fill="url(#sk-bg)"/>`
+      : '') +
     out.join('') +
     `</svg>\n`
   );

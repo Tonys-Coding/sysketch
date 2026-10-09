@@ -32,6 +32,7 @@ const edgeValue = z.union([
 export const specSchema = z
   .object({
     title: z.string().optional(),
+    theme: z.string().optional(),
     direction: z.enum(['right', 'down']).optional(),
     steps: z.boolean().optional(),
     nodes: z.record(z.string(), nodeValue).optional(),
@@ -61,6 +62,7 @@ export interface EdgeModel {
 }
 export interface Model {
   title?: string;
+  theme?: string;
   direction: 'right' | 'down';
   nodes: NodeModel[];
   groups: GroupModel[];
@@ -150,7 +152,7 @@ export function buildModel(input: string | object): Model {
       .map((i) => `${i.path.join('.') || 'spec'}: ${i.message}`)
       .join('; ');
     throw new SysketchError(
-      `Invalid spec. ${msg}. Expected keys: title, direction, steps, nodes, groups, edges.`,
+      `Invalid spec. ${msg}. Expected keys: title, theme, direction, steps, nodes, groups, edges.`,
     );
   }
   const spec = parsed.data;
@@ -209,6 +211,7 @@ export function buildModel(input: string | object): Model {
 
   return {
     ...(spec.title ? { title: spec.title } : {}),
+    ...(spec.theme ? { theme: spec.theme } : {}),
     direction: spec.direction ?? 'right',
     nodes: [...nodes.values()],
     groups,

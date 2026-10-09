@@ -1,4 +1,4 @@
-import { buildModel } from './model.js';
+import { buildModel, SysketchError } from './model.js';
 import { renderModel, type RenderOptions } from './render.js';
 import { themes } from './themes.js';
 
@@ -17,12 +17,14 @@ export async function render(
   const model = buildModel(input);
   if (opts.direction) model.direction = opts.direction;
   const ro: RenderOptions = {};
-  if (opts.theme) {
-    const t = themes[opts.theme];
-    if (!t)
-      throw new Error(
-        `Unknown theme "${opts.theme}". Available: ${Object.keys(themes).join(', ')}`,
+  const name = opts.theme ?? model.theme;
+  if (name) {
+    const t = themes[name];
+    if (!t) {
+      throw new SysketchError(
+        `Unknown theme "${name}". Available: ${Object.keys(themes).join(', ')}`,
       );
+    }
     ro.theme = t;
   }
   return renderModel(model, ro);

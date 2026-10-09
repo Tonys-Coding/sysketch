@@ -1,7 +1,8 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
 import type { ElkNode, ElkExtendedEdge, LayoutOptions } from 'elkjs/lib/elk-api.js';
 import type { Model } from './model.js';
-import { measure, wrap } from './text.js';
+import type { Theme } from './themes.js';
+import { measure, wrap, type FontRef } from './text.js';
 
 export interface Pt {
   x: number;
@@ -41,23 +42,24 @@ export const PILL = { h: 28, badge: 26, labelSize: 13 } as const;
 export function pillSize(
   label: string | undefined,
   step: number | undefined,
+  font: FontRef,
 ): { w: number; h: number } | undefined {
   if (!label && step === undefined) return undefined;
   if (!label) return { w: PILL.badge, h: PILL.badge };
-  const tw = measure(label, PILL.labelSize, 700);
+  const tw = measure(label, PILL.labelSize, font);
   return { w: Math.ceil(tw + 22 + (step === undefined ? 0 : PILL.badge - 4)), h: PILL.h };
 }
 
 const elk = new ELK();
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
-export async function layout(model: Model): Promise<Layout> {
+export async function layout(model: Model, theme: Theme): Promise<Layout> {
   const nodes = new Map<string, NodeBox>();
   const elkNodes = new Map<string, ElkNode>();
 
   for (const n of model.nodes) {
-    const lines = wrap(n.label, NODE.labelSize, 700, NODE.maxLabelW);
-    const textW = Math.max(...lines.map((l) => measure(l, NODE.labelSize, 700)));
+    const lines = wrap(n.label, NODE.labelSize, theme.fonts.label, NODE.maxLabelW);
+    const textW = Math.max(...lines.map((l) => measure(l, NODE.labelSize, theme.fonts.label)));
     const w = Math.max(NODE.minW, Math.ceil(textW + 36));
     const h = NODE.h + (lines.length - 1) * 19;
     nodes.set(n.id, { x: 0, y: 0, w, h, lines });
@@ -73,7 +75,7 @@ export async function layout(model: Model): Promise<Layout> {
   const loose = model.nodes.filter((n) => !grouped.has(n.id)).map((n) => elkNodes.get(n.id)!);
 
   const edges: ElkExtendedEdge[] = model.edges.map((e) => {
-    const size = pillSize(e.label, e.step);
+    const size = pillSize(e.label, e.step, theme.fonts.edge);
     return {
       id: `e:${e.id}`,
       sources: [`n:${e.from}`],

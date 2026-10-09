@@ -9,6 +9,7 @@ _Last updated: 2026-10-09_
 - [x] `package.json` (private workspace root), Playwright 1.64.0 + Chromium installed, `playwright.config.ts`, smoke test passing (`npm run test:e2e`), `.gitignore`.
 - [x] Monorepo scaffold: lint, typecheck, vitest, tsup build, Playwright, CI workflow all pass locally.
 - [x] Phase 1 renderer working end to end (see Phase 1 checklist). Not yet pushed.
+- [x] Theme variants midnight / graphite / blueprint (+ light). Waiting on owner to pick a default.
 
 ## What's Broken / Risks / Tech Debt
 
@@ -80,6 +81,8 @@ _(fill in after Phase 0 search)_
 | 2026-10-09 | Text rendered as paths by default, via real font metrics                                                                      | Pixel-identical everywhere (slides, Notion, Figma, Slack, PNG), exact label fitting, solves measurement risk. File size doesn't cost LLM tokens because tools return paths |
 | 2026-10-09 | Packages: `packages/sysketch` (core lib + CLI, bin `sysketch`) and later `packages/mcp` (`sysketch-mcp`). Core and CLI merged | One install, `npx sysketch`; fewer packages to version                                                                                                                     |
 | 2026-10-09 | `ignoreDeprecations: "6.0"` in tsconfig.base (TS 6 + tsup dts)                                                                | tsup injects deprecated baseUrl; revisit when tsup fixes it                                                                                                                |
+| 2026-10-09 | Theme system: fonts, backdrop, card style (outline/bar), shadow, hues all data; themes midnight/graphite/blueprint added      | Owner wants corporate + techy custom look; zero per-diagram token cost                                                                                                     |
+| 2026-10-09 | No third-party logos in core; optional user-supplied brand icons later                                                        | Trademark rules vary per brand                                                                                                                                             |
 | 2026-10-09 | MCP/CLI return file path + short summary, never SVG text                                                                      | Prevents re-creating the token cost we are eliminating                                                                                                                     |
 
 ## Open Questions

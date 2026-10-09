@@ -35,3 +35,19 @@ describe('render', () => {
     await expect(await render(example(name))).toMatchFileSnapshot(`../../../examples/${name}.svg`);
   });
 });
+
+describe('themes', () => {
+  it.each(['light', 'midnight', 'graphite', 'blueprint'])('renders with %s', async (theme) => {
+    const svg = await render(example('web-scale'), { theme });
+    expect(svg.startsWith('<svg')).toBe(true);
+    expect(svg).not.toContain('<text');
+  });
+
+  it('reads the theme from the spec, and rejects unknown themes', async () => {
+    const dark = await render('theme: midnight\nedges:\n  - client > api');
+    expect(dark).toContain('#070b16');
+    await expect(render('theme: neon\nedges:\n  - client > api')).rejects.toThrow(
+      /Unknown theme "neon"\. Available: light, midnight, graphite, blueprint/,
+    );
+  });
+});
