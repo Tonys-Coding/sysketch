@@ -8,7 +8,7 @@ _Last updated: 2026-10-09_
 - [x] Memory bank created.
 - [x] `package.json` (private workspace root), Playwright 1.64.0 + Chromium installed, `playwright.config.ts`, smoke test passing (`npm run test:e2e`), `.gitignore`.
 - [x] Monorepo scaffold: lint, typecheck, vitest, tsup build, Playwright, CI workflow all pass locally.
-- [ ] Renderer (Phase 1) not started.
+- [x] Phase 1 renderer working end to end (see Phase 1 checklist). Not yet pushed.
 
 ## What's Broken / Risks / Tech Debt
 
@@ -28,12 +28,12 @@ _Last updated: 2026-10-09_
 
 ### Phase 1 — MVP renderer (weekend)
 
-- [ ] Spec v0 schema (Zod) + LLM-friendly errors.
-- [ ] 10 starter icons, hand-curated.
-- [ ] Light theme as tokens.
-- [ ] Pipeline: parse -> normalize -> ELK layout -> SVG (groups, numbered step badges, edge labels, arrowheads).
-- [ ] Golden test + `examples/url-shortener.yaml` + rendered SVG.
-- **Exit criteria:** reference diagram looks good enough to be the README hero image.
+- [x] Spec v0 schema (Zod) + LLM-friendly errors.
+- [x] 10 starter icons, hand-curated.
+- [x] Light theme as tokens.
+- [x] Pipeline: parse -> normalize -> ELK layout -> SVG (groups, numbered step badges, edge labels, arrowheads).
+- [x] Golden test + `examples/url-shortener.yaml` + rendered SVG.
+- **Exit criteria:** reference diagram looks good enough to be the README hero image. MET (first pass); polish list below.
 
 ### Phase 2 — CLI + PNG (≈ 1 day)
 
@@ -89,3 +89,22 @@ _(fill in after Phase 0 search)_
 3. ~~Text paths vs font~~ Decided: paths (see decisions).
 4. Edge style: orthogonal vs curved as default? (Lean orthogonal with rounded corners; verify visually with Playwright screenshots.)
 5. Is the web playground in v1 or post-launch? (Lean post-launch; MCP + CLI first.)
+
+## Phase 1 Notes (2026-10-09)
+
+Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golden tests + 2 Playwright visual-regression tests; examples `url-shortener`, `web-scale` (SVG goldens committed in `examples/`). Dev helper `scripts/shot.mjs` screenshots an SVG for visual review.
+
+- URL-shortener spec is **138 chars (~40 tokens)**; SVG output ~62 KB (18.6 KB gzipped) because text is paths.
+- **YAML gotcha found:** unquoted `a > b : label` parses as a one-key map. Label separator is now `|` (`a > b | label`); the one-key-map form is still accepted as a fallback.
+- Implicit nodes: icon names/aliases auto-create nodes with friendly labels (`lb` -> "Load Balancer"), so many specs need no `nodes:` block.
+- ELK notes: `elk.json.edgeCoords/shapeCoords = ROOT` gives absolute coords; edge labels (`inline`) reserve room for the badge/label pill; hierarchy handling INCLUDE_CHILDREN routes edges across groups.
+- opentype.js must stay on 1.3.x (2.0 throws on Nunito's GSUB table). `ignoreDeprecations` and `types:["node"]` needed in tsconfig for TS 6.
+
+### Polish backlog (visual)
+
+- [ ] Edges sometimes enter a node near a corner (e.g. worker -> db in web-scale); consider ports / centered attachment.
+- [ ] Short hops with a label pill get cramped (cache -> db "miss"); enforce min gap for labeled edges.
+- [ ] Optional soft drop shadow on cards, subtle group tints per hue, bigger title.
+- [ ] More icons (target 40-60), dark theme, PNG export (resvg), `direction: down` visual check.
+- [ ] Bundle fonts for browser use (currently reads font from disk via node:fs).
+- [ ] Tool should write files and return only a path + summary (MCP phase).

@@ -1,0 +1,21 @@
+title: Scaling a Web App
+nodes:
+  users: user | Users
+  api1: server | API Server 1
+  api2: server | API Server 2
+  jobs: worker | Worker
+  assets: s3 | Static Assets
+groups:
+  App Tier: [api1, api2]
+  Data Tier: [cache, db]
+  Async: [queue, jobs]
+edges:
+  - users > cdn > assets
+  - users > lb | HTTPS
+  - lb > api1
+  - lb > api2
+  - api1 > cache
+  - api2 > cache
+  - cache > db | miss
+  - api1 > queue
+  - queue > jobs > db

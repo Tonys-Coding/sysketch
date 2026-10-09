@@ -1,0 +1,37 @@
+import { readFileSync } from 'node:fs';
+import { describe, expect, it } from 'vitest';
+import { render } from '../src/index.js';
+
+const example = (name: string) =>
+  readFileSync(new URL(`../../../examples/${name}.yaml`, import.meta.url), 'utf8');
+
+describe('render', () => {
+  it('is deterministic', async () => {
+    const spec = example('url-shortener');
+    expect(await render(spec)).toBe(await render(spec));
+  });
+
+  it('draws text as paths, never <text>, and keeps accessibility tags', async () => {
+    const svg = await render(example('url-shortener'));
+    expect(svg).not.toContain('<text');
+    expect(svg).toContain('<title>URL Shortener</title>');
+    expect(svg).toContain('role="img"');
+  });
+
+  it('supports vertical direction', async () => {
+    const down = await render('edges:\n  - client > lb > api', { direction: 'down' });
+    const right = await render('edges:\n  - client > lb > api');
+    const size = (s: string) =>
+      /viewBox="0 0 (\d+) (\d+)"/.exec(s)!.slice(1).map(Number) as [number, number];
+    expect(size(down)[1]).toBeGreaterThan(size(down)[0]);
+    expect(size(right)[0]).toBeGreaterThan(size(right)[1]);
+  });
+
+  it('keeps the reference spec tiny', () => {
+    expect(example('url-shortener').length).toBeLessThan(260);
+  });
+
+  it.each(['url-shortener', 'web-scale'])('matches the golden SVG for %s', async (name) => {
+    await expect(await render(example(name))).toMatchFileSnapshot(`../../../examples/${name}.svg`);
+  });
+});
