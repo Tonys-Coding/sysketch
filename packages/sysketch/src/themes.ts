@@ -57,8 +57,9 @@ const darkHues: Record<string, Hue> = {
   slate: { a: '#94a3b8', m: '#334155', card: '#151b26' },
 };
 
-export const lightTheme: Theme = {
-  name: 'light',
+/** The original friendly look: pastel cards, rounded Nunito. */
+export const classicTheme: Theme = {
+  name: 'classic',
   fonts: {
     title: nunito(800),
     label: nunito(700),
@@ -196,9 +197,12 @@ export const blueprintTheme: Theme = {
   },
 };
 
+/** Default: corporate dark. */
+export const defaultTheme = graphiteTheme;
+
 export const themes: Record<string, Theme> = {
-  light: lightTheme,
-  midnight: midnightTheme,
   graphite: graphiteTheme,
   blueprint: blueprintTheme,
+  midnight: midnightTheme,
+  classic: classicTheme,
 };

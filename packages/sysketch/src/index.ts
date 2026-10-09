@@ -4,7 +4,7 @@ import { themes } from './themes.js';
 
 export { buildModel, SysketchError, type Model, type Spec } from './model.js';
 export { ICONS, iconKeys } from './icons.js';
-export { themes, lightTheme, type Theme } from './themes.js';
+export { themes, defaultTheme, type Theme } from './themes.js';
 export { renderModel, type RenderOptions } from './render.js';
 
 export const VERSION = '0.0.0';

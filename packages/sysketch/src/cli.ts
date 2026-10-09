@@ -4,7 +4,7 @@ import { basename, extname } from 'node:path';
 import { ICONS, SysketchError, VERSION, render } from './index.js';
 
 const HELP = `sysketch ${VERSION}
-  sysketch render <spec.yaml|-> [-o out.svg] [--direction right|down] [--theme light]
+  sysketch render <spec.yaml|-> [-o out.svg] [--direction right|down] [--theme graphite|blueprint|midnight|classic]
   sysketch icons`;
 
 async function main(argv: string[]): Promise<number> {

@@ -56,7 +56,7 @@ Owner wants a mix of **clean & corporate** and **dark & techy**. Themes built (`
 - `blueprint`: corporate light, white cards with accent strip on a faint grid, navy badges, mono annotations.
 - `light`: original friendly Nunito look.
   Fonts: Inter (labels/titles) + JetBrains Mono (edge labels, group labels), both SIL OFL, bundled as WOFF in `packages/sysketch/assets/`. Spec can set `theme: midnight` (about 3 tokens).
-  Pending: owner picks a default (or a hybrid) before more polish.
+  **Decided (2026-10-09):** `graphite` is the default; `blueprint` for light pages; `midnight` as the bold option; old `light` renamed `classic`.
 
 ## Brand Logos Policy (decision, not legal advice)
 
@@ -65,6 +65,8 @@ Owner wants a mix of **clean & corporate** and **dark & techy**. Themes built (`
 - Plan: an optional, separately documented "brand icons" mechanism where the _user_ supplies logos (or a separate opt-in pack with per-brand license notes). Default stays generic icon + brand name as the label (`redis` -> "Redis").
 
 ## Icon Set (target ~40–60, original)
+
+Full prioritized checklist + drawing spec: `docs/icon-checklist.md` (P0 37, P1 12, P2 12). Owner will supply SVGs in `icons-src/` using 3 placeholder colors (#0000FF accent, #00FF00 mid, #FF0000 highlight) that map to `{A}` `{M}` `{L}`.
 
 Starter 10 for MVP: user/client, server, database, cache (redis-style), queue, load-balancer, api-gateway, cdn, storage/bucket, cloud/internet.
 Next: worker, cron, firewall, auth, search, monitoring, mobile, browser, message-broker, microservice, container, k8s, lambda/function, notification, email, payment, ML-model, etc.

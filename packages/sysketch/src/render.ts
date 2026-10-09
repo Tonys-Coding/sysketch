@@ -1,6 +1,6 @@
 import { layout, NODE, PILL, type Pt } from './layout.js';
 import type { Model } from './model.js';
-import { lightTheme, type Theme } from './themes.js';
+import { defaultTheme, type Theme } from './themes.js';
 import { textPathData, type Anchor, type FontRef } from './text.js';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -50,7 +50,7 @@ export interface RenderOptions {
 }
 
 export async function renderModel(model: Model, opts: RenderOptions = {}): Promise<string> {
-  const theme = opts.theme ?? lightTheme;
+  const theme = opts.theme ?? defaultTheme;
   const lay = await layout(model, theme);
   const out: string[] = [];
   const defs: string[] = [];

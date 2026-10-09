@@ -9,7 +9,8 @@ _Last updated: 2026-10-09_
 - [x] `package.json` (private workspace root), Playwright 1.64.0 + Chromium installed, `playwright.config.ts`, smoke test passing (`npm run test:e2e`), `.gitignore`.
 - [x] Monorepo scaffold: lint, typecheck, vitest, tsup build, Playwright, CI workflow all pass locally.
 - [x] Phase 1 renderer working end to end (see Phase 1 checklist). Not yet pushed.
-- [x] Theme variants midnight / graphite / blueprint (+ light). Waiting on owner to pick a default.
+- [x] Theme variants: graphite (default), blueprint, midnight, classic.
+- [ ] Owner drawing icons per `docs/icon-checklist.md`; convert from `icons-src/` when they arrive.
 
 ## What's Broken / Risks / Tech Debt
 

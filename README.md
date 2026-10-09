@@ -1,6 +1,6 @@
 # sysketch
 
-Turn a ~40-token spec into a polished, flat, colorful system design diagram. **The LLM never writes SVG**; a deterministic renderer does.
+Turn a ~40-token spec into a polished system design diagram. **The LLM never writes SVG**; a deterministic renderer does.
 
 ![URL shortener](examples/url-shortener.svg)
 
@@ -44,10 +44,17 @@ const svg = await render('edges:\n  - client > lb > api > db');
 | `nodes`     | `id: icon` or `id: icon \| Label`. Optional: icon names/aliases auto-create nodes |
 | `groups`    | `Label: [node ids]` draws a labeled container                                     |
 | `edges`     | `a > b`, `a > b > c`, `a > b \| label` (label goes on the last hop)               |
+| `theme`     | `graphite` (default), `blueprint`, `midnight`, `classic`                          |
 | `steps`     | `false` to hide the numbered step badges (default: numbered in edge order)        |
 | `direction` | `right` (default) or `down`                                                       |
 
 Icons: user, server, database, cache, queue, load-balancer, api-gateway, cdn, storage, cloud, plus aliases (`client`, `lb`, `db`, `redis`, `kafka`, `s3`...).
+
+## Themes
+
+| Graphite (default)                    | Blueprint                               | Midnight                              | Classic                             |
+| ------------------------------------- | --------------------------------------- | ------------------------------------- | ----------------------------------- |
+| ![graphite](docs/themes/graphite.svg) | ![blueprint](docs/themes/blueprint.svg) | ![midnight](docs/themes/midnight.svg) | ![classic](docs/themes/classic.svg) |
 
 Errors are short and fixable, e.g. `unknown node "databse". Did you mean: database?`
 
@@ -55,6 +62,6 @@ Errors are short and fixable, e.g. `unknown node "databse". Did you mean: databa
 
 Early development (Phase 1). MCP server, PNG export and more icons/themes are next. See `.claudememory/progress.md`.
 
-Icons and palette are original. The look is inspired by flat educational system design diagrams, with no third-party artwork. Font: Nunito (SIL OFL, see `packages/sysketch/assets/`).
+Icons and palette are original. The look is inspired by flat educational system design diagrams, with no third-party artwork. Fonts: Inter, JetBrains Mono and Nunito (all SIL OFL, see `packages/sysketch/assets/`).
 
 License: MIT
