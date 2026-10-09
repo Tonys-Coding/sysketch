@@ -1,0 +1,7 @@
+title: URL Shortener
+nodes: {client: user, lb: load-balancer, api: server, cache: redis, db: database}
+groups: {Backend: [api, cache, db]}
+edges:
+  - "client > lb > api : POST /shorten"
+  - "api > cache"
+  - "api > db"

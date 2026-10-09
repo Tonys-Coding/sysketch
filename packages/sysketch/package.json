@@ -1,0 +1,27 @@
+{
+  "name": "sysketch",
+  "version": "0.0.0",
+  "description": "Turn a tiny diagram spec into a polished system design diagram. The LLM never writes SVG.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "sysketch": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tonys-Coding/sysketch.git"
+  }
+}
