@@ -1,0 +1,33 @@
+{
+  "name": "sysketch-mcp",
+  "version": "0.0.0",
+  "description": "MCP server for sysketch: render system design diagrams from a tiny spec.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "sysketch-mcp": "./dist/cli.js"
+  },
+  "main": "./dist/server.js",
+  "types": "./dist/server.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tonys-Coding/sysketch.git",
+    "directory": "packages/mcp"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "sysketch": "0.0.0",
+    "zod": "^4.6.5"
+  }
+}

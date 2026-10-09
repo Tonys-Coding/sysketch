@@ -11,6 +11,7 @@ _Last updated: 2026-10-09_
 - [x] Phase 1 renderer working end to end (see Phase 1 checklist). Not yet pushed.
 - [x] Theme variants: graphite (default), blueprint, midnight, classic.
 - [ ] Owner drawing icons per `docs/icon-checklist.md`; convert from `icons-src/` when they arrive.
+- [x] Phase 2 (PNG/CLI) and Phase 3 (MCP server) built and tested (2026-10-09). Not published to npm.
 
 ## What's Broken / Risks / Tech Debt
 
@@ -39,16 +40,17 @@ _Last updated: 2026-10-09_
 
 ### Phase 2 — CLI + PNG (≈ 1 day)
 
-- [ ] `render` command (file/stdin -> svg/png), `--theme`, `--scale`.
-- [ ] resvg PNG export with embedded font.
-- [ ] `npx` works with zero config.
+- [x] `render` command (file/stdin -> svg/png), `--theme`, `--scale`, `--png`.
+- [x] resvg PNG export (no font needed: text is already paths). Shadows, patterns, clip paths render correctly.
+- [x] `npx` works with zero config (verified by installing packed tarballs in a temp dir).
 
 ### Phase 3 — MCP server (≈ 1 day) — the distribution hook
 
-- [ ] Tools: `render_diagram(spec, format, theme)`, `list_icons()`, `get_spec_schema()`.
-- [ ] Return SVG text and/or saved file path; image content for PNG.
-- [ ] Verify end-to-end from Claude Code (`claude mcp add`) and Claude Desktop.
-- [ ] Include a short "how to write a spec" prompt/resource so models get it right first try.
+- [x] Tools: `render_diagram(spec|file, out, theme, preview)`, `list_icons()`. Dropped `get_spec_schema`: a ~5-line syntax guide lives in the tool description instead.
+- [x] Returns only a one-line summary + path. PNG preview image only when `preview: true`.
+- [x] Verified over real stdio with the MCP SDK client. `.mcp.json` in repo for dogfooding.
+- [ ] Verify inside an actual Claude Code session (needs session restart to load `.mcp.json`) and Claude Desktop.
+- [x] Spec cheat sheet in the `render_diagram` description (definitions total ~1,275 chars, ~360 tokens; test enforces < 2,000 chars).
 
 ### Phase 4 — Polish & launch (≈ 1 week)
 
@@ -84,6 +86,9 @@ _(fill in after Phase 0 search)_
 | 2026-10-09 | `ignoreDeprecations: "6.0"` in tsconfig.base (TS 6 + tsup dts)                                                                | tsup injects deprecated baseUrl; revisit when tsup fixes it                                                                                                                |
 | 2026-10-09 | Theme system: fonts, backdrop, card style (outline/bar), shadow, hues all data; themes midnight/graphite/blueprint added      | Owner wants corporate + techy custom look; zero per-diagram token cost                                                                                                     |
 | 2026-10-09 | No third-party logos in core; optional user-supplied brand icons later                                                        | Trademark rules vary per brand                                                                                                                                             |
+| 2026-10-09 | `renderToFile` shared by CLI and MCP; `src/api.ts` holds render APIs (avoids index/files import cycle)                        | No duplicated logic                                                                                                                                                        |
+| 2026-10-09 | MCP default output: `file` spec -> sibling .svg; inline spec -> `diagrams/<title-slug>.svg`                                   | Predictable paths; edits re-render in place                                                                                                                                |
+| 2026-10-09 | Root build order is explicit (sysketch then sysketch-mcp); CI runs build before typecheck/test                                | mcp imports sysketch's dist types                                                                                                                                          |
 | 2026-10-09 | MCP/CLI return file path + short summary, never SVG text                                                                      | Prevents re-creating the token cost we are eliminating                                                                                                                     |
 
 ## Open Questions
@@ -112,3 +117,9 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - [ ] More icons (target 40-60), dark theme, PNG export (resvg), `direction: down` visual check.
 - [ ] Bundle fonts for browser use (currently reads font from disk via node:fs).
 - [ ] Tool should write files and return only a path + summary (MCP phase).
+
+## Phase 2-3 Notes (2026-10-09)
+
+- Measured overhead: tool definitions ~1,275 chars (~360 tokens/session); one render call (args + result) ~324 chars (~90 tokens).
+- Known low-severity advisory: esbuild (via tsup), Windows dev-server only, dev dependency. `npm audit fix` does not resolve it; revisit when tsup updates.
+- Playwright snapshots are darwin-only, so CI does not run e2e yet (would need linux baselines).

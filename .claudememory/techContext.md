@@ -19,11 +19,11 @@
 
 ## Planned Packages
 
-| Package                | Responsibility                                                                                                                    |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/sysketch`    | core (schema, parse, validate, layout, theme, icons, `renderSvg`) + CLI `sysketch render spec.yaml -o out.svg --png --theme dark` |
-| `packages/mcp` (later) | MCP server exposing `render_diagram`, `list_icons`, `get_spec_schema`                                                             |
-| `apps/web`             | playground/editor (later)                                                                                                         |
+| Package                         | Responsibility                                                                                                                    |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/sysketch`             | core (schema, parse, validate, layout, theme, icons, `renderSvg`) + CLI `sysketch render spec.yaml -o out.svg --png --theme dark` |
+| `packages/mcp` (`sysketch-mcp`) | MCP server exposing `render_diagram`, `list_icons`, `get_spec_schema`                                                             |
+| `apps/web`                      | playground/editor (later)                                                                                                         |
 
 ## Architecture & Data Flow
 

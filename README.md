@@ -28,8 +28,31 @@ That is 138 characters (about 40 tokens). Drawing the same diagram as raw SVG by
 
 ```bash
 npx sysketch render examples/url-shortener.yaml -o out.svg
+npx sysketch render examples/url-shortener.yaml --png --scale 2 --theme blueprint
 npx sysketch icons
 ```
+
+### With Claude Code, Claude Desktop, Cursor (MCP)
+
+```bash
+claude mcp add sysketch -- npx -y sysketch-mcp
+```
+
+Claude Desktop / Cursor config:
+
+```json
+{ "mcpServers": { "sysketch": { "command": "npx", "args": ["-y", "sysketch-mcp"] } } }
+```
+
+Then just ask: _"Diagram a URL shortener with sysketch."_ The model writes a short spec, the server writes `diagrams/url-shortener.svg`, and only a one-line summary comes back:
+
+```
+wrote diagrams/url-shortener.svg (1190x444, 5 nodes, 4 edges, 61.9 KB)
+```
+
+Tools: `render_diagram` (`spec` or `file`, optional `out` .svg/.png, `theme`, `preview`) and `list_icons`. The tool definitions cost about 360 tokens per session; a typical call is about 100 tokens. `preview: true` returns a PNG for the model to look at, which costs more, so it is off by default.
+
+(Not published to npm yet. Inside this repo, `.mcp.json` runs the local build.)
 
 ```ts
 import { render } from 'sysketch';
@@ -60,7 +83,7 @@ Errors are short and fixable, e.g. `unknown node "databse". Did you mean: databa
 
 ## Status
 
-Early development (Phase 1). MCP server, PNG export and more icons/themes are next. See `.claudememory/progress.md`.
+Early development. Renderer, themes, PNG export and MCP server work; the icon set is being expanded. See `.claudememory/progress.md`.
 
 Icons and palette are original. The look is inspired by flat educational system design diagrams, with no third-party artwork. Fonts: Inter, JetBrains Mono and Nunito (all SIL OFL, see `packages/sysketch/assets/`).
 

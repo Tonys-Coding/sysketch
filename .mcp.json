@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "sysketch": {
+      "command": "node",
+      "args": ["packages/mcp/dist/cli.js"]
+    }
+  }
+}

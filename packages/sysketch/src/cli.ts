@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { basename, extname } from 'node:path';
-import { ICONS, SysketchError, VERSION, render } from './index.js';
+import { ICONS, SysketchError, VERSION, renderToFile } from './index.js';
 
 const HELP = `sysketch ${VERSION}
-  sysketch render <spec.yaml|-> [-o out.svg] [--direction right|down] [--theme graphite|blueprint|midnight|classic]
+  sysketch render <spec.yaml|-> [-o out.svg|out.png] [--png] [--scale 2]
+                  [--direction right|down] [--theme graphite|blueprint|midnight|classic]
   sysketch icons`;
 
 async function main(argv: string[]): Promise<number> {
@@ -22,11 +23,15 @@ async function main(argv: string[]): Promise<number> {
   let outPath: string | undefined;
   let direction: 'right' | 'down' | undefined;
   let theme: string | undefined;
+  let png = false;
+  let scale: number | undefined;
   for (let i = 0; i < rest.length; i++) {
     const a = rest[i]!;
     if (a === '-o' || a === '--out') outPath = rest[++i];
     else if (a === '--direction') direction = rest[++i] === 'down' ? 'down' : 'right';
     else if (a === '--theme') theme = rest[++i];
+    else if (a === '--png') png = true;
+    else if (a === '--scale') scale = Number(rest[++i]);
     else file = a;
   }
   if (!file) {
@@ -35,14 +40,15 @@ async function main(argv: string[]): Promise<number> {
   }
 
   const text = readFileSync(file === '-' ? 0 : file, 'utf8');
-  const svg = await render(text, {
+  const ext = png ? '.png' : '.svg';
+  const dest =
+    outPath ?? (file === '-' ? `diagram${ext}` : `${basename(file, extname(file))}${ext}`);
+  const { summary } = await renderToFile(text, dest, {
     ...(direction ? { direction } : {}),
     ...(theme ? { theme } : {}),
+    ...(scale ? { scale } : {}),
   });
-  const dest = outPath ?? (file === '-' ? 'diagram.svg' : `${basename(file, extname(file))}.svg`);
-  writeFileSync(dest, svg);
-  const m = /viewBox="0 0 (\d+) (\d+)"/.exec(svg);
-  console.log(`wrote ${dest} (${m?.[1]}x${m?.[2]}, ${(svg.length / 1024).toFixed(1)} KB)`);
+  console.log(summary);
   return 0;
 }
 
