@@ -35,7 +35,10 @@ describe('sysketch-mcp', () => {
       spec: 'title: URL Shortener\nedges:\n  - client > lb > api',
     });
     expect(r.isError).toBeFalsy();
-    expect(text(r)).toMatch(/^wrote .*diagrams\/url-shortener\.svg \(\d+x\d+, 3 nodes, 2 edges/);
+    expect(text(r)).toMatch(
+      /^wrote diagrams\/url-shortener\.svg \(\d+x\d+, 3 nodes, 2 edges.*; spec: diagrams\/url-shortener\.yaml$/,
+    );
+    expect(readFileSync(join(dir, 'diagrams/url-shortener.yaml'), 'utf8')).toContain('client > lb');
     expect(text(r)).not.toContain('<svg');
     expect(readFileSync(join(dir, 'diagrams/url-shortener.svg'), 'utf8')).toMatch(/^<svg/);
   });

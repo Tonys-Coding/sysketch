@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 // Visual regression on the golden example diagrams, rendered in real Chromium.
-for (const name of ['url-shortener', 'web-scale']) {
+for (const name of ['url-shortener', 'web-scale', 'microservices']) {
   test(`${name} renders and matches screenshot`, async ({ page }) => {
     const svg = readFileSync(`examples/${name}.svg`, 'utf8');
     const errors: string[] = [];

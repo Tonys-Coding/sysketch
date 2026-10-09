@@ -3,3 +3,4 @@ test-results/
 playwright-report/
 dist/
 .shots/
+icons-src/_preview.png

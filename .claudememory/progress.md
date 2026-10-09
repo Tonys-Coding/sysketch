@@ -49,7 +49,8 @@ _Last updated: 2026-10-09_
 - [x] Tools: `render_diagram(spec|file, out, theme, preview)`, `list_icons()`. Dropped `get_spec_schema`: a ~5-line syntax guide lives in the tool description instead.
 - [x] Returns only a one-line summary + path. PNG preview image only when `preview: true`.
 - [x] Verified over real stdio with the MCP SDK client. `.mcp.json` in repo for dogfooding.
-- [ ] Verify inside an actual Claude Code session (needs session restart to load `.mcp.json`) and Claude Desktop.
+- [x] Verified with real headless Claude Code runs (2026-10-09), see "MCP field test" below.
+- [ ] Claude Desktop check.
 - [x] Spec cheat sheet in the `render_diagram` description (definitions total ~1,275 chars, ~360 tokens; test enforces < 2,000 chars).
 
 ### Phase 4 — Polish & launch (≈ 1 week)
@@ -89,6 +90,8 @@ _(fill in after Phase 0 search)_
 | 2026-10-09 | `renderToFile` shared by CLI and MCP; `src/api.ts` holds render APIs (avoids index/files import cycle)                        | No duplicated logic                                                                                                                                                        |
 | 2026-10-09 | MCP default output: `file` spec -> sibling .svg; inline spec -> `diagrams/<title-slug>.svg`                                   | Predictable paths; edits re-render in place                                                                                                                                |
 | 2026-10-09 | Root build order is explicit (sysketch then sysketch-mcp); CI runs build before typecheck/test                                | mcp imports sysketch's dist types                                                                                                                                          |
+| 2026-10-09 | Icon catalog with fallbacks + `npm run icons` import pipeline                                                                 | Owner adds icons one at a time; specs can use any catalog name today                                                                                                       |
+| 2026-10-09 | MCP saves inline specs as `<out>.yaml`                                                                                        | Enables one-line edits instead of resending specs                                                                                                                          |
 | 2026-10-09 | MCP/CLI return file path + short summary, never SVG text                                                                      | Prevents re-creating the token cost we are eliminating                                                                                                                     |
 
 ## Open Questions
@@ -111,10 +114,11 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 
 ### Polish backlog (visual)
 
-- [ ] Edges sometimes enter a node near a corner (e.g. worker -> db in web-scale); consider ports / centered attachment.
-- [ ] Short hops with a label pill get cramped (cache -> db "miss"); enforce min gap for labeled edges.
+- [x] Edges kept away from card corners (`elk.spacing.portsSurrounding` 22px).
+- [x] Labeled hops reserve 18px each side of the pill; group nodes now get the same spacing options (ELK does not inherit them); more row spacing in `direction: down`.
 - [ ] Optional soft drop shadow on cards, subtle group tints per hue, bigger title.
-- [ ] More icons (target 40-60), dark theme, PNG export (resvg), `direction: down` visual check.
+- [x] Dark themes, PNG export, `direction: down` checked (examples/microservices).
+- [ ] More icons: catalog of 61 defined with fallbacks; owner drawing art.
 - [ ] Bundle fonts for browser use (currently reads font from disk via node:fs).
 - [ ] Tool should write files and return only a path + summary (MCP phase).
 
@@ -123,3 +127,23 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - Measured overhead: tool definitions ~1,275 chars (~360 tokens/session); one render call (args + result) ~324 chars (~90 tokens).
 - Known low-severity advisory: esbuild (via tsup), Windows dev-server only, dev dependency. `npm audit fix` does not resolve it; revisit when tsup updates.
 - Playwright snapshots are darwin-only, so CI does not run e2e yet (would need linux baselines).
+
+## Icon pipeline (2026-10-09)
+
+- `src/icons.ts` holds META for all 61 checklist icons (label, hue, aliases, fallback). Undrawn icons borrow fallback art but keep their own label/hue (`phone` -> mobile -> user art).
+- Owner's SVGs go in `icons-src/<name>.svg`; `npm run icons` validates and converts them (`src/icon-import.ts`) into `src/icons.generated.ts` and renders `icons-src/_preview.png` (gitignored) in all themes.
+- Converter rules: square viewBox (auto-scaled to 48), colors only #0000FF/#00FF00/#FF0000/none mapped to {A}/{M}/{L}, no text/images/gradients/filters/masks/use/style, Figma frame clipPath stripped, stroke-width warning outside 1.75-3.25.
+
+## MCP field test (2026-10-09, headless Claude Code 2.1.286, model sonnet)
+
+| Run                                       | Output tokens | Cost (USD, from CLI) | Notes                                                                          |
+| ----------------------------------------- | ------------- | -------------------- | ------------------------------------------------------------------------------ |
+| sysketch: URL shortener                   | 846           | 0.158                | Model set `preview: true` itself (image cost); first run also paid cache write |
+| sysketch: ride-sharing PNG, blueprint     | 859           | 0.093                | Called `list_icons` once; correct icons; feedback loop rendered fine           |
+| sysketch: edit (add notification service) | 1,118         | 0.100                | Glob + Read spec, two one-line Edits, re-render with `file=`                   |
+| Raw SVG baseline: URL shortener           | 10,538        | 0.224                | 11.8 KB hand-written SVG; visually rich                                        |
+
+- Output tokens ~12x lower with sysketch. Dollar cost per small diagram is ~1.4-2.4x lower because fixed session context (~15-35k cached tokens) dominates; the gap widens with bigger diagrams and every edit (raw SVG edits re-emit the whole file).
+- Fixes from the test: inline specs are now saved next to the output (`spec: diagrams/x.yaml` in the reply) so edits work; replies use cwd-relative paths; `preview` description says "only when the user asks".
+- Feature gaps the raw baseline showed (backlog, cheap in spec tokens): node sublabel/description line, dashed "response" edges, colored edges, step legend, subtitle.
+- `list_icons` returns 61 lines (~1k tokens) per fresh session when the model calls it; consider a `query` filter.

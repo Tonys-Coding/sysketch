@@ -1,20 +1,42 @@
 # Icon Checklist
 
-Drop finished icons into `icons-src/` as `<name>.svg` (e.g. `icons-src/database.svg`). Claude converts them into `packages/sysketch/src/icons.ts`, wires up aliases and colors, and checks them in every theme.
+`[x]` = a placeholder already exists (drawn by Claude). Replace it with your own version whenever you like. Icons not drawn yet still work: they borrow a similar icon's art (e.g. `mobile` uses `user`) and keep their own label.
 
-`[x]` = a placeholder already exists (drawn by Claude). Replace it with your own version whenever you like.
+## Workflow (one icon at a time)
+
+1. Draw the icon in Figma (or Illustrator/Inkscape) on a 48×48 frame with no frame fill.
+2. Export it as **SVG** into `icons-src/`, named exactly as in this list: `icons-src/mobile.svg`, `icons-src/load-balancer.svg`.
+3. Run `npm run icons`. It checks every file, converts the good ones, rebuilds, and writes a preview of all icons in every theme to `icons-src/_preview.png`.
+4. Fix anything marked ✗ and run it again. Commit `icons-src/*.svg` plus the regenerated `packages/sysketch/src/icons.generated.ts`.
+
+You can add icons in any order and in any number per batch. Keep your source files in `icons-src/`: they are the originals, and re-running the command rebuilds everything from them.
+
+## File requirements (checked automatically for every icon)
+
+| Requirement                                                                       | Why                                                                         |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| File type **`.svg`** (plain SVG, not PNG/PDF/AI)                                  | Vector art stays sharp at any size and can be recolored per theme           |
+| File name = icon name from this list, lowercase (`api-gateway.svg`)               | That's how the icon is matched; unknown names are rejected                  |
+| **Square** canvas, ideally `viewBox="0 0 48 48"`                                  | Other square sizes (e.g. 24×24 Lucide icons) are scaled automatically       |
+| Colors only `#0000FF` (outline), `#00FF00` (fill), `#FF0000` (highlight), or none | Each theme swaps them for its own colors                                    |
+| No text, images, gradients, filters, masks, patterns, `<use>` or `<style>`        | They don't recolor or render consistently everywhere                        |
+| Presentation attributes (`fill="…"`), not `style="…"` or CSS classes              | Figma does this by default; in Illustrator choose "Presentation Attributes" |
+| Stroke width about 2.5 at 48px (warned outside 1.75 to 3.25)                      | Keeps the set visually consistent                                           |
+| Under ~8 KB                                                                       | Simple icons read better at small sizes; you get a warning if it's large    |
+
+Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed for you.
 
 ## How to draw them (so they work in every theme)
 
 - **Canvas:** square, 48×48 `viewBox`, about 3px padding on each side.
-- **Style:** flat, outlined shapes. Stroke 2.5px with round caps and joins. No gradients, shadows, filters, masks, text or embedded images.
+- **Style:** flat, outlined shapes. Stroke 2.5px with round caps and joins.
 - **Colors:** use only these three. The renderer swaps them per theme:
   - `#0000FF`: **accent** (outlines, solid details)
   - `#00FF00`: **mid fill** (main body)
   - `#FF0000`: **highlight** (tops of cylinders, faces, small inner areas)
 - **Legibility:** must read at 32px. Avoid details smaller than 2px and more than ~6 shapes.
 - **Consistency:** same stroke weight, corner roundness and visual weight across the set. Draw them side by side in one Figma file.
-- **Licensing:** original work, or based on Lucide (ISC), Tabler or Phosphor (MIT). Note the source in the filename comment. **No company logos**; brand names go in labels.
+- **Licensing:** original work, or based on Lucide (ISC), Tabler or Phosphor (MIT). If you adapt one, add an XML comment in the file naming the source. **No company logos**; brand names go in labels.
 
 ## P0: Core set (covers most system design interviews and articles)
 

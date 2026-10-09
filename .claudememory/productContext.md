@@ -66,7 +66,7 @@ Owner wants a mix of **clean & corporate** and **dark & techy**. Themes built (`
 
 ## Icon Set (target ~40–60, original)
 
-Full prioritized checklist + drawing spec: `docs/icon-checklist.md` (P0 37, P1 12, P2 12). Owner will supply SVGs in `icons-src/` using 3 placeholder colors (#0000FF accent, #00FF00 mid, #FF0000 highlight) that map to `{A}` `{M}` `{L}`.
+Full prioritized checklist + drawing spec + file requirements: `docs/icon-checklist.md` (P0 37, P1 12, P2 12). Workflow: drop SVG in `icons-src/`, run `npm run icons`. Owner will supply SVGs in `icons-src/` using 3 placeholder colors (#0000FF accent, #00FF00 mid, #FF0000 highlight) that map to `{A}` `{M}` `{L}`.
 
 Starter 10 for MVP: user/client, server, database, cache (redis-style), queue, load-balancer, api-gateway, cdn, storage/bucket, cloud/internet.
 Next: worker, cron, firewall, auth, search, monitoring, mobile, browser, message-broker, microservice, container, k8s, lambda/function, notification, email, payment, ML-model, etc.

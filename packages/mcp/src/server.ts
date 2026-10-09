@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { basename, dirname, extname, isAbsolute, join, resolve } from 'node:path';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 'node:path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
@@ -32,6 +32,11 @@ const fail = (text: string): CallToolResult => ({
 export function createServer(cwd: string = process.cwd()): McpServer {
   const server = new McpServer({ name: 'sysketch', version: VERSION });
   const abs = (p: string) => (isAbsolute(p) ? p : resolve(cwd, p));
+  /** Shorter paths in replies = fewer tokens. */
+  const show = (p: string) => {
+    const r = relative(cwd, p);
+    return r && !r.startsWith('..') && !isAbsolute(r) ? r : p;
+  };
 
   server.registerTool(
     'render_diagram',
@@ -45,7 +50,12 @@ export function createServer(cwd: string = process.cwd()): McpServer {
           .describe('Path to a spec file (preferred; edit it, then re-render)'),
         out: z.string().optional().describe('Output path, .svg (default) or .png'),
         theme: z.string().optional(),
-        preview: z.boolean().optional().describe('Also return a PNG preview (costs ~1-2k tokens)'),
+        preview: z
+          .boolean()
+          .optional()
+          .describe(
+            'Return a PNG image to inspect. Only when the user asks you to look (~1-2k tokens)',
+          ),
       },
     },
     async ({ spec, file, out, theme, preview }): Promise<CallToolResult> => {
@@ -63,7 +73,14 @@ export function createServer(cwd: string = process.cwd()): McpServer {
         }
 
         const result = await renderToFile(text, dest, theme ? { theme } : {});
-        const content: CallToolResult['content'] = [{ type: 'text', text: result.summary }];
+        let summary = result.summary.replace(dest, show(dest));
+        if (!file) {
+          // Keep the spec so later edits are a one-line change + file= re-render.
+          const specPath = join(dirname(dest), `${basename(dest, extname(dest))}.yaml`);
+          writeFileSync(specPath, text.endsWith('\n') ? text : `${text}\n`);
+          summary += `; spec: ${show(specPath)}`;
+        }
+        const content: CallToolResult['content'] = [{ type: 'text', text: summary }];
 
         if (preview) {
           const svg = extname(dest).toLowerCase() === '.png' ? null : readFileSync(dest, 'utf8');

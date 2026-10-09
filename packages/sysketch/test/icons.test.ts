@@ -1,0 +1,67 @@
+import { describe, expect, it } from 'vitest';
+import { ICONS, IconImportError, convertIconSvg } from '../src/index.js';
+
+const figma = `<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_1_2)">
+<path d="M8 12v24" stroke="#0000FF" stroke-width="2.5" stroke-linecap="round"/>
+<ellipse cx="24" cy="12" rx="16" ry="7" fill="#FF0000" stroke="#0000FF" stroke-width="2.5"/>
+<rect x="8" y="20" width="32" height="10" fill="#00FF00"/>
+</g>
+<defs><clipPath id="clip0_1_2"><rect width="48" height="48" fill="white"/></clipPath></defs>
+</svg>`;
+
+describe('convertIconSvg', () => {
+  it('converts a Figma export to placeholder colors and drops the frame clip', () => {
+    const { body, warnings } = convertIconSvg(figma);
+    expect(body).toMatch(/^<g fill="none">/);
+    expect(body).toContain('stroke="{A}"');
+    expect(body).toContain('fill="{L}"');
+    expect(body).toContain('fill="{M}"');
+    expect(body).not.toMatch(/clip|id=|#0000FF/i);
+    expect(warnings).toContain('removed frame clip path');
+  });
+
+  it('scales a 24px (Lucide-style) icon up to 48 and warns about thick strokes', () => {
+    const { body, warnings } = convertIconSvg(
+      '<svg viewBox="0 0 24 24" fill="none" stroke="#0000ff" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>',
+    );
+    expect(body).toContain('transform="scale(2)"');
+    expect(body).toContain('stroke="{A}"');
+    expect(warnings.join(' ')).toMatch(/stroke width 4 at 48px/);
+  });
+
+  it.each([
+    ['<svg viewBox="0 0 48 48"><path fill="#123456" d="M0 0"/></svg>', /found #123456/],
+    ['<svg viewBox="0 0 48 48"><text>hi</text></svg>', /<text> is not allowed/],
+    ['<svg viewBox="0 0 48 40"><path d="M0 0" stroke="#00f"/></svg>', /must be square/],
+    ['<svg viewBox="0 0 48 48"><path style="fill:red" d="M0 0"/></svg>', /presentation attributes/],
+    ['<svg><path d="M0 0"/></svg>', /missing viewBox/],
+    ['<div/>', /not an SVG/],
+  ])('rejects bad input %#', (src, msg) => {
+    expect(() => convertIconSvg(src)).toThrow(IconImportError);
+    expect(() => convertIconSvg(src)).toThrow(msg);
+  });
+});
+
+describe('catalog', () => {
+  it('has every checklist icon, each with art and only placeholder colors', () => {
+    expect(ICONS).toHaveLength(61);
+    for (const icon of ICONS) {
+      expect(icon.body, icon.name).not.toBe('');
+      const colors = [...icon.body.matchAll(/(?:fill|stroke)="([^"]+)"/g)].map((m) => m[1]);
+      expect(
+        colors.filter((c) => !['{A}', '{M}', '{L}', 'none'].includes(c!)),
+        icon.name,
+      ).toEqual([]);
+    }
+  });
+
+  it('uses fallback art and own label for icons not drawn yet', async () => {
+    const { buildModel } = await import('../src/index.js');
+    const m = buildModel({ edges: ['phone > kafka'] });
+    expect(m.nodes.map((n) => [n.label, n.icon.name, n.icon.borrowed])).toEqual([
+      ['Phone', 'mobile', true],
+      ['Kafka', 'stream', true],
+    ]);
+  });
+});

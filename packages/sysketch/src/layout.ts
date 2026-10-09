@@ -38,6 +38,8 @@ export const NODE = {
   maxLabelW: 150,
 } as const;
 export const PILL = { h: 28, badge: 26, labelSize: 13 } as const;
+/** Extra room reserved on each side of a pill so the arrow stays visible around it. */
+const PILL_GAP = 18;
 
 export function pillSize(
   label: string | undefined,
@@ -63,13 +65,30 @@ export async function layout(model: Model, theme: Theme): Promise<Layout> {
     const w = Math.max(NODE.minW, Math.ceil(textW + 36));
     const h = NODE.h + (lines.length - 1) * 19;
     nodes.set(n.id, { x: 0, y: 0, w, h, lines });
-    elkNodes.set(n.id, { id: `n:${n.id}`, width: w, height: h });
+    elkNodes.set(n.id, {
+      id: `n:${n.id}`,
+      width: w,
+      height: h,
+      // keep edge attachment points away from rounded corners
+      layoutOptions: { 'elk.spacing.portsSurrounding': '[top=22,left=22,bottom=22,right=22]' },
+    });
   }
+
+  const down = model.direction === 'down';
+  // ELK does not inherit spacing into compound nodes, so groups get the same options.
+  const spacing: LayoutOptions = {
+    'elk.spacing.nodeNode': '56',
+    'elk.layered.spacing.nodeNodeBetweenLayers': down ? '84' : '70',
+    'elk.spacing.edgeNode': '28',
+    'elk.spacing.edgeEdge': '22',
+    'elk.layered.spacing.edgeNodeBetweenLayers': down ? '34' : '28',
+    'elk.spacing.edgeLabel': down ? '12' : '6',
+  };
 
   const grouped = new Set(model.groups.flatMap((g) => g.nodes));
   const groupNodes: ElkNode[] = model.groups.map((g) => ({
     id: `g:${g.id}`,
-    layoutOptions: { 'elk.padding': '[top=46,left=26,bottom=26,right=26]' },
+    layoutOptions: { ...spacing, 'elk.padding': '[top=46,left=26,bottom=26,right=26]' },
     children: g.nodes.map((id) => elkNodes.get(id)!),
   }));
   const loose = model.nodes.filter((n) => !grouped.has(n.id)).map((n) => elkNodes.get(n.id)!);
@@ -86,7 +105,7 @@ export async function layout(model: Model, theme: Theme): Promise<Layout> {
               {
                 id: `l:${e.id}`,
                 text: e.label ?? String(e.step),
-                width: size.w,
+                width: size.w + PILL_GAP * 2,
                 height: size.h,
                 layoutOptions: { 'elk.edgeLabels.inline': 'true' } as LayoutOptions,
               },
@@ -101,16 +120,11 @@ export async function layout(model: Model, theme: Theme): Promise<Layout> {
     id: 'root',
     layoutOptions: {
       'elk.algorithm': 'layered',
-      'elk.direction': model.direction === 'down' ? 'DOWN' : 'RIGHT',
+      'elk.direction': down ? 'DOWN' : 'RIGHT',
       'elk.edgeRouting': 'ORTHOGONAL',
       'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
       'elk.padding': `[top=${topPad},left=36,bottom=36,right=36]`,
-      'elk.spacing.nodeNode': '56',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '70',
-      'elk.spacing.edgeNode': '28',
-      'elk.spacing.edgeEdge': '22',
-      'elk.layered.spacing.edgeNodeBetweenLayers': '28',
-      'elk.spacing.edgeLabel': '6',
+      ...spacing,
       'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
       'elk.json.edgeCoords': 'ROOT',
       'elk.json.shapeCoords': 'ROOT',
@@ -156,7 +170,12 @@ export async function layout(model: Model, theme: Theme): Promise<Layout> {
     const l = e.labels?.[0];
     const route: EdgeRoute = { points };
     if (l && l.x !== undefined && l.y !== undefined) {
-      route.pill = { x: r2(l.x), y: r2(l.y), w: l.width ?? 0, h: l.height ?? 0 };
+      route.pill = {
+        x: r2(l.x + PILL_GAP),
+        y: r2(l.y),
+        w: r2((l.width ?? 0) - PILL_GAP * 2),
+        h: l.height ?? 0,
+      };
     }
     routes.set(e.id.slice(2), route);
   }

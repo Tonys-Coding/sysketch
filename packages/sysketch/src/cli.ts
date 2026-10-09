@@ -11,7 +11,10 @@ const HELP = `sysketch ${VERSION}
 async function main(argv: string[]): Promise<number> {
   const [cmd, ...rest] = argv;
   if (cmd === 'icons') {
-    for (const i of ICONS) console.log(`${i.name}: ${Object.keys(i.aliases).join(', ')}`);
+    for (const i of ICONS) {
+      const note = i.borrowed ? ' (art not drawn yet)' : '';
+      console.log(`${i.name}${note}: ${Object.keys(i.aliases).join(', ')}`);
+    }
     return 0;
   }
   if (cmd !== 'render') {

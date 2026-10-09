@@ -1,0 +1,18 @@
+title: Microservices Checkout
+direction: down
+nodes:
+  orders: server | Order Service
+  pay: server | Payment Service
+  inv: server | Inventory Service
+  ordersdb: postgres
+  invdb: mongo
+groups:
+  Services: [orders, pay, inv]
+edges:
+  - mobile > gateway | POST /checkout
+  - gateway > orders
+  - orders > pay | charge
+  - orders > inv | reserve
+  - orders > ordersdb
+  - inv > invdb
+  - orders > kafka | OrderPlaced

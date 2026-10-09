@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "build": "npm run build -w sysketch && npm run build -w sysketch-mcp"
+    "build": "npm run build -w sysketch && npm run build -w sysketch-mcp",
+    "icons": "npm run build -w sysketch && node scripts/icons.mjs; npm run build -w sysketch && node scripts/icon-sheet.mjs"
   },
   "keywords": [],
   "author": "",
