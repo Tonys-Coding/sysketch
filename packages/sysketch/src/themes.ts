@@ -8,6 +8,41 @@ export interface Hue {
   m: string;
   /** card background tint (used when the theme has no uniform card fill) */
   card: string;
+  /** {L}: lit/top surface. Defaults to the theme's iconLight. */
+  l?: string;
+  /** {S}: shaded/right surface of 3D icons. Defaults to a mix of m and a. */
+  s?: string;
+}
+
+/** Linear blend of two #rrggbb colors (t = 0 gives a, t = 1 gives b). */
+export function mix(a: string, b: string, t: number): string {
+  const p = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+  const [x, y] = [p(a), p(b)];
+  return `#${x
+    .map((v, i) =>
+      Math.round(v + (y[i]! - v) * t)
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`;
+}
+
+/** Resolve the four icon paint slots for a hue in a theme. */
+export function iconPaint(theme: Theme, hue: Hue): Record<'{A}' | '{M}' | '{L}' | '{S}', string> {
+  return {
+    '{A}': hue.a,
+    '{M}': hue.m,
+    '{L}': hue.l ?? theme.iconLight,
+    '{S}': hue.s ?? mix(hue.m, hue.a, 0.5),
+  };
+}
+
+/** Fill every hue of a palette with explicit lit/shade colors. */
+function withSurfaces(
+  hues: Record<string, Hue>,
+  f: (h: Hue) => { l?: string; s?: string },
+): Record<string, Hue> {
+  return Object.fromEntries(Object.entries(hues).map(([k, h]) => [k, { ...h, ...f(h) }]));
 }
 
 export interface Theme {
@@ -48,18 +83,22 @@ const mono = (weight: number): FontRef => ({ family: 'jetbrains-mono', weight })
 const hand: FontRef = { family: 'patrick-hand', weight: 400 };
 
 /** Bright accents over deep fills, for dark canvases. */
-const darkHues: Record<string, Hue> = {
-  blue: { a: '#60a5fa', m: '#1e3a8a', card: '#0f1b33' },
-  green: { a: '#4ade80', m: '#14532d', card: '#0d1f17' },
-  amber: { a: '#fbbf24', m: '#78350f', card: '#1f1709' },
-  red: { a: '#f87171', m: '#7f1d1d', card: '#211012' },
-  violet: { a: '#a78bfa', m: '#4c1d95', card: '#1a1430' },
-  teal: { a: '#2dd4bf', m: '#134e4a', card: '#0b1f1e' },
-  pink: { a: '#f472b6', m: '#831843', card: '#221020' },
-  sky: { a: '#38bdf8', m: '#0c4a6e', card: '#0a1a28' },
-  orange: { a: '#fb923c', m: '#7c2d12', card: '#22140b' },
-  slate: { a: '#94a3b8', m: '#334155', card: '#151b26' },
-};
+const darkHues: Record<string, Hue> = withSurfaces(
+  {
+    blue: { a: '#60a5fa', m: '#1e3a8a', card: '#0f1b33' },
+    green: { a: '#4ade80', m: '#14532d', card: '#0d1f17' },
+    amber: { a: '#fbbf24', m: '#78350f', card: '#1f1709' },
+    red: { a: '#f87171', m: '#7f1d1d', card: '#211012' },
+    violet: { a: '#a78bfa', m: '#4c1d95', card: '#1a1430' },
+    teal: { a: '#2dd4bf', m: '#134e4a', card: '#0b1f1e' },
+    pink: { a: '#f472b6', m: '#831843', card: '#221020' },
+    sky: { a: '#38bdf8', m: '#0c4a6e', card: '#0a1a28' },
+    orange: { a: '#fb923c', m: '#7c2d12', card: '#22140b' },
+    slate: { a: '#94a3b8', m: '#334155', card: '#151b26' },
+  },
+  // lit tops glow toward the accent; shaded sides sink toward black
+  (h) => ({ l: mix(h.m, h.a, 0.55), s: mix(h.m, '#000000', 0.35) }),
+);
 
 /** The original friendly look: pastel cards, rounded Nunito. */
 export const classicTheme: Theme = {
@@ -219,18 +258,21 @@ export const sketchTheme: Theme = {
   card: { radius: 12, stroke: 2.25, style: 'outline', fill: '#ffffff' },
   iconLight: '#ffffff',
   sketch: { roughness: 1.2, bowing: 1, iconRoughness: 0.8, hachureGap: 1.9 },
-  hues: {
-    blue: { a: INK, m: '#4cc3fc', card: '#ffffff' },
-    green: { a: INK, m: '#69db7c', card: '#ffffff' },
-    amber: { a: INK, m: '#ffc93c', card: '#ffffff' },
-    red: { a: INK, m: '#ff6b6b', card: '#ffffff' },
-    violet: { a: INK, m: '#b197fc', card: '#ffffff' },
-    teal: { a: INK, m: '#38d9a9', card: '#ffffff' },
-    pink: { a: INK, m: '#f783ac', card: '#ffffff' },
-    sky: { a: INK, m: '#74c0fc', card: '#ffffff' },
-    orange: { a: INK, m: '#ffa94d', card: '#ffffff' },
-    slate: { a: INK, m: '#adb5bd', card: '#ffffff' },
-  },
+  hues: withSurfaces(
+    {
+      blue: { a: INK, m: '#4cc3fc', card: '#ffffff' },
+      green: { a: INK, m: '#69db7c', card: '#ffffff' },
+      amber: { a: INK, m: '#ffc93c', card: '#ffffff' },
+      red: { a: INK, m: '#ff6b6b', card: '#ffffff' },
+      violet: { a: INK, m: '#b197fc', card: '#ffffff' },
+      teal: { a: INK, m: '#38d9a9', card: '#ffffff' },
+      pink: { a: INK, m: '#f783ac', card: '#ffffff' },
+      sky: { a: INK, m: '#74c0fc', card: '#ffffff' },
+      orange: { a: INK, m: '#ffa94d', card: '#ffffff' },
+      slate: { a: INK, m: '#adb5bd', card: '#ffffff' },
+    },
+    (h) => ({ s: mix(h.m, INK, 0.35) }),
+  ),
 };
 
 /** Default: corporate dark. */

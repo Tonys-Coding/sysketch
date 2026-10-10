@@ -1,7 +1,7 @@
 export { buildModel, SysketchError, type Model, type Spec } from './model.js';
 export { ICONS, DRAWN_ICONS, iconKeys, type IconDef } from './icons.js';
 export { convertIconSvg, IconImportError, type ConvertedIcon } from './icon-import.js';
-export { themes, defaultTheme, type Theme } from './themes.js';
+export { themes, defaultTheme, iconPaint, mix, type Theme, type Hue } from './themes.js';
 export { renderModel, type RenderOptions } from './render.js';
 export { render, renderWithModel, type RenderInputOptions } from './api.js';
 export { svgToPng } from './png.js';

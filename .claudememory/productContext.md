@@ -76,3 +76,11 @@ Icons are authored once (Claude can draft, human curates), stored as optimized S
 ## Landscape (verify before committing, space moves fast)
 
 Mermaid, D2, Excalidraw, draw.io, Eraser, Structurizr, diagrams (Python, mingrammer). Gap we target: **polished educational look + LLM-cheap spec + MCP-native**. Action item: do a real GitHub/npm search and record findings in `progress.md`.
+
+## Icon Style (decided 2026-10-10)
+
+Owner chose **isometric 3D** icons. Guide + master AI prompt + 61 per-icon briefs: `docs/isometric/GUIDE.md`; reference icons `docs/isometric/examples/{server,database}.svg`.
+
+- 2:1 iso grid, footprint diamond 32x16 centered on x=24, baseline y 43-46, light from top-left.
+- Color slots: #FF0000 {L} top faces, #00FF00 {M} left faces, #FFFF00 {S} right faces (new 4th slot), #0000FF {A} outlines. Stroke 2.
+- Owner plans to generate with a text LLM (SVG code), not image generators.

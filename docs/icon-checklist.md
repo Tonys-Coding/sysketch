@@ -1,5 +1,7 @@
 # Icon Checklist
 
+**Chosen style: isometric 3D.** See [isometric/GUIDE.md](isometric/GUIDE.md) for the style rules, a copy-paste AI prompt and per-icon briefs.
+
 `[x]` = a placeholder already exists (drawn by Claude). Replace it with your own version whenever you like. Icons not drawn yet still work: they borrow a similar icon's art (e.g. `mobile` uses `user`) and keep their own label.
 
 ## Workflow (one icon at a time)
@@ -13,16 +15,16 @@ You can add icons in any order and in any number per batch. Keep your source fil
 
 ## File requirements (checked automatically for every icon)
 
-| Requirement                                                                       | Why                                                                         |
-| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| File type **`.svg`** (plain SVG, not PNG/PDF/AI)                                  | Vector art stays sharp at any size and can be recolored per theme           |
-| File name = icon name from this list, lowercase (`api-gateway.svg`)               | That's how the icon is matched; unknown names are rejected                  |
-| **Square** canvas, ideally `viewBox="0 0 48 48"`                                  | Other square sizes (e.g. 24×24 Lucide icons) are scaled automatically       |
-| Colors only `#0000FF` (outline), `#00FF00` (fill), `#FF0000` (highlight), or none | Each theme swaps them for its own colors                                    |
-| No text, images, gradients, filters, masks, patterns, `<use>` or `<style>`        | They don't recolor or render consistently everywhere                        |
-| Presentation attributes (`fill="…"`), not `style="…"` or CSS classes              | Figma does this by default; in Illustrator choose "Presentation Attributes" |
-| Stroke width about 2.5 at 48px (warned outside 1.75 to 3.25)                      | Keeps the set visually consistent                                           |
-| Under ~8 KB                                                                       | Simple icons read better at small sizes; you get a warning if it's large    |
+| Requirement                                                                                                                              | Why                                                                         |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| File type **`.svg`** (plain SVG, not PNG/PDF/AI)                                                                                         | Vector art stays sharp at any size and can be recolored per theme           |
+| File name = icon name from this list, lowercase (`api-gateway.svg`)                                                                      | That's how the icon is matched; unknown names are rejected                  |
+| **Square** canvas, ideally `viewBox="0 0 48 48"`                                                                                         | Other square sizes (e.g. 24×24 Lucide icons) are scaled automatically       |
+| Colors only `#0000FF` (outline), `#00FF00` (fill / left face), `#FF0000` (highlight / top face), `#FFFF00` (shade / right face), or none | Each theme swaps them for its own colors                                    |
+| No text, images, gradients, filters, masks, patterns, `<use>` or `<style>`                                                               | They don't recolor or render consistently everywhere                        |
+| Presentation attributes (`fill="…"`), not `style="…"` or CSS classes                                                                     | Figma does this by default; in Illustrator choose "Presentation Attributes" |
+| Stroke width about 2.5 at 48px (warned outside 1.75 to 3.25)                                                                             | Keeps the set visually consistent                                           |
+| Under ~8 KB                                                                                                                              | Simple icons read better at small sizes; you get a warning if it's large    |
 
 Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed for you.
 
@@ -30,10 +32,11 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 
 - **Canvas:** square, 48×48 `viewBox`, about 3px padding on each side.
 - **Style:** flat, outlined shapes. Stroke 2.5px with round caps and joins.
-- **Colors:** use only these three. The renderer swaps them per theme:
+- **Colors:** use only these (the shade is optional, mainly for 3D/isometric icons). The renderer swaps them per theme:
   - `#0000FF`: **accent** (outlines, solid details)
   - `#00FF00`: **mid fill** (main body)
   - `#FF0000`: **highlight** (tops of cylinders, faces, small inner areas)
+  - `#FFFF00`: **shade** (the dark right-hand side of 3D shapes)
 - **Legibility:** must read at 32px. Avoid details smaller than 2px and more than ~6 shapes.
 - **Consistency:** same stroke weight, corner roundness and visual weight across the set. Draw them side by side in one Figma file.
 - **Licensing:** original work, or based on Lucide (ISC), Tabler or Phosphor (MIT). If you adapt one, add an XML comment in the file naming the source. **No company logos**; brand names go in labels.

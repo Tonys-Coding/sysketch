@@ -1,6 +1,6 @@
 import { layout, NODE, PILL, type Pt } from './layout.js';
 import type { Model } from './model.js';
-import { defaultTheme, type Theme } from './themes.js';
+import { defaultTheme, iconPaint, type Theme } from './themes.js';
 import { sketch, sketchIcon } from './sketch.js';
 import { textPathData, type Anchor, type FontRef } from './text.js';
 
@@ -170,11 +170,9 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     const iconSize = NODE.icon;
     const ix = r2(b.x + b.w / 2 - iconSize / 2);
     const iy = r2(b.y + 14);
-    const body = n.icon.body
-      .replaceAll('{A}', hue.a)
-      .replaceAll('{M}', hue.m)
-      .replaceAll('{L}', theme.iconLight);
-    const iconMarkup = sk ? sketchIcon(body, `i:${n.id}`, sk, [theme.iconLight, hue.a]) : body;
+    const paint = iconPaint(theme, hue);
+    const body = n.icon.body.replace(/\{[AMLS]\}/g, (k) => paint[k as keyof typeof paint]);
+    const iconMarkup = sk ? sketchIcon(body, `i:${n.id}`, sk, [paint['{L}'], hue.a]) : body;
     const labelY0 = b.y + 14 + iconSize + NODE.labelGap + 12;
     const labels = b.lines
       .map((line, i) =>

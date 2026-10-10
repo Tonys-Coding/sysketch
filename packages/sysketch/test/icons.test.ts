@@ -50,7 +50,7 @@ describe('catalog', () => {
       expect(icon.body, icon.name).not.toBe('');
       const colors = [...icon.body.matchAll(/(?:fill|stroke)="([^"]+)"/g)].map((m) => m[1]);
       expect(
-        colors.filter((c) => !['{A}', '{M}', '{L}', 'none'].includes(c!)),
+        colors.filter((c) => !['{A}', '{M}', '{L}', '{S}', 'none'].includes(c!)),
         icon.name,
       ).toEqual([]);
     }

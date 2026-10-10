@@ -1,6 +1,6 @@
 /**
  * Converts a hand-drawn icon SVG (see docs/icon-checklist.md) into a theme-ready
- * icon body on a 48x48 grid with {A}/{M}/{L} color placeholders.
+ * icon body on a 48x48 grid with {A}/{M}/{L}/{S} color placeholders.
  */
 export class IconImportError extends Error {}
 
@@ -16,6 +16,8 @@ const COLORS: Record<string, string> = {
   '#0f0': '{M}',
   '#ff0000': '{L}',
   '#f00': '{L}',
+  '#ffff00': '{S}',
+  '#ff0': '{S}',
 };
 
 const FORBIDDEN = [
@@ -119,7 +121,7 @@ export function convertIconSvg(src: string): ConvertedIcon {
   }
   if (bad.size) {
     throw new IconImportError(
-      `colors must be #0000FF (outline), #00FF00 (fill), #FF0000 (highlight) or none; found ${[...bad].join(', ')}`,
+      `colors must be #0000FF (outline), #00FF00 (fill), #FF0000 (highlight/top), #FFFF00 (shade) or none; found ${[...bad].join(', ')}`,
     );
   }
   if (root.fill === undefined) {

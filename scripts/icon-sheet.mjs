@@ -1,6 +1,6 @@
 // Renders every catalog icon in every theme to icons-src/_preview.png.
 import { chromium } from '@playwright/test';
-import { DRAWN_ICONS, ICONS, themes } from '../packages/sysketch/dist/index.js';
+import { DRAWN_ICONS, ICONS, iconPaint, themes } from '../packages/sysketch/dist/index.js';
 
 const COLS = 10;
 const CELL = { w: 118, h: 112 };
@@ -15,10 +15,8 @@ function sheet(theme) {
     const x = 12 + (i % COLS) * CELL.w;
     const y = 44 + Math.floor(i / COLS) * CELL.h;
     const hue = theme.hues[icon.hue] ?? theme.hues.slate;
-    const body = icon.body
-      .replaceAll('{A}', hue.a)
-      .replaceAll('{M}', hue.m)
-      .replaceAll('{L}', theme.iconLight);
+    const paint = iconPaint(theme, hue);
+    const body = icon.body.replace(/\{[AMLS]\}/g, (k) => paint[k]);
     const status = drawn.has(icon.name) ? '●' : icon.borrowed ? '○' : '◐';
     const fill = theme.card.fill ?? hue.card;
     const stroke = theme.card.style === 'bar' ? (theme.card.border ?? hue.a) : hue.a;

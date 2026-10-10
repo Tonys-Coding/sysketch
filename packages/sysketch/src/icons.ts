@@ -1,8 +1,9 @@
 import { GENERATED_ICONS } from './icons.generated.js';
 
 /**
- * Icon bodies are drawn on a 48x48 grid with three color placeholders that each
- * theme fills in: {A} accent stroke, {M} mid fill, {L} highlight.
+ * Icon bodies are drawn on a 48x48 grid with color placeholders that each
+ * theme fills in: {A} accent stroke, {M} mid fill, {L} highlight / lit top, {S} shade
+ * (the dark side of 3D shapes).
  */
 export interface IconDef {
   name: string;
