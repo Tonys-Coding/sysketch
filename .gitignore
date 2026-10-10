@@ -4,3 +4,4 @@ playwright-report/
 dist/
 .shots/
 icons-src/_preview.png
+.DS_Store

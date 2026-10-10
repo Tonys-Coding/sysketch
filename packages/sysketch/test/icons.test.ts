@@ -56,12 +56,19 @@ describe('catalog', () => {
     }
   });
 
-  it('uses fallback art and own label for icons not drawn yet', async () => {
+  it('resolves aliases to their own icon and label, drawn or not', async () => {
     const { buildModel } = await import('../src/index.js');
     const m = buildModel({ edges: ['phone > kafka'] });
-    expect(m.nodes.map((n) => [n.label, n.icon.name, n.icon.borrowed])).toEqual([
-      ['Phone', 'mobile', true],
-      ['Kafka', 'stream', true],
+    expect(m.nodes.map((n) => [n.label, n.icon.name])).toEqual([
+      ['Phone', 'mobile'],
+      ['Kafka', 'stream'],
     ]);
+  });
+
+  it("gives every icon without art of its own a fallback icon's art", () => {
+    const owned = new Set(ICONS.filter((i) => !i.borrowed).map((i) => i.body));
+    for (const icon of ICONS.filter((i) => i.borrowed)) {
+      expect(owned.has(icon.body), icon.name).toBe(true);
+    }
   });
 });

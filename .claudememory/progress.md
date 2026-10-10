@@ -156,3 +156,10 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - Owner's first icon: `icons-src/user.svg` (clean redraw by Claude of the owner's crayon drawing). Their original traced file was moved to `.shots/old/user_icon.svg` (gitignored).
 - `src/sketch.ts`: rough.js generator, seed = FNV hash of a per-shape key; `sketchIcon()` re-draws icon elements (rect/circle/ellipse/path/line/polygon/polyline, inherits g attrs). Fills equal to highlight or accent stay solid; mid fills are hachured.
 - Icon style directions sample: `docs/icon-styles.png` (duotone line, offset print, solid glyph, app tile, isometric 3D). Owner to pick one; all fit the 3-color system.
+
+## Owner's first isometric icons (2026-10-10)
+
+- `icons-src/{mobile,browser,worker}.svg` drawn by owner with Claude (AI-assisted per `docs/isometric/GUIDE.md`); all passed `npm run icons` with no warnings. `user.svg` is still the flat redraw and needs an isometric version.
+- Files carry an Anthropic C2PA content-credentials manifest (~5.7 KB, no personal data); the converter strips `<metadata>`, so rendered output is unaffected. Kept in originals as provenance.
+- Measured: the new icons fill the canvas like the placeholders (mobile 21x38, browser 28x38, worker gear 34x25). They look lighter next to the bold flat placeholders; resolves as the set becomes fully isometric. Flat objects (gear) read small: consider a low pedestal to add height.
+- Fallback test rewritten to stay valid as icons get drawn. `.DS_Store` now gitignored (one had been committed; removed from the index).
