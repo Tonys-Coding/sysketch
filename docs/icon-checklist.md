@@ -2,7 +2,7 @@
 
 **Chosen style: isometric 3D.** See [isometric/GUIDE.md](isometric/GUIDE.md) for the style rules, a copy-paste AI prompt and per-icon briefs.
 
-`[x]` = a placeholder already exists (drawn by Claude). Replace it with your own version whenever you like. Icons not drawn yet still work: they borrow a similar icon's art (e.g. `mobile` uses `user`) and keep their own label.
+`[x]` = drawn by you (an isometric SVG in `icons-src/`). The boxes and totals below are updated automatically every time you run `npm run icons`. Icons not drawn yet still work: they use Claude's flat starter art or borrow a similar icon (e.g. `dns` uses `cloud`) and keep their own label.
 
 ## Workflow (one icon at a time)
 
@@ -46,20 +46,20 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 ### Clients & edge
 
 - [x] `user`: person / client
-- [ ] `mobile`: phone app
-- [ ] `browser`: web app window
-- [x] `cdn`: globe / edge network
+- [x] `mobile`: phone app
+- [x] `browser`: web app window
+- [ ] `cdn`: globe / edge network
 - [ ] `dns`: domain lookup (signpost or "www" plate)
-- [x] `load-balancer`: one-to-many splitter
+- [ ] `load-balancer`: one-to-many splitter
 - [x] `api-gateway`: entry gate / hexagon
 - [ ] `firewall`: brick wall / shield (WAF)
-- [ ] `rate-limiter`: gauge / throttle
+- [x] `rate-limiter`: gauge / throttle
 
 ### Compute
 
 - [x] `server`: rack server
 - [ ] `service`: microservice (cube or hexagon)
-- [ ] `worker`: gear (background jobs)
+- [x] `worker`: gear (background jobs)
 - [ ] `function`: serverless / lambda (λ)
 - [ ] `container`: shipping box
 - [ ] `cluster`: Kubernetes-style wheel or node group
@@ -67,19 +67,19 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 
 ### Data
 
-- [x] `database`: SQL cylinder
+- [ ] `database`: SQL cylinder
 - [ ] `nosql`: document store (stacked docs)
 - [ ] `key-value`: key + box
-- [x] `cache`: lightning bolt
+- [ ] `cache`: lightning bolt
 - [ ] `search`: magnifier over index
-- [x] `storage`: object storage / bucket
+- [ ] `storage`: object storage / bucket
 - [ ] `file`: document / file system
 - [ ] `warehouse`: data warehouse (building with bars)
 - [ ] `data-lake`: lake / waves
 
 ### Messaging
 
-- [x] `queue`: message queue
+- [ ] `queue`: message queue
 - [ ] `pubsub`: topic fan-out (broadcast)
 - [ ] `stream`: event log (Kafka-style partitions)
 - [ ] `notification`: bell (push)
@@ -115,7 +115,7 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 
 ## P2: Infrastructure & dev workflow
 
-- [x] `cloud`: internet / external
+- [ ] `cloud`: internet / external
 - [ ] `vm`: virtual machine (monitor)
 - [ ] `config`: sliders / settings
 - [ ] `registry`: service discovery (address book)
@@ -128,6 +128,6 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 - [ ] `iot`: chip / sensor
 - [ ] `desktop`: monitor app
 
-**Totals:** P0 = 37 (8 done), P1 = 12, P2 = 12 (1 done). About 61 icons in all.
+**Progress:** 7 of 61 drawn (updated by `npm run icons`).
 
 Not icons (handled by containers/groups instead): region, availability zone, VPC, data center. Replicas and shards are expressed as duplicate nodes or labels.

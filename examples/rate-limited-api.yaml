@@ -1,0 +1,26 @@
+title: Rate-Limited API Platform
+nodes:
+  dev: user | Developer
+  app: mobile | Mobile App
+  web: browser | Web App
+  limiter: rate-limiter | Rate Limiter
+  gw: api-gateway | API Gateway
+  counters: redis | Redis Counters
+  api1: server | API Server 1
+  api2: server | API Server 2
+  jobs: worker | Job Worker
+groups:
+  Clients: [dev, app, web]
+  Edge: [limiter, gw, counters]
+  Services: [api1, api2, jobs]
+edges:
+  - dev > limiter | API key
+  - app > limiter | HTTPS
+  - web > limiter
+  - limiter > counters | INCR
+  - limiter > gw | allowed
+  - gw > api1
+  - gw > api2
+  - api1 > jobs | async task
+  - api2 > db
+  - jobs > db

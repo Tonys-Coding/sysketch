@@ -163,3 +163,9 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - Files carry an Anthropic C2PA content-credentials manifest (~5.7 KB, no personal data); the converter strips `<metadata>`, so rendered output is unaffected. Kept in originals as provenance.
 - Measured: the new icons fill the canvas like the placeholders (mobile 21x38, browser 28x38, worker gear 34x25). They look lighter next to the bold flat placeholders; resolves as the set becomes fully isometric. Flat objects (gear) read small: consider a low pedestal to add height.
 - Fallback test rewritten to stay valid as icons get drawn. `.DS_Store` now gitignored (one had been committed; removed from the index).
+
+## Icon batch 2 + showcase (2026-10-11)
+
+- Owner added isometric `api-gateway`, `rate-limiter`, `server` (custom, not the guide example) and redrew `user` isometric. 7/61 drawn, all pass with no warnings.
+- `npm run icons` now auto-syncs `docs/icon-checklist.md` (ticks `[x]` for drawn icons, rewrites the `**Progress:**` line). Checklist legend changed: `[x]` = drawn by owner.
+- New example `examples/rate-limited-api.yaml` (618 chars) showcasing all 7 owner icons. Layout lesson: a side lookup (limiter > counters) placed at the end of a chain inside a group made the diagram 2,768px wide; modelling the limiter in front of the gateway (the realistic architecture) gave 2,350px and a cleaner flow. `direction: down` was worse (632x2355).
