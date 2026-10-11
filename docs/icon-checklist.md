@@ -48,22 +48,22 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 - [x] `user`: person / client
 - [x] `mobile`: phone app
 - [x] `browser`: web app window
-- [ ] `cdn`: globe / edge network
-- [ ] `dns`: domain lookup (signpost or "www" plate)
-- [ ] `load-balancer`: one-to-many splitter
+- [x] `cdn`: globe / edge network
+- [x] `dns`: domain lookup (signpost or "www" plate)
+- [x] `load-balancer`: one-to-many splitter
 - [x] `api-gateway`: entry gate / hexagon
-- [ ] `firewall`: brick wall / shield (WAF)
+- [x] `firewall`: brick wall / shield (WAF)
 - [x] `rate-limiter`: gauge / throttle
 
 ### Compute
 
 - [x] `server`: rack server
-- [ ] `service`: microservice (cube or hexagon)
+- [x] `service`: microservice (cube or hexagon)
 - [x] `worker`: gear (background jobs)
-- [ ] `function`: serverless / lambda (λ)
-- [ ] `container`: shipping box
-- [ ] `cluster`: Kubernetes-style wheel or node group
-- [ ] `scheduler`: clock (cron)
+- [x] `function`: serverless / lambda (λ)
+- [x] `container`: shipping box
+- [x] `cluster`: Kubernetes-style wheel or node group
+- [x] `scheduler`: clock (cron)
 
 ### Data
 
@@ -128,6 +128,6 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 - [ ] `iot`: chip / sensor
 - [ ] `desktop`: monitor app
 
-**Progress:** 7 of 61 drawn (updated by `npm run icons`).
+**Progress:** 16 of 61 drawn (updated by `npm run icons`).
 
 Not icons (handled by containers/groups instead): region, availability zone, VPC, data center. Replicas and shards are expressed as duplicate nodes or labels.

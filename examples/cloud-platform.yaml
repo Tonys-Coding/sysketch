@@ -1,0 +1,36 @@
+title: Cloud-Native Platform
+nodes:
+  web: browser | Web App
+  app: mobile | Mobile App
+  dns: dns | DNS
+  edge: cdn | CDN
+  waf: firewall | WAF
+  gw: api-gateway | API Gateway
+  limiter: rate-limiter | Rate Limiter
+  lb: load-balancer | Load Balancer
+  orders: service | Order Service
+  api: server | API Server
+  thumbs: function | Resize Function
+  admin: user | Admin
+  cron: scheduler | Nightly Scheduler
+  k8s: cluster | K8s Cluster
+  pod: container | Report Pod
+  jobs: worker | Report Worker
+groups:
+  Clients: [web, app]
+  Edge: [dns, edge, waf]
+  Platform: [gw, limiter, lb, orders, api, thumbs]
+  Batch Jobs: [cron, k8s, pod, jobs]
+edges:
+  - web > dns | lookup
+  - web > edge | HTTPS
+  - app > edge
+  - edge > waf > gw
+  - gw > limiter | quota
+  - gw > lb
+  - lb > orders
+  - lb > api
+  - orders > thumbs | upload
+  - admin > cron | configure
+  - cron > k8s | 2:00 AM
+  - k8s > pod > jobs

@@ -55,7 +55,77 @@ export function pillSize(
 const elk = new ELK();
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
+/**
+ * Split a diagram into independent parts: nodes are connected if an edge joins
+ * them or they share a group. Parts keep the order their first node appears in.
+ */
+function components(model: Model): Model[] {
+  const parent = new Map(model.nodes.map((n) => [n.id, n.id]));
+  const find = (x: string): string => {
+    while (parent.get(x) !== x) x = parent.get(x)!;
+    return x;
+  };
+  const join = (a: string, b: string) => parent.set(find(a), find(b));
+  for (const e of model.edges) join(e.from, e.to);
+  for (const g of model.groups) for (const m of g.nodes.slice(1)) join(g.nodes[0]!, m);
+
+  const parts = new Map<string, Set<string>>();
+  for (const n of model.nodes) {
+    const root = find(n.id);
+    if (!parts.has(root)) parts.set(root, new Set());
+    parts.get(root)!.add(n.id);
+  }
+  return [...parts.values()].map((ids) => ({
+    direction: model.direction,
+    nodes: model.nodes.filter((n) => ids.has(n.id)),
+    groups: model.groups.filter((g) => g.nodes.length > 0 && ids.has(g.nodes[0]!)),
+    edges: model.edges.filter((e) => ids.has(e.from)),
+  }));
+}
+
+function shift(lay: Layout, dx: number, dy: number, into: Layout): void {
+  for (const [id, b] of lay.nodes) into.nodes.set(id, { ...b, x: r2(b.x + dx), y: r2(b.y + dy) });
+  for (const [id, b] of lay.groups) into.groups.set(id, { ...b, x: r2(b.x + dx), y: r2(b.y + dy) });
+  for (const [id, e] of lay.edges) {
+    const route: EdgeRoute = {
+      points: e.points.map((p) => ({ x: r2(p.x + dx), y: r2(p.y + dy) })),
+    };
+    if (e.pill) route.pill = { ...e.pill, x: r2(e.pill.x + dx), y: r2(e.pill.y + dy) };
+    into.edges.set(id, route);
+  }
+}
+
+/**
+ * Lay out each independent part on its own and stack them (below each other for
+ * left-to-right diagrams, side by side for top-down ones). Laying them out together
+ * makes ELK share columns between unrelated flows, which leaves large empty gaps.
+ */
 export async function layout(model: Model, theme: Theme): Promise<Layout> {
+  const topPad = model.title ? 92 : 36;
+  const parts = components(model);
+  if (parts.length < 2) return layoutOnce(model, theme, topPad);
+
+  const down = model.direction === 'down';
+  const merged: Layout = {
+    width: 0,
+    height: 0,
+    titleY: 52,
+    nodes: new Map(),
+    groups: new Map(),
+    edges: new Map(),
+  };
+  let offset = 0;
+  for (const [i, part] of parts.entries()) {
+    const lay = await layoutOnce(part, theme, i === 0 || down ? topPad : 4);
+    shift(lay, down ? offset : 0, down ? 0 : offset, merged);
+    offset += down ? lay.width : lay.height;
+    merged.width = down ? offset : Math.max(merged.width, lay.width);
+    merged.height = down ? Math.max(merged.height, lay.height) : offset;
+  }
+  return merged;
+}
+
+async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<Layout> {
   const nodes = new Map<string, NodeBox>();
   const elkNodes = new Map<string, ElkNode>();
 
@@ -115,7 +185,6 @@ export async function layout(model: Model, theme: Theme): Promise<Layout> {
     };
   });
 
-  const topPad = model.title ? 92 : 36;
   const root: ElkNode = {
     id: 'root',
     layoutOptions: {
