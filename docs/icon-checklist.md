@@ -11,7 +11,7 @@
 3. Run `npm run icons`. It checks every file, converts the good ones, rebuilds, and writes a preview of all icons in every theme to `icons-src/_preview.png`.
 4. Fix anything marked ✗ and run it again. Commit `icons-src/*.svg` plus the regenerated `packages/sysketch/src/icons.generated.ts`.
 
-You can add icons in any order and in any number per batch. Keep your source files in `icons-src/`: they are the originals, and re-running the command rebuilds everything from them.
+You can add icons in any order and in any number per batch. To keep an old version while redrawing, name it `name-old.svg` (or `name.bak.svg`, `_name.svg`); backups are skipped. Keep your source files in `icons-src/`: they are the originals, and re-running the command rebuilds everything from them.
 
 ## File requirements (checked automatically for every icon)
 
@@ -67,15 +67,15 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 
 ### Data
 
-- [ ] `database`: SQL cylinder
+- [x] `database`: SQL cylinder
 - [ ] `nosql`: document store (stacked docs)
-- [ ] `key-value`: key + box
-- [ ] `cache`: lightning bolt
+- [x] `key-value`: key + box
+- [x] `cache`: lightning bolt
 - [ ] `search`: magnifier over index
 - [ ] `storage`: object storage / bucket
-- [ ] `file`: document / file system
-- [ ] `warehouse`: data warehouse (building with bars)
-- [ ] `data-lake`: lake / waves
+- [x] `file`: document / file system
+- [x] `warehouse`: data warehouse (building with bars)
+- [x] `data-lake`: lake / waves
 
 ### Messaging
 
@@ -88,9 +88,9 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 
 ### Security & identity
 
-- [ ] `auth`: lock / identity provider
-- [ ] `token`: key / JWT
-- [ ] `vault`: secrets safe
+- [x] `auth`: lock / identity provider
+- [x] `token`: key / JWT
+- [x] `vault`: secrets safe
 
 ### Observability
 
@@ -128,6 +128,6 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 - [ ] `iot`: chip / sensor
 - [ ] `desktop`: monitor app
 
-**Progress:** 16 of 61 drawn (updated by `npm run icons`).
+**Progress:** 25 of 61 drawn (updated by `npm run icons`).
 
 Not icons (handled by containers/groups instead): region, availability zone, VPC, data center. Replicas and shards are expressed as duplicate nodes or labels.

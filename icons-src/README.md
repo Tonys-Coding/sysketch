@@ -2,6 +2,8 @@
 
 Your original icon drawings live here, one SVG per icon, named after the checklist (`database.svg`, `api-gateway.svg`).
 
+Keeping an old version? Name it `name-old.svg`, `name.bak.svg` or `_name.svg` and the importer skips it.
+
 After adding or changing icons, run:
 
 ```bash

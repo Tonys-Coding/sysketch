@@ -1,0 +1,31 @@
+title: Secure Data Platform
+nodes:
+  person: user | Customer
+  web: browser | Web App
+  idp: auth | Identity Provider
+  jwt: token | JWT
+  api: service | Data API
+  secrets: vault | Secrets Vault
+  sessions: cache | Session Cache
+  flags: key-value | Feature Flags
+  db: database | Orders DB
+  uploads: file | Uploads
+  etl: function | ETL Function
+  lake: data-lake | Data Lake
+  dwh: warehouse | Warehouse
+groups:
+  Identity: [idp, jwt]
+  Online: [api, secrets, sessions, flags, db, uploads]
+  Analytics: [etl, lake, dwh]
+edges:
+  - person > web
+  - web > idp | login
+  - idp > jwt | issue
+  - web > api | Bearer JWT
+  - api > secrets | DB creds
+  - api > sessions
+  - api > flags
+  - api > db
+  - api > uploads
+  - db > etl | CDC
+  - etl > lake > dwh

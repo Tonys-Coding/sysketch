@@ -8,9 +8,11 @@ const SRC = 'icons-src';
 const OUT = 'packages/sysketch/src/icons.generated.ts';
 const names = new Set(ICONS.map((i) => i.name));
 
-const files = readdirSync(SRC)
-  .filter((f) => f.toLowerCase().endsWith('.svg'))
-  .sort();
+// Backups and drafts are skipped: name-old.svg, name.bak.svg, _name.svg.
+const isBackup = (f) => /^_|-old\.svg$|\.bak\.svg$/i.test(f);
+const all = readdirSync(SRC).filter((f) => f.toLowerCase().endsWith('.svg'));
+const backups = all.filter(isBackup).sort();
+const files = all.filter((f) => !isBackup(f)).sort();
 const generated = {};
 let failed = 0;
 
@@ -54,6 +56,9 @@ if (existsSync(CHECKLIST)) {
     );
   writeFileSync(CHECKLIST, doc);
 }
+
+if (backups.length)
+  console.log(`(skipped ${backups.length} backup file(s): ${backups.join(', ')})`);
 
 const total = ICONS.length;
 console.log(

@@ -176,3 +176,10 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - Owner added isometric cdn, cluster, container, dns, firewall, function, load-balancer, scheduler, service (+ user tweaked). 16/61 drawn, all pass without warnings; consistent baseline (y1 43.5-46) and centering (cx 23-25.2).
 - Design feedback given: `function` (gear + lever) collides visually with `worker` (gear); `service` reads ambiguous; `load-balancer` (stacked boxes) doesn't show one-to-many; dns/load-balancer/cluster/service/scheduler have 17-26 shapes (guide suggests 3-12 faces), which gets noisy at 56px, especially in the sketch theme.
 - New example `examples/cloud-platform.yaml` (all 16 owner icons, two flows). `src/layout.ts`: `components()` + `shift()`; `layout()` stacks parts; `layoutOnce()` is the old single ELK pass. Tests: `test/layout.test.ts`.
+
+## Icon batch 4 (2026-10-11)
+
+- Owner redrew cluster (26 -> 11 shapes), dns (17 -> 8), function (now a lambda on a base, no longer a gear), service (20 -> 16; still reads laptop+wrench). New: auth, cache, data-lake, database, file, key-value, token, vault, warehouse. 25/61 drawn, all pass.
+- Owner keeps old versions as `name-old.svg`; importer now skips backups (`-old.svg`, `.bak.svg`, leading `_`) and reports them. Documented in icons-src/README.md and the checklist.
+- Metrics: all centered (cx 23-25); baselines 43.5-46 except `cache` (bottom at 38.5, floats).
+- New example `examples/secure-data-platform.yaml` (data + security icons). Making web > idp and web > api parallel (instead of a JWT chain) cut width 3,463 -> 2,605px.
