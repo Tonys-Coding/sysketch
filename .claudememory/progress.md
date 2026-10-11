@@ -183,3 +183,10 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - Owner keeps old versions as `name-old.svg`; importer now skips backups (`-old.svg`, `.bak.svg`, leading `_`) and reports them. Documented in icons-src/README.md and the checklist.
 - Metrics: all centered (cx 23-25); baselines 43.5-46 except `cache` (bottom at 38.5, floats).
 - New example `examples/secure-data-platform.yaml` (data + security icons). Making web > idp and web > api parallel (instead of a JWT chain) cut width 3,463 -> 2,605px.
+
+## Public README + push (2026-10-11)
+
+- README rewritten as a showcase: hero `examples/rate-limited-api.svg` + its spec, measured token table (846 vs 10,538 output tokens), from-source quick start (`npx sysketch` works in the workspace after `npm install && npm run build`), MCP setup with absolute path, spec reference, themes table, icon gallery (`docs/icons-gallery.png`, regenerate when icons change), more examples (`docs/showcase/`), how it works, roadmap.
+- CLI help now lists themes dynamically (was missing `sketch`).
+- Removed a local machine path from `.claudememory/techContext.md` before pushing (repo is public). Keep tracked files free of local paths/emails.
+- Pushed all local commits to origin/main.

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import { basename, extname } from 'node:path';
-import { ICONS, SysketchError, VERSION, renderToFile } from './index.js';
+import { ICONS, SysketchError, VERSION, renderToFile, themes } from './index.js';
 
 const HELP = `sysketch ${VERSION}
   sysketch render <spec.yaml|-> [-o out.svg|out.png] [--png] [--scale 2]
-                  [--direction right|down] [--theme graphite|blueprint|midnight|classic]
+                  [--direction right|down] [--theme ${Object.keys(themes).join('|')}]
   sysketch icons`;
 
 async function main(argv: string[]): Promise<number> {

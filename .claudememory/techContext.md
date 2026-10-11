@@ -57,5 +57,5 @@ Every stage is a pure function so each is unit-testable and the whole pipeline i
 
 ## Dev Environment Notes
 
-- Working dir: `/Users/tony/Downloads/My Projects/System Design Tool` (not a git repo yet — `git init` in phase 0).
+- Repo: github.com/Tonys-Coding/sysketch (public). Clone anywhere; no machine-specific paths belong in tracked files.
 - No database. No server. No secrets required for core.
