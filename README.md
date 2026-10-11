@@ -133,7 +133,7 @@ Themes are pure data (colors, fonts, card style, shadows, texture), so adding on
 
 ## Icons
 
-An original isometric icon set, recolored automatically for every theme. 25 of 61 are drawn so far; the rest temporarily borrow a similar icon, so every name already works in specs.
+An original isometric icon set, recolored automatically for every theme. 39 of 61 are drawn so far; the rest temporarily borrow a similar icon, so every name already works in specs.
 
 ![Icon gallery](docs/icons-gallery.png)
 
@@ -144,6 +144,10 @@ Progress: [docs/icon-checklist.md](docs/icon-checklist.md). Want to draw icons? 
 **Cloud-Native Platform** in the sketch theme ([spec](examples/cloud-platform.yaml)):
 
 ![Cloud-native platform, sketch theme](docs/showcase/cloud-platform-sketch.svg)
+
+**Smart Commerce Platform** in the midnight theme, with search, recommendations, an AI assistant, payments and an observability pipeline ([spec](examples/smart-commerce.yaml)):
+
+![Smart commerce platform, midnight theme](docs/showcase/smart-commerce-midnight.svg)
 
 **Secure Data Platform** in the blueprint theme ([spec](examples/secure-data-platform.yaml)):
 
@@ -181,7 +185,7 @@ Packages: `packages/sysketch` (renderer, CLI, library) and `packages/mcp` (MCP s
 
 ## Roadmap
 
-- Finish the isometric icon set (25 / 61)
+- Finish the isometric icon set (39 / 61)
 - Publish `sysketch` and `sysketch-mcp` to npm
 - Node subtitles, dashed "response" arrows, colored arrows, step legend
 - Web playground with live preview

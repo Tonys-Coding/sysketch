@@ -68,22 +68,22 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 ### Data
 
 - [x] `database`: SQL cylinder
-- [ ] `nosql`: document store (stacked docs)
+- [x] `nosql`: document store (stacked docs)
 - [x] `key-value`: key + box
 - [x] `cache`: lightning bolt
-- [ ] `search`: magnifier over index
-- [ ] `storage`: object storage / bucket
+- [x] `search`: magnifier over index
+- [x] `storage`: object storage / bucket
 - [x] `file`: document / file system
 - [x] `warehouse`: data warehouse (building with bars)
 - [x] `data-lake`: lake / waves
 
 ### Messaging
 
-- [ ] `queue`: message queue
+- [x] `queue`: message queue
 - [ ] `pubsub`: topic fan-out (broadcast)
 - [ ] `stream`: event log (Kafka-style partitions)
 - [ ] `notification`: bell (push)
-- [ ] `email`: envelope
+- [x] `email`: envelope
 - [ ] `webhook`: hook / callback arrow
 
 ### Security & identity
@@ -94,28 +94,28 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 
 ### Observability
 
-- [ ] `metrics`: line chart
-- [ ] `logs`: list with lines
-- [ ] `alert`: warning triangle / siren
+- [x] `metrics`: line chart
+- [x] `logs`: list with lines
+- [x] `alert`: warning triangle / siren
 
 ## P1: Common feature services (popular "design X" problems)
 
-- [ ] `payment`: card
+- [x] `payment`: card
 - [ ] `chat`: speech bubbles
 - [ ] `video`: play button / film (transcoding, streaming)
 - [ ] `image`: picture frame (media processing)
-- [ ] `location`: map pin (geo, ride-sharing)
-- [ ] `recommendation`: star / thumbs up feed
+- [x] `location`: map pin (geo, ride-sharing)
+- [x] `recommendation`: star / thumbs up feed
 - [ ] `analytics`: bar chart
-- [ ] `ml-model`: brain / neural net
-- [ ] `llm`: AI sparkle / agent
+- [x] `ml-model`: brain / neural net
+- [x] `llm`: AI sparkle / agent
 - [ ] `vector-db`: cylinder with vector arrows
 - [ ] `etl`: pipeline (funnel or arrows through gear)
 - [ ] `stream-processor`: gear on a stream
 
 ## P2: Infrastructure & dev workflow
 
-- [ ] `cloud`: internet / external
+- [x] `cloud`: internet / external
 - [ ] `vm`: virtual machine (monitor)
 - [ ] `config`: sliders / settings
 - [ ] `registry`: service discovery (address book)
@@ -128,6 +128,6 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 - [ ] `iot`: chip / sensor
 - [ ] `desktop`: monitor app
 
-**Progress:** 25 of 61 drawn (updated by `npm run icons`).
+**Progress:** 39 of 61 drawn (updated by `npm run icons`).
 
 Not icons (handled by containers/groups instead): region, availability zone, VPC, data center. Replicas and shards are expressed as duplicate nodes or labels.

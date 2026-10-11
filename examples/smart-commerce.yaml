@@ -1,0 +1,39 @@
+title: Smart Commerce Platform
+nodes:
+  shopper: user | Shopper
+  app: mobile | Shop App
+  gw: api-gateway | API Gateway
+  media: storage | Product Images
+  find: search | Product Search
+  recs: recommendation | Recommendations
+  assistant: llm | Shopping Assistant
+  pay: payment | Payments
+  catalog: nosql | Catalog
+  model: ml-model | Ranking Model
+  network: cloud | Card Network
+  events: queue | Order Events
+  mail: email | Receipts
+  eta: location | Delivery ETA
+  logs: logs | Logs
+  dash: metrics | Metrics
+  pager: alert | On-call Alerts
+groups:
+  Discovery: [find, recs, assistant, catalog, model]
+  Checkout: [pay, events, mail, eta]
+  Observability: [logs, dash, pager]
+edges:
+  - shopper > app
+  - app > gw
+  - app > media | images
+  - gw > find | query
+  - gw > recs
+  - gw > assistant | chat
+  - gw > pay | checkout
+  - find > catalog
+  - recs > model | rank
+  - pay > network | charge
+  - pay > events | OrderPlaced
+  - events > mail | receipt
+  - events > eta
+  - logs > dash | aggregate
+  - dash > pager | SLO breach

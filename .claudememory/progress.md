@@ -190,3 +190,7 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - CLI help now lists themes dynamically (was missing `sketch`).
 - Removed a local machine path from `.claudememory/techContext.md` before pushing (repo is public). Keep tracked files free of local paths/emails.
 - Pushed all local commits to origin/main.
+
+## Icon batch 5 (2026-10-11)
+- 14 new icons (nosql, search, storage, queue, email, metrics, logs, alert, payment, location, recommendation, ml-model, llm, cloud): 39/61 drawn. Notes: llm one stroke 3.4 and floats (bottom 41.1); payment one stroke 1.6; email off-center (cx 21.3); logs~search and metrics~alert look alike at small size; cloud reads as monitor+cloud.
+- New example examples/smart-commerce.yaml (+ midnight render in docs/showcase). README counts, gallery and examples updated. Pushed.
