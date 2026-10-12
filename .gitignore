@@ -5,3 +5,6 @@ dist/
 .shots/
 icons-src/_preview.png
 .DS_Store
+
+# Vendor icon packs: never commit (each user imports their own)
+*.zip

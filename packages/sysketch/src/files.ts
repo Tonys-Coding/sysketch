@@ -24,7 +24,9 @@ export async function renderToFile(
   const scale = opts.scale ?? 2;
   const data = isPng ? svgToPng(svg, scale) : svg;
   writeFileSync(out, data);
-  const size = isPng ? `${Number(w) * scale}x${Number(h) * scale}` : `${w}x${h}`;
+  const size = isPng
+    ? `${Math.round(Number(w) * scale)}x${Math.round(Number(h) * scale)}`
+    : `${w}x${h}`;
   const summary =
     `wrote ${out} (${size}, ${model.nodes.length} nodes, ${model.edges.length} edges, ` +
     `${(data.length / 1024).toFixed(1)} KB)`;
