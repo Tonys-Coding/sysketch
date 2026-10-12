@@ -45,15 +45,20 @@ await renderToFile(specText, 'diagram.png', { scale: 2 });
 
 ## Spec
 
-| Key         | Meaning                                                                                             |
-| ----------- | --------------------------------------------------------------------------------------------------- |
-| `title`     | Optional heading                                                                                    |
-| `nodes`     | `id: icon` or `id: icon \| Label`. Optional: an icon name or alias used in an edge creates the node |
-| `groups`    | `Label: [node ids]` draws a labeled container                                                       |
-| `edges`     | `a > b`, `a > b > c`, `a > b \| label` (the label goes on the last hop)                             |
-| `theme`     | `graphite` (default), `blueprint`, `midnight`, `classic`, `sketch`                                  |
-| `steps`     | `false` hides the numbered step badges                                                              |
-| `direction` | `right` (default) or `down`                                                                         |
+| Key         | Meaning                                                                                                                                                           |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`     | Optional heading                                                                                                                                                  |
+| `nodes`     | `id: icon`, `id: icon \| Label` or `id: icon \| Label \| subtitle`. Optional: an icon name or alias used in an edge creates the node                              |
+| `groups`    | `Label: [node ids]` draws a labeled container                                                                                                                     |
+| `edges`     | `a > b`, `a > b > c`, `a > b \| label` (label on the last hop). `a ..> b` is dashed (responses, async); a trailing `[red]` or `[green, dashed]` colors the arrows |
+| `theme`     | `graphite` (default), `blueprint`, `midnight`, `classic`, `sketch`                                                                                                |
+| `steps`     | `false` hides the numbered step badges                                                                                                                            |
+| `legend`    | `true` adds a numbered list of the steps under the diagram                                                                                                        |
+| `direction` | `right` (default) or `down`                                                                                                                                       |
+
+New in 0.2.0: node subtitles, dashed (`..>`) and colored (`[red]`) arrows, and `legend: true`:
+
+![Subtitles, colored and dashed arrows, step legend](https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/features-v2.png)
 
 61 original isometric icons with 160+ aliases (`redis`, `kafka`, `s3`, `postgres`, `lambda`, `k8s`...). Errors are short and fixable: `unknown node "databse". Did you mean: database?`
 

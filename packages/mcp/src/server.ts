@@ -7,8 +7,8 @@ import { ICONS, SysketchError, VERSION, renderToFile, svgToPng, themes } from 's
 
 // Loaded into the model's context every session: keep it short.
 const GUIDE = `Render a system design diagram from a tiny YAML spec. Writes an .svg/.png file and returns its path. Never write SVG yourself.
-Spec keys: title, theme (${Object.keys(themes).join('|')}), direction (right|down), steps (false hides step numbers),
-nodes {id: "icon | Label"}, groups {Label: [ids]}, edges ["a > b", "a > b > c", "a > b | label"].
+Spec keys: title, theme (${Object.keys(themes).join('|')}), direction (right|down), steps (false hides numbers), legend (true lists steps),
+nodes {id: "icon | Label | subtitle"}, groups {Label: [ids]}, edges ["a > b > c | label", "a ..> b" dashed, "a > b [red]" color].
 Ids that are icon names/aliases (client, lb, api, db, cache, redis, kafka, s3, cdn...) need no nodes entry.
 To edit, change the spec file and call again with file=.`;
 

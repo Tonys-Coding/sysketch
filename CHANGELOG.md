@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.0
+
+**sysketch**
+
+- Node subtitles: `api: server | API Server | stateless, 3 replicas` (or `sub:` in the object form).
+- Dashed arrows with `a ..> b` for responses and async calls, or `[dashed]`.
+- Colored arrows with a trailing `[red]`, `[green, dashed]`, ... (10 palette colors plus synonyms); the step badge takes the arrow's color. Object form: `color:`, `dashed:`.
+- `legend: true` draws a numbered Steps panel under the diagram (two columns for longer flows); `note:` on an edge overrides its legend text.
+- Return edges (e.g. `api ..> client`) no longer flip the main flow: layout follows the order nodes first appear in the edges.
+- Values containing `: ` (like `title: URL Shortener: Read Path`) are auto-quoted instead of failing to parse.
+
+**sysketch-mcp**
+
+- Tool guide covers subtitles, dashed and colored arrows, and legends (about 30 more tokens per session). Requires sysketch ^0.2.0.
+
 ## 0.1.0 (first release)
 
 **sysketch**

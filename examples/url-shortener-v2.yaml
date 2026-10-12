@@ -1,0 +1,15 @@
+title: URL Shortener: Read Path
+legend: true
+nodes:
+  lb: load-balancer | Load Balancer | round robin
+  api: server | API Server | stateless, 3 replicas
+  cache: redis | Redis | cache-aside, TTL 24h
+  db: postgres | PostgreSQL | source of truth
+groups:
+  Backend: [api, cache, db]
+edges:
+  - client > lb | GET /abc123
+  - lb > api
+  - api > cache | lookup [green]
+  - api > db | on miss [amber]
+  - api ..> client | 302 redirect [blue]

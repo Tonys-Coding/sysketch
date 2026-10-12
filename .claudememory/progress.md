@@ -228,3 +228,10 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - README: npm/CI/license badges; Quick start is now `npx sysketch` (no clone); MCP setup is `claude mcp add sysketch -- npx -y sysketch-mcp` / npx config; from-source steps moved to Development; publish item removed from roadmap.
 - Local npm is 11.6.2 (no `npm stage`); staging commands need npm >= 11.15 (npm 12 requires Node >= 24.15).
 - Future releases: bump both versions, push a vX.Y.Z tag; release.yml needs repo secret NPM_TOKEN (if the account enforces staged publishing, CI publishes will also need approval).
+
+## 0.2.0 diagram features (2026-10-12, not yet published)
+- Spec: node subtitle (3rd `|` segment or `sub:`), dashed hops `a ..> b` (and `[dashed]`), trailing `[color, dashed]` attrs (EDGE_COLORS: blue green amber red violet teal pink sky orange slate + yellow/purple/cyan/gray/grey), edge object `color/dashed/note`, top-level `legend: true`.
+- Render: subtitles in theme edge font + muted color (SUB = 12px, 16px line, max 170px); colored edges use hue.a (hue.m in sketch) and color their step badge (badge text = theme.bg, or badgeText in sketch); dashes via stroke-dasharray (sketch.path takes an `extra` attr). src/legend.ts draws the Steps panel (1 or 2 columns, arrows drawn as vectors because the bundled latin font subsets lack U+2192).
+- Layout: node order = first appearance in edges; groups/root children sorted by it; `elk.layered.cycleBreaking.strategy: GREEDY_MODEL_ORDER` so return edges do not flip the flow. (Plain MODEL_ORDER reversed non-cycle edges and broke web-scale; do not use it.) Existing goldens unchanged.
+- Parser: on YAML failure, retries with `key: value` lines whose value contains ": " auto-quoted (list items are left alone because `- a > b : label` is a supported shorthand).
+- MCP guide updated (~392 tokens of tool definitions). Both packages bumped to 0.2.0; sysketch-mcp depends on ^0.2.0. Tests: 52 core + 6 mcp.

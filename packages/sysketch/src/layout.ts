@@ -14,6 +14,8 @@ export interface Box extends Pt {
 }
 export interface NodeBox extends Box {
   lines: string[];
+  /** wrapped subtitle lines (empty when the node has no subtitle) */
+  subLines: string[];
 }
 export interface EdgeRoute {
   points: Pt[];
@@ -38,6 +40,7 @@ export const NODE = {
   maxLabelW: 150,
 } as const;
 export const PILL = { h: 28, badge: 26, labelSize: 13 } as const;
+export const SUB = { size: 12, line: 16, maxW: 170 } as const;
 /** Extra room reserved on each side of a pill so the arrow stays visible around it. */
 const PILL_GAP = 18;
 
@@ -131,10 +134,15 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
 
   for (const n of model.nodes) {
     const lines = wrap(n.label, NODE.labelSize, theme.fonts.label, NODE.maxLabelW);
-    const textW = Math.max(...lines.map((l) => measure(l, NODE.labelSize, theme.fonts.label)));
+    const subLines = n.sub ? wrap(n.sub, SUB.size, theme.fonts.edge, SUB.maxW) : [];
+    const textW = Math.max(
+      ...lines.map((l) => measure(l, NODE.labelSize, theme.fonts.label)),
+      ...subLines.map((l) => measure(l, SUB.size, theme.fonts.edge)),
+    );
     const w = Math.max(NODE.minW, Math.ceil(textW + 36));
-    const h = NODE.h + (lines.length - 1) * 19;
-    nodes.set(n.id, { x: 0, y: 0, w, h, lines });
+    const h =
+      NODE.h + (lines.length - 1) * 19 + (subLines.length ? subLines.length * SUB.line + 2 : 0);
+    nodes.set(n.id, { x: 0, y: 0, w, h, lines, subLines });
     elkNodes.set(n.id, {
       id: `n:${n.id}`,
       width: w,
@@ -155,13 +163,26 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
     'elk.spacing.edgeLabel': down ? '12' : '6',
   };
 
+  // Model order = order of first appearance in the edges, so the flow reads the way the
+  // spec was written and "return" edges (e.g. api ..> client) count as going backwards.
+  const rank = new Map<string, number>();
+  for (const e of model.edges)
+    for (const id of [e.from, e.to]) if (!rank.has(id)) rank.set(id, rank.size);
+  for (const n of model.nodes) if (!rank.has(n.id)) rank.set(n.id, rank.size);
+  const byRank = (a: string, b: string) => rank.get(a)! - rank.get(b)!;
+
   const grouped = new Set(model.groups.flatMap((g) => g.nodes));
   const groupNodes: ElkNode[] = model.groups.map((g) => ({
     id: `g:${g.id}`,
     layoutOptions: { ...spacing, 'elk.padding': '[top=46,left=26,bottom=26,right=26]' },
-    children: g.nodes.map((id) => elkNodes.get(id)!),
+    children: [...g.nodes].sort(byRank).map((id) => elkNodes.get(id)!),
   }));
   const loose = model.nodes.filter((n) => !grouped.has(n.id)).map((n) => elkNodes.get(n.id)!);
+  const firstMember = (n: ElkNode) =>
+    n.id.startsWith('g:')
+      ? Math.min(...(n.children ?? []).map((c) => rank.get(c.id.slice(2)) ?? Infinity))
+      : (rank.get(n.id.slice(2)) ?? Infinity);
+  const rootChildren = [...groupNodes, ...loose].sort((a, b) => firstMember(a) - firstMember(b));
 
   const edges: ElkExtendedEdge[] = model.edges.map((e) => {
     const size = pillSize(e.label, e.step, theme.fonts.edge);
@@ -195,10 +216,11 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
       'elk.padding': `[top=${topPad},left=36,bottom=36,right=36]`,
       ...spacing,
       'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
+      'elk.layered.cycleBreaking.strategy': 'GREEDY_MODEL_ORDER',
       'elk.json.edgeCoords': 'ROOT',
       'elk.json.shapeCoords': 'ROOT',
     },
-    children: [...groupNodes, ...loose],
+    children: rootChildren,
     edges,
   };
 

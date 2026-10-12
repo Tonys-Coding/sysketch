@@ -116,15 +116,16 @@ The spec is saved next to the diagram, so follow-up edits are one-line changes. 
 
 ## Spec reference
 
-| Key         | Meaning                                                                                                     |
-| ----------- | ----------------------------------------------------------------------------------------------------------- |
-| `title`     | Optional heading                                                                                            |
-| `nodes`     | `id: icon` or `id: icon \| Label`. Optional: an icon name or alias used in an edge creates the node for you |
-| `groups`    | `Label: [node ids]` draws a labeled container                                                               |
-| `edges`     | `a > b`, `a > b > c`, `a > b \| label` (the label goes on the last hop)                                     |
-| `theme`     | `graphite` (default), `blueprint`, `midnight`, `classic`, `sketch`                                          |
-| `steps`     | `false` hides the numbered step badges (default: numbered in edge order)                                    |
-| `direction` | `right` (default) or `down`                                                                                 |
+| Key         | Meaning                                                                                                                                                           |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`     | Optional heading                                                                                                                                                  |
+| `nodes`     | `id: icon`, `id: icon \| Label` or `id: icon \| Label \| subtitle`. Optional: an icon name or alias used in an edge creates the node for you                      |
+| `groups`    | `Label: [node ids]` draws a labeled container                                                                                                                     |
+| `edges`     | `a > b`, `a > b > c`, `a > b \| label` (label on the last hop). `a ..> b` is dashed (responses, async); a trailing `[red]` or `[green, dashed]` colors the arrows |
+| `theme`     | `graphite` (default), `blueprint`, `midnight`, `classic`, `sketch`                                                                                                |
+| `steps`     | `false` hides the numbered step badges (default: numbered in edge order)                                                                                          |
+| `legend`    | `true` adds a numbered list of the steps under the diagram                                                                                                        |
+| `direction` | `right` (default) or `down`                                                                                                                                       |
 
 The smallest useful spec is one line, because aliases create nodes automatically:
 
@@ -133,6 +134,32 @@ edges: ['client > lb > api > db']
 ```
 
 Aliases include `client`, `lb`, `api`, `db`, `redis`, `kafka`, `s3`, `postgres`, `lambda`, `k8s` and many more; run `npx sysketch icons` for the full list.
+
+## Subtitles, arrow styles and step legends
+
+Add detail without adding much to the spec: a subtitle line under a node, dashed arrows for responses, colored arrows for different paths, and a numbered legend.
+
+```yaml
+title: 'URL Shortener: Read Path'
+legend: true
+nodes:
+  lb: load-balancer | Load Balancer | round robin
+  api: server | API Server | stateless, 3 replicas
+  cache: redis | Redis | cache-aside, TTL 24h
+  db: postgres | PostgreSQL | source of truth
+groups:
+  Backend: [api, cache, db]
+edges:
+  - client > lb | GET /abc123
+  - lb > api
+  - api > cache | lookup [green]
+  - api > db | on miss [amber]
+  - api ..> client | 302 redirect [blue]
+```
+
+![URL shortener read path with subtitles, colored and dashed arrows, and a step legend](examples/url-shortener-v2.svg)
+
+Colors: `blue`, `green`, `amber`, `red`, `violet`, `teal`, `pink`, `sky`, `orange`, `slate` (also `yellow`, `purple`, `cyan`, `gray`). Values containing `: ` (like the title above) are quoted automatically if you forget.
 
 ## Themes
 

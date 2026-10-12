@@ -1,5 +1,6 @@
-import { layout, NODE, PILL, type Pt } from './layout.js';
-import type { Model } from './model.js';
+import { layout, NODE, PILL, SUB, type Pt } from './layout.js';
+import { legendBlock } from './legend.js';
+import type { EdgeModel, Model } from './model.js';
 import { defaultTheme, iconPaint, type Theme } from './themes.js';
 import { sketch, sketchIcon } from './sketch.js';
 import { textPathData, type Anchor, type FontRef } from './text.js';
@@ -54,6 +55,19 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
   const theme = opts.theme ?? defaultTheme;
   const lay = await layout(model, theme);
   const out: string[] = [];
+
+  /** Line, badge and badge-text colors for an edge (colored edges use their palette hue). */
+  const edgePaint = (e: EdgeModel) => {
+    const hue = e.color ? theme.hues[e.color] : undefined;
+    if (!hue) return { line: theme.edge, badge: theme.badge, badgeText: theme.badgeText };
+    // sketch hues use ink for accents, so colored arrows take the crayon color there
+    const line = theme.sketch ? hue.m : hue.a;
+    return { line, badge: line, badgeText: theme.sketch ? theme.badgeText : theme.bg };
+  };
+  const legend = legendBlock(model, theme, Math.max(lay.width - 72, 640), edgePaint);
+  const W = Math.max(lay.width, legend ? legend.width + 72 : 0);
+  const legendY = lay.height - 12;
+  const H = legend ? legendY + legend.height + 36 : lay.height;
   const defs: string[] = [];
   const { card } = theme;
   const sk = theme.sketch;
@@ -78,15 +92,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
 
   if (model.title) {
     out.push(
-      textPath(
-        model.title,
-        lay.width / 2,
-        lay.titleY,
-        30,
-        theme.fonts.title,
-        theme.title,
-        'middle',
-      ),
+      textPath(model.title, W / 2, lay.titleY, 30, theme.fonts.title, theme.title, 'middle'),
     );
   }
 
@@ -143,13 +149,17 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
       [r2(base.x - uy * ARROW.half), r2(base.y + ux * ARROW.half)],
       [r2(base.x + uy * ARROW.half), r2(base.y - ux * ARROW.half)],
     ];
+    const color = edgePaint(e).line;
+    const dash = e.dashed
+      ? ` stroke-dasharray="${r2(theme.edgeWidth * 3.5)} ${r2(theme.edgeWidth * 3)}"`
+      : '';
     if (sk) {
-      const ink = { stroke: theme.edge, strokeWidth: theme.edgeWidth };
+      const ink = { stroke: color, strokeWidth: theme.edgeWidth };
       out.push(
-        `<g>${sketch.path(roundedPath(pts, 12), ink, `e:${e.id}`, sk)}` +
+        `<g>${sketch.path(roundedPath(pts, 12), ink, `e:${e.id}`, sk, dash)}` +
           sketch.polygon(
             headPts,
-            { ...ink, fill: theme.edge, fillStyle: 'solid', strokeWidth: 1 },
+            { ...ink, fill: color, fillStyle: 'solid', strokeWidth: 1 },
             `a:${e.id}`,
             sk,
           ) +
@@ -159,8 +169,8 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     }
     const head = headPts.map((p) => p.join(',')).join(' ');
     out.push(
-      `<g><path d="${roundedPath(pts, 12)}" fill="none" stroke="${theme.edge}" stroke-width="${theme.edgeWidth}" stroke-linecap="round" stroke-linejoin="round"/>` +
-        `<polygon points="${head}" fill="${theme.edge}" stroke="${theme.edge}" stroke-width="1" stroke-linejoin="round"/></g>`,
+      `<g><path d="${roundedPath(pts, 12)}" fill="none" stroke="${color}" stroke-width="${theme.edgeWidth}" stroke-linecap="round" stroke-linejoin="round"${dash}/>` +
+        `<polygon points="${head}" fill="${color}" stroke="${color}" stroke-width="1" stroke-linejoin="round"/></g>`,
     );
   }
 
@@ -183,6 +193,20 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
           NODE.labelSize,
           theme.fonts.label,
           theme.text,
+          'middle',
+        ),
+      )
+      .join('');
+    const subY0 = labelY0 + (b.lines.length - 1) * 19 + SUB.line + 2;
+    const subs = b.subLines
+      .map((line, i) =>
+        textPath(
+          line,
+          b.x + b.w / 2,
+          r2(subY0 + i * SUB.line),
+          SUB.size,
+          theme.fonts.edge,
+          theme.group.label,
           'middle',
         ),
       )
@@ -219,6 +243,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
         shell +
         `<g transform="translate(${ix} ${iy}) scale(${r2(iconSize / 48)})">${iconMarkup}</g>` +
         labels +
+        subs +
         `</g>`,
     );
   }
@@ -228,18 +253,19 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     if (!pill) continue;
     const cy = r2(pill.y + pill.h / 2);
     const num = e.step === undefined ? '' : String(e.step);
+    const paint = edgePaint(e);
     const badge = (cx: number) =>
       (sk
         ? sketch.circle(
             r2(cx),
             cy,
             PILL.badge / 2,
-            { fill: theme.badge, fillStyle: 'solid', stroke: theme.edge, strokeWidth: 1.5 },
+            { fill: paint.badge, fillStyle: 'solid', stroke: theme.edge, strokeWidth: 1.5 },
             `b:${e.id}`,
             sk,
           )
-        : `<circle cx="${r2(cx)}" cy="${cy}" r="${PILL.badge / 2}" fill="${theme.badge}"/>`) +
-      textPath(num, cx, r2(cy + 4.6), 13, theme.fonts.badge, theme.badgeText, 'middle');
+        : `<circle cx="${r2(cx)}" cy="${cy}" r="${PILL.badge / 2}" fill="${paint.badge}"/>`) +
+      textPath(num, cx, r2(cy + 4.6), 13, theme.fonts.badge, paint.badgeText, 'middle');
     if (!e.label) {
       out.push(`<g>${badge(pill.x + pill.w / 2)}</g>`);
       continue;
@@ -277,15 +303,14 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
         `${model.nodes.find((n) => n.id === e.from)?.label} to ${model.nodes.find((n) => n.id === e.to)?.label}`,
     )
     .join('; ');
+  if (legend) out.push(legend.render(36, legendY));
   const title = model.title ?? 'System design diagram';
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${lay.width} ${lay.height}" width="${lay.width}" height="${lay.height}" role="img" aria-label="${esc(title)}">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(title)}">` +
     `<title>${esc(title)}</title><desc>${esc(desc)}</desc>` +
     (defs.length ? `<defs>${defs.join('')}</defs>` : '') +
-    `<rect width="${lay.width}" height="${lay.height}" fill="${theme.bg}"/>` +
-    (theme.backdrop
-      ? `<rect width="${lay.width}" height="${lay.height}" fill="url(#sk-bg)"/>`
-      : '') +
+    `<rect width="${W}" height="${H}" fill="${theme.bg}"/>` +
+    (theme.backdrop ? `<rect width="${W}" height="${H}" fill="url(#sk-bg)"/>` : '') +
     out.join('') +
     `</svg>\n`
   );

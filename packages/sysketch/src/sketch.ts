@@ -48,12 +48,12 @@ function options(ink: Ink, key: string, s: SketchStyle, roughness = s.roughness)
   return o;
 }
 
-function emit(drawable: ReturnType<typeof gen.path>): string {
+function emit(drawable: ReturnType<typeof gen.path>, extra = ''): string {
   return gen
     .toPaths(drawable)
     .map(
       (p) =>
-        `<path d="${trim(p.d)}" fill="${p.fill ?? 'none'}" stroke="${p.stroke}" stroke-width="${Math.round(p.strokeWidth * 100) / 100}" stroke-linecap="round" stroke-linejoin="round"/>`,
+        `<path d="${trim(p.d)}" fill="${p.fill ?? 'none'}" stroke="${p.stroke}" stroke-width="${Math.round(p.strokeWidth * 100) / 100}" stroke-linecap="round" stroke-linejoin="round"${extra}/>`,
     )
     .join('');
 }
@@ -83,8 +83,9 @@ export const sketch = {
   circle(cx: number, cy: number, r: number, ink: Ink, key: string, s: SketchStyle) {
     return emit(gen.circle(cx, cy, r * 2, options(ink, key, s, s.roughness * 0.6)));
   },
-  path(d: string, ink: Ink, key: string, s: SketchStyle) {
-    return emit(gen.path(d, options(ink, key, s)));
+  /** `extra` is appended to every emitted path, e.g. a stroke-dasharray. */
+  path(d: string, ink: Ink, key: string, s: SketchStyle, extra = '') {
+    return emit(gen.path(d, options(ink, key, s)), extra);
   },
   polygon(points: [number, number][], ink: Ink, key: string, s: SketchStyle) {
     return emit(gen.polygon(points, options(ink, key, s, s.roughness * 0.5)));
