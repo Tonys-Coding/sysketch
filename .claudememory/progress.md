@@ -200,3 +200,9 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - Stroke check now ignores intentional details: zero-length round-cap dot paths, circles r<=3, solid shapes (fill == stroke). Owner uses dots for chat typing dots and repo commit nodes. Remaining real notes: tracing 4.6 path, thin 1.6 lines in iot/payment.
 - Placement: graph-db floats (bottom 37), chat 40.6, iot 41.5. Style notes: webhook is flat 2D (not isometric); tracing reads like location (map + pin). Slate-hue icons (vm, registry, ci-cd, repo, iot, cloud) look dim in dark themes: consider reassigning hues.
 - New example examples/connected-platform.yaml (3 independent flows). Not yet pushed; README gallery still shows 39.
+
+## Icon batch 7 (2026-10-12)
+- Owner regenerated webhook (now isometric) and added pubsub, stream, notification, analytics, vector-db, etl, time-series: 60/61 drawn. `config` still missing.
+- Per owner request: graph-db shifted down 7px by wrapping the art in `<g transform="translate(0 7)">` (original kept as graph-db-old.svg); tracing redrawn by Claude as an upright isometric trace panel with three indented span bars + connectors (old kept as tracing-old.svg). Two earlier tracing attempts (spans on a tile) did not read as a waterfall.
+- Notes: pubsub is flat 2D (not isometric); vector-db floats/off-center (bottom 37.8, cx 20.1); notification slightly left (cx 20.9).
+- New example examples/event-analytics.yaml. README gallery regenerated (60 icons) and counts updated. Not pushed yet.

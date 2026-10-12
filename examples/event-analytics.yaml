@@ -1,0 +1,26 @@
+title: Event-Driven Analytics
+nodes:
+  shop: browser | Storefront
+  hook: webhook | Payment Webhook
+  orders: service | Order Service
+  bus: pubsub | Event Bus
+  push: notification | Push Notifications
+  events: stream | Event Stream
+  etl: etl | Nightly ETL
+  tsdb: time-series | Metrics TSDB
+  vec: vector-db | Product Embeddings
+  bi: analytics | BI Reports
+  traces: tracing | Tracing
+groups:
+  Streaming: [bus, events]
+  Analytics: [etl, tsdb, vec, bi]
+edges:
+  - shop > orders | place order
+  - hook > orders | payment ok
+  - orders > bus | OrderPlaced
+  - orders > traces | spans
+  - bus > push | notify buyer
+  - bus > events
+  - events > tsdb | metrics
+  - events > etl > bi | daily
+  - etl > vec | embed

@@ -133,7 +133,7 @@ Themes are pure data (colors, fonts, card style, shadows, texture), so adding on
 
 ## Icons
 
-An original isometric icon set, recolored automatically for every theme. 39 of 61 are drawn so far; the rest temporarily borrow a similar icon, so every name already works in specs.
+An original isometric icon set, recolored automatically for every theme. 60 of 61 are drawn so far; the rest temporarily borrow a similar icon, so every name already works in specs.
 
 ![Icon gallery](docs/icons-gallery.png)
 
@@ -185,7 +185,7 @@ Packages: `packages/sysketch` (renderer, CLI, library) and `packages/mcp` (MCP s
 
 ## Roadmap
 
-- Finish the isometric icon set (39 / 61)
+- Finish the isometric icon set (60 / 61)
 - Publish `sysketch` and `sysketch-mcp` to npm
 - Node subtitles, dashed "response" arrows, colored arrows, step legend
 - Web playground with live preview

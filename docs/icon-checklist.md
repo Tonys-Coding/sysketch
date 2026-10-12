@@ -80,9 +80,9 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 ### Messaging
 
 - [x] `queue`: message queue
-- [ ] `pubsub`: topic fan-out (broadcast)
-- [ ] `stream`: event log (Kafka-style partitions)
-- [ ] `notification`: bell (push)
+- [x] `pubsub`: topic fan-out (broadcast)
+- [x] `stream`: event log (Kafka-style partitions)
+- [x] `notification`: bell (push)
 - [x] `email`: envelope
 - [x] `webhook`: hook / callback arrow
 
@@ -106,11 +106,11 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 - [x] `image`: picture frame (media processing)
 - [x] `location`: map pin (geo, ride-sharing)
 - [x] `recommendation`: star / thumbs up feed
-- [ ] `analytics`: bar chart
+- [x] `analytics`: bar chart
 - [x] `ml-model`: brain / neural net
 - [x] `llm`: AI sparkle / agent
-- [ ] `vector-db`: cylinder with vector arrows
-- [ ] `etl`: pipeline (funnel or arrows through gear)
+- [x] `vector-db`: cylinder with vector arrows
+- [x] `etl`: pipeline (funnel or arrows through gear)
 - [x] `stream-processor`: gear on a stream
 
 ## P2: Infrastructure & dev workflow
@@ -123,11 +123,11 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 - [x] `repo`: git branch
 - [x] `tracing`: connected spans
 - [x] `dashboard`: panel grid
-- [ ] `time-series`: cylinder with clock
+- [x] `time-series`: cylinder with clock
 - [x] `graph-db`: connected nodes
 - [x] `iot`: chip / sensor
 - [x] `desktop`: monitor app
 
-**Progress:** 53 of 61 drawn (updated by `npm run icons`).
+**Progress:** 60 of 61 drawn (updated by `npm run icons`).
 
 Not icons (handled by containers/groups instead): region, availability zone, VPC, data center. Replicas and shards are expressed as duplicate nodes or labels.
