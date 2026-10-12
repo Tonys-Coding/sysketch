@@ -1,14 +1,11 @@
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
+import { SysketchError } from './errors.js';
 import { findIcon, iconKeys, type IconDef } from './icons.js';
+import type { Logo, LogoResolver } from './logos.js';
+import { CATALOG_BRANDS, findProduct } from './products.js';
 
-/** Thrown for any invalid spec. The message is written to be read (and fixed) by an LLM. */
-export class SysketchError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'SysketchError';
-  }
-}
+export { SysketchError };
 
 const nodeValue = z.union([
   z.string(),
@@ -39,6 +36,7 @@ export const specSchema = z
     direction: z.enum(['right', 'down']).optional(),
     steps: z.boolean().optional(),
     legend: z.boolean().optional(),
+    logos: z.union([z.boolean(), z.string(), z.array(z.string())]).optional(),
     nodes: z.record(z.string(), nodeValue).optional(),
     groups: z.record(z.string(), z.array(z.string())).optional(),
     edges: z.array(edgeValue).min(1),
@@ -53,6 +51,8 @@ export interface NodeModel {
   /** optional second line, e.g. "stateless, 3 replicas" */
   sub?: string;
   icon: IconDef;
+  /** official brand logo, drawn unaltered in place of the icon */
+  logo?: Logo;
 }
 export interface GroupModel {
   id: string;
@@ -77,6 +77,8 @@ export interface Model {
   theme?: string;
   direction: 'right' | 'down';
   legend?: boolean;
+  /** spec `logos:` value: false turns logos off, a path (or list) adds logo folders */
+  logos?: boolean | string | string[];
   nodes: NodeModel[];
   groups: GroupModel[];
   edges: EdgeModel[];
@@ -216,24 +218,89 @@ function expandEdge(src: string): RawEdge[] {
   });
 }
 
-function parseNodeValue(id: string, v: z.infer<typeof nodeValue>): NodeModel {
+/** Brand logos for this spec, or undefined when logos are off / none are installed. */
+export type LogoLookup = LogoResolver & { names?: () => string[] };
+
+export interface BuildOptions {
+  /** Called with the spec's `logos:` value; returns the logo lookup to use. */
+  logos?: (specValue: Spec['logos']) => LogoLookup | undefined;
+}
+
+const GENERIC = findIcon('service')!.icon;
+
+const titleCase = (s: string) =>
+  s.replace(/[-_]+/g, ' ').replace(/\b[a-z]/g, (c) => c.toUpperCase());
+
+/** A sysketch icon for a name: catalog names and aliases first, then known products. */
+function known(key: string): { icon: IconDef; label: string; generic: boolean } | undefined {
+  const hit = findIcon(key);
+  if (hit) return { ...hit, generic: !CATALOG_BRANDS.has(key.toLowerCase()) };
+  const product = findProduct(key);
+  const icon = product && findIcon(product[0]);
+  return icon && product ? { icon: icon.icon, label: product[1], generic: false } : undefined;
+}
+
+/**
+ * Icon and/or official logo for a name. Generic names (database, queue, api...) always use
+ * the sysketch icon; product names (redis, stripe, sendgrid...) use an installed logo when
+ * there is one, else their matching icon. `brand/icon` (e.g. `acme/queue`) uses the brand's
+ * logo if installed, else that icon.
+ */
+function lookup(
+  key: string,
+  logoOf: LogoLookup | undefined,
+): { icon: IconDef; label: string; logo?: Logo } | undefined {
+  const slash = key.indexOf('/');
+  if (slash > 0) {
+    const brand = key.slice(0, slash).trim();
+    const fallback = findIcon(key.slice(slash + 1).trim());
+    if (!fallback) return undefined;
+    const own = known(brand);
+    const logo = own?.generic ? undefined : logoOf?.(brand);
+    return {
+      icon: fallback.icon,
+      label: own && !own.generic ? own.label : (logo?.title ?? titleCase(brand)),
+      ...(logo ? { logo } : {}),
+    };
+  }
+  const own = known(key);
+  const logo = own?.generic || !logoOf ? undefined : logoOf(key);
+  if (!own && !logo) return undefined;
+  return {
+    icon: own?.icon ?? GENERIC,
+    label: own?.label ?? logo!.title,
+    ...(logo ? { logo } : {}),
+  };
+}
+
+function parseNodeValue(
+  id: string,
+  v: z.infer<typeof nodeValue>,
+  logoOf: LogoLookup | undefined,
+): NodeModel {
   const [iconKey, labelPart, ...subParts] = (typeof v === 'string' ? v : v.icon).split('|');
   const key = iconKey!.trim();
-  const hit = findIcon(key);
+  const hit = lookup(key, logoOf);
   if (!hit) {
-    const tip = suggest(key, iconKeys());
+    const tip = suggest(key, [...iconKeys(), ...(logoOf?.names?.() ?? [])]);
     throw new SysketchError(
       `Node "${id}": unknown icon "${key}".` +
         (tip.length ? ` Did you mean: ${tip.join(', ')}?` : '') +
-        ` Run "sysketch icons" for the full list.`,
+        ` Run "sysketch icons" for the full list, or write brand/icon (e.g. cloudflare/cdn).`,
     );
   }
   const label = (typeof v === 'string' ? labelPart?.trim() : v.label) || hit.label;
   const sub = (typeof v === 'string' ? subParts.join('|').trim() : v.sub) || undefined;
-  return { id, label, icon: hit.icon, ...(sub ? { sub } : {}) };
+  return {
+    id,
+    label,
+    icon: hit.icon,
+    ...(sub ? { sub } : {}),
+    ...(hit.logo ? { logo: hit.logo } : {}),
+  };
 }
 
-export function buildModel(input: string | object): Model {
+export function buildModel(input: string | object, opts: BuildOptions = {}): Model {
   const parsed = specSchema.safeParse(parseInput(input));
   if (!parsed.success) {
     const msg = parsed.error.issues
@@ -241,13 +308,15 @@ export function buildModel(input: string | object): Model {
       .map((i) => `${i.path.join('.') || 'spec'}: ${i.message}`)
       .join('; ');
     throw new SysketchError(
-      `Invalid spec. ${msg}. Expected keys: title, theme, direction, steps, legend, nodes, groups, edges.`,
+      `Invalid spec. ${msg}. Expected keys: title, theme, direction, steps, legend, logos, nodes, groups, edges.`,
     );
   }
   const spec = parsed.data;
+  const logoOf = opts.logos?.(spec.logos);
 
   const nodes = new Map<string, NodeModel>();
-  for (const [id, v] of Object.entries(spec.nodes ?? {})) nodes.set(id, parseNodeValue(id, v));
+  for (const [id, v] of Object.entries(spec.nodes ?? {}))
+    nodes.set(id, parseNodeValue(id, v, logoOf));
 
   const rawEdges: RawEdge[] = spec.edges.flatMap((e): RawEdge[] => {
     if (typeof e === 'string') return expandEdge(e);
@@ -262,16 +331,21 @@ export function buildModel(input: string | object): Model {
 
   const resolve = (id: string, where: string): string => {
     if (nodes.has(id)) return id;
-    const hit = findIcon(id);
+    const hit = lookup(id, logoOf);
     if (hit) {
-      nodes.set(id, { id, label: hit.label, icon: hit.icon });
+      nodes.set(id, {
+        id,
+        label: hit.label,
+        icon: hit.icon,
+        ...(hit.logo ? { logo: hit.logo } : {}),
+      });
       return id;
     }
-    const tip = suggest(id, [...nodes.keys(), ...iconKeys()]);
+    const tip = suggest(id, [...nodes.keys(), ...iconKeys(), ...(logoOf?.names?.() ?? [])]);
     throw new SysketchError(
       `${where}: unknown node "${id}".` +
         (tip.length ? ` Did you mean: ${tip.join(', ')}?` : '') +
-        ` Declare it under nodes (e.g. ${id}: server) or use a known icon name.`,
+        ` Declare it under nodes (e.g. ${id}: server), use a known icon name, or write brand/icon (e.g. cloudflare/cdn).`,
     );
   };
 
@@ -308,6 +382,7 @@ export function buildModel(input: string | object): Model {
     ...(spec.theme ? { theme: spec.theme } : {}),
     direction: spec.direction ?? 'right',
     ...(spec.legend ? { legend: true } : {}),
+    ...(spec.logos !== undefined ? { logos: spec.logos } : {}),
     nodes: [...nodes.values()],
     groups,
     edges,

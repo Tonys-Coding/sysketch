@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -66,5 +66,19 @@ describe('sysketch-mcp', () => {
 
   it('lists icons', async () => {
     expect(text(await call('list_icons'))).toMatch(/^user: client/);
+  });
+
+  it('resolves logos: ./folder next to the spec file and searches logos', async () => {
+    mkdirSync(join(dir, 'brand'));
+    writeFileSync(
+      join(dir, 'brand', 'acme.svg'),
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><rect width="8" height="8"/></svg>',
+    );
+    writeFileSync(join(dir, 'flow.yaml'), 'logos: ./brand\nedges:\n  - client > acme');
+    expect((await call('render_diagram', { file: 'flow.yaml' })).isError).toBeFalsy();
+    expect(readFileSync(join(dir, 'flow.svg'), 'utf8')).toContain('<image ');
+    expect(text(await call('list_icons', { logos: 'stripe' }))).toBe(
+      'no logos installed; use brand/icon',
+    );
   });
 });

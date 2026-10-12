@@ -3,13 +3,22 @@ import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { ICONS, SysketchError, VERSION, renderToFile, svgToPng, themes } from 'sysketch';
+import {
+  ICONS,
+  SysketchError,
+  VERSION,
+  createLogoResolver,
+  renderToFile,
+  svgToPng,
+  themes,
+} from 'sysketch';
 
 // Loaded into the model's context every session: keep it short.
 const GUIDE = `Render a system design diagram from a tiny YAML spec. Writes an .svg/.png file and returns its path. Never write SVG yourself.
 Spec keys: title, theme (${Object.keys(themes).join('|')}), direction (right|down), steps (false hides numbers), legend (true lists steps),
 nodes {id: "icon | Label | subtitle"}, groups {Label: [ids]}, edges ["a > b > c | label", "a ..> b" dashed, "a > b [red]" color].
 Ids that are icon names/aliases (client, lb, api, db, cache, redis, kafka, s3, cdn...) need no nodes entry.
+Product names (stripe, s3, sendgrid, aks...) draw official logos if installed, else a fitting icon; brand/icon (acme/queue) for others.
 To edit, change the spec file and call again with file=.`;
 
 const PREVIEW_MAX_W = 1000;
@@ -72,7 +81,10 @@ export function createServer(cwd: string = process.cwd()): McpServer {
           dest = join(cwd, 'diagrams', `${slug(title ?? 'diagram')}.svg`);
         }
 
-        const result = await renderToFile(text, dest, theme ? { theme } : {});
+        const result = await renderToFile(text, dest, {
+          ...(theme ? { theme } : {}),
+          baseDir: file ? dirname(abs(file)) : cwd,
+        });
         let summary = result.summary.replace(dest, show(dest));
         if (!file) {
           // Keep the spec so later edits are a one-line change + file= re-render.
@@ -98,15 +110,24 @@ export function createServer(cwd: string = process.cwd()): McpServer {
 
   server.registerTool(
     'list_icons',
-    { description: 'List sysketch icon names and their aliases.', inputSchema: {} },
-    async (): Promise<CallToolResult> => ({
-      content: [
-        {
-          type: 'text',
-          text: ICONS.map((i) => `${i.name}: ${Object.keys(i.aliases).join(', ')}`).join('\n'),
-        },
-      ],
-    }),
+    {
+      description: 'List sysketch icon names and aliases, or search installed brand logos.',
+      inputSchema: { logos: z.string().optional().describe('Search installed logos by name') },
+    },
+    async ({ logos }): Promise<CallToolResult> => {
+      const resolver = createLogoResolver();
+      const count = resolver.names().length;
+      if (logos !== undefined) {
+        const hits = resolver.search(logos, 20).map((h) => `${h.key} (${h.title})`);
+        const text = count
+          ? hits.join(', ') || 'no matching logos; use brand/icon'
+          : 'no logos installed; use brand/icon';
+        return { content: [{ type: 'text', text }] };
+      }
+      const icons = ICONS.map((i) => `${i.name}: ${Object.keys(i.aliases).join(', ')}`).join('\n');
+      const note = count ? `\n${count} brand logos installed (search with logos=).` : '';
+      return { content: [{ type: 'text', text: icons + note }] };
+    },
   );
 
   return server;

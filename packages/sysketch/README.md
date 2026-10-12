@@ -54,6 +54,7 @@ await renderToFile(specText, 'diagram.png', { scale: 2 });
 | `theme`     | `graphite` (default), `blueprint`, `midnight`, `classic`, `sketch`                                                                                                |
 | `steps`     | `false` hides the numbered step badges                                                                                                                            |
 | `legend`    | `true` adds a numbered list of the steps under the diagram                                                                                                        |
+| `logos`     | `./folder` adds your own logo files; `false` turns brand logos off                                                                                                |
 | `direction` | `right` (default) or `down`                                                                                                                                       |
 
 New in 0.2.0: node subtitles, dashed (`..>`) and colored (`[red]`) arrows, and `legend: true`:
@@ -63,6 +64,17 @@ New in 0.2.0: node subtitles, dashed (`..>`) and colored (`[red]`) arrows, and `
 61 original isometric icons with 160+ aliases (`redis`, `kafka`, `s3`, `postgres`, `lambda`, `k8s`...). Errors are short and fixable: `unknown node "databse". Did you mean: database?`
 
 ![Icon gallery](https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/icons-gallery.png)
+
+## Official brand logos
+
+sysketch ships no logos, but draws official ones you install, unedited (original file, even scaling, fingerprint-checked). They live in `~/.sysketch/logos`:
+
+```bash
+npx sysketch logos install simple-icons             # ~3,400 brand marks, integrity-checked
+npx sysketch logos import ~/Downloads/<pack>.zip    # AWS, Azure or Google Cloud icon pack
+```
+
+Download the cloud packs from [AWS](https://aws.amazon.com/architecture/icons/), [Azure](https://learn.microsoft.com/en-us/azure/architecture/icons/) or [Google Cloud](https://cloud.google.com/icons). Then `stripe`, `s3`, `cosmosdb` or `bigquery` in a spec show the official logo. Without logos, about 230 product names (`sendgrid`, `auth0`, `aks`...) fall back to a fitting icon; `acme/queue` covers anything else. Check each brand's guidelines with `npx sysketch logos info <name>`.
 
 ## Use it from Claude, Cursor and other AI tools
 

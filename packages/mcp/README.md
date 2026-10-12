@@ -41,9 +41,11 @@ Measured with Claude Code on the same request: **846 output tokens** with sysket
 | Tool             | What it does                                                                                                                                                                                          |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `render_diagram` | Renders a spec (`spec` text or `file` path) to `.svg` or `.png` (`out`), with an optional `theme`. `preview: true` also returns the image for the AI to look at (costs extra tokens, off by default). |
-| `list_icons`     | Lists the 61 icons and their aliases.                                                                                                                                                                 |
+| `list_icons`     | Lists the 61 icons and their aliases; `logos` searches installed brand logos.                                                                                                                         |
 
-The tool definitions add about 360 tokens per session.
+The tool definitions add about 450 tokens per session.
+
+Official brand logos are used automatically when the AI writes a product name like `stripe` or `s3`; nothing extra is sent to the AI. Install them with `npx sysketch logos install simple-icons`, or import the AWS, Azure or Google Cloud icon pack zip with `npx sysketch logos import <pack.zip>` (see the [main README](https://github.com/Tonys-Coding/sysketch#official-brand-logos)).
 
 Spec format, themes and examples: **[github.com/Tonys-Coding/sysketch](https://github.com/Tonys-Coding/sysketch)**
 

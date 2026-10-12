@@ -125,6 +125,7 @@ The spec is saved next to the diagram, so follow-up edits are one-line changes. 
 | `theme`     | `graphite` (default), `blueprint`, `midnight`, `classic`, `sketch`                                                                                                |
 | `steps`     | `false` hides the numbered step badges (default: numbered in edge order)                                                                                          |
 | `legend`    | `true` adds a numbered list of the steps under the diagram                                                                                                        |
+| `logos`     | `./folder` adds a folder of your own logo files; `false` turns brand logos off (see [Official brand logos](#official-brand-logos))                                |
 | `direction` | `right` (default) or `down`                                                                                                                                       |
 
 The smallest useful spec is one line, because aliases create nodes automatically:
@@ -177,6 +178,53 @@ A complete set of **61 original isometric icons**, recolored automatically for e
 
 Full list: [docs/icon-checklist.md](docs/icon-checklist.md). Want to draw or restyle icons? The style guide and a ready-to-use AI prompt are in [docs/isometric/GUIDE.md](docs/isometric/GUIDE.md). Drop an SVG into `icons-src/` and run `npm run icons`; it validates the file, converts it, and renders a preview of every icon in every theme.
 
+## Official brand logos
+
+sysketch can draw the **official logo** of a product (Stripe, PostgreSQL, Amazon S3, Azure Cosmos DB, BigQuery...) instead of the generic icon, unedited: the original file, scaled evenly on a neutral tile, with no recoloring, 3D effect or hand-drawn roughening. Logos cost the AI nothing extra: it still writes `stripe` or `s3`, and sysketch looks the name up on your machine.
+
+sysketch ships **no logos**. You install them yourself from the official sources, and they are stored in `~/.sysketch/logos` (or `$SYSKETCH_HOME/logos`), outside your projects:
+
+```bash
+npx sysketch logos install simple-icons             # ~3,400 brand marks from the Simple Icons npm package
+npx sysketch logos import ~/Downloads/Icon-package_07312026.zip   # a cloud icon pack you downloaded
+npx sysketch logos find s3                           # search what is installed
+npx sysketch logos info stripe                       # license, brand guidelines and original artwork link
+```
+
+### Cloud icon packs
+
+AWS, Azure and Google Cloud publish their own architecture icons for diagrams. Download them from the vendor (each page states its terms), then import the `.zip` as it is; sysketch detects the vendor and file names:
+
+| Vendor       | Where to download                                                                                                  | Then                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| AWS          | [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/), "Download the asset package"                 | `npx sysketch logos import <Icon-package_*.zip>`               |
+| Azure        | [Azure icons](https://learn.microsoft.com/en-us/azure/architecture/icons/), accept the terms, "Download SVG icons" | `npx sysketch logos import <Azure_Public_Service_Icons_*.zip>` |
+| Google Cloud | [Google Cloud icons](https://cloud.google.com/icons), "Core products" zip                                          | `npx sysketch logos import <core-products-icons.zip>`          |
+
+After that, everyday names work: `s3`, `lambda`, `sqs`, `eks`, `route53` (AWS); `aks`, `cosmosdb`, `keyvault`, `servicebus` (Azure); `bigquery`, `cloudrun`, `gke`, `spanner` (Google Cloud). Re-import a newer pack the same way to update it.
+
+### Company logos
+
+A company can keep its approved logo files next to its specs and add `logos: ./brand` to the spec (or pass `--logos ./brand`). `npx sysketch logos lock ./brand` records a fingerprint of every file, and edited files are refused from then on.
+
+### Names
+
+| Name in the spec                    | Result                                                              |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| `database`, `queue`, `api`, `cdn`   | Generic names always use the sysketch icon                          |
+| `redis`, `s3`, `stripe`, `sendgrid` | The official logo if installed, otherwise a fitting sysketch icon   |
+| `acme/queue`                        | Acme's logo if installed, otherwise the `queue` icon labeled "Acme" |
+
+About 230 product names are recognized without any logos installed (`npx sysketch icons` lists them), so a spec renders the same structure on every machine.
+
+### How originality is protected
+
+- Installed files are stored byte-for-byte and fingerprinted (sha256). Simple Icons downloads are checked against the npm registry's integrity hash.
+- Before drawing, sysketch checks the fingerprint again and refuses a logo that was edited after install.
+- The file is embedded as-is (`<image>`), so its own colors, gradients and styles cannot be changed by the theme. Simple Icons publishes single-color marks plus each brand's official color; that color is the only thing applied.
+
+Logos stay trademarks of their owners: check each brand's guidelines (`sysketch logos info <name>`) before publishing a diagram, and don't use them in a way that suggests endorsement. Don't commit downloaded icon packs to a public repository; each user installs their own. Some brands (for example AWS, Azure and OpenAI) asked Simple Icons to remove their marks; use the vendor's own icon pack for those.
+
 ## More examples
 
 **Cloud-Native Platform** in the sketch theme ([spec](examples/cloud-platform.yaml)):
@@ -227,7 +275,6 @@ Packages: `packages/sysketch` (renderer, CLI, library) and `packages/mcp` (MCP s
 
 ## Roadmap
 
-- Node subtitles, dashed "response" arrows, colored arrows, step legend
 - Web playground with live preview
 
 ## Credits

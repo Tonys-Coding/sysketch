@@ -1,0 +1,306 @@
+import { createHash } from 'node:crypto';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { gzipSync } from 'node:zlib';
+import { zipSync } from 'fflate';
+import { describe, expect, it } from 'vitest';
+import { render, renderWithModel, svgToPng } from '../src/index.js';
+import {
+  createLogoResolver,
+  importLogos,
+  installSimpleIcons,
+  listLogoSources,
+  lockLogoFolder,
+  logoInfo,
+  nameLogoFile,
+  readTar,
+} from '../src/logos.js';
+import { ICONS } from '../src/icons.js';
+import { PRODUCTS } from '../src/products.js';
+
+const tmp = () => mkdtempSync(join(tmpdir(), 'sysketch-logos-'));
+
+// A logo with a gradient, a class style and an id: all must reach the output untouched.
+const ACME = Buffer.from(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 32"><style>.c{fill:#e11d48}</style>' +
+    '<defs><linearGradient id="g"><stop offset="0" stop-color="#f59e0b"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs>' +
+    '<rect width="64" height="32" rx="6" fill="url(#g)"/><circle class="c" cx="16" cy="16" r="8"/></svg>',
+);
+
+function brandFolder(): string {
+  const dir = tmp();
+  writeFileSync(join(dir, 'acme.svg'), ACME);
+  writeFileSync(join(dir, 'database.svg'), ACME); // a generic icon name: never used as a logo
+  return dir;
+}
+
+const b64 = (b: Buffer) => b.toString('base64');
+
+describe('brand logos', () => {
+  it('embeds a project logo byte-for-byte, scaled without stretching', async () => {
+    const dir = brandFolder();
+    const svg = await render(`logos: ${dir}\nedges: ["client > acme > database"]`);
+    expect(svg).toContain(`href="data:image/svg+xml;base64,${b64(ACME)}"`);
+    expect(svg).toContain('preserveAspectRatio="xMidYMid meet"');
+    expect(svg.match(/<image /g)).toHaveLength(1); // database keeps the sysketch icon
+  });
+
+  it('uses the logo title as the label and keeps explicit labels', async () => {
+    const dir = brandFolder();
+    const { model } = await renderWithModel(
+      `logos: ${dir}\nnodes:\n  pay: acme | Payments\nedges: ["client > pay", "pay > acme"]`,
+    );
+    expect(model.nodes.find((n) => n.id === 'pay')?.label).toBe('Payments');
+    expect(model.nodes.find((n) => n.id === 'acme')?.label).toBe('acme');
+  });
+
+  it('logos: false and the logos option turn logos off', async () => {
+    const dir = brandFolder();
+    const spec = `nodes:\n  a: acme/cdn\nedges: ["client > a"]`;
+    expect(await render(`logos: ${dir}\n${spec}`)).toContain('<image ');
+    expect(await render(`logos: false\n${spec}`)).not.toContain('<image ');
+    expect(await render(spec, { logos: false, logoDirs: [dir] })).not.toContain('<image ');
+  });
+
+  it('brand/icon falls back to the icon when no logo is installed', async () => {
+    const { model, svg } = await renderWithModel('edges: ["client > cloudflare/cdn > api"]');
+    const n = model.nodes.find((x) => x.id === 'cloudflare/cdn')!;
+    expect(n.icon.name).toBe('cdn');
+    expect(n.label).toBe('Cloudflare');
+    expect(n.logo).toBeUndefined();
+    expect(svg).not.toContain('<image ');
+  });
+
+  it('unknown names still fail with a hint about brand/icon', async () => {
+    await expect(render('edges: ["client > zorblax"]')).rejects.toThrow(/brand\/icon/);
+  });
+
+  it('known product names fall back to a matching icon without logos', async () => {
+    const { model } = await renderWithModel(
+      'edges: ["api > sendgrid", "api > auth0", "api > aks"]',
+    );
+    const by = (id: string) => model.nodes.find((n) => n.id === id)!;
+    expect([by('sendgrid').icon.name, by('sendgrid').label]).toEqual(['email', 'SendGrid']);
+    expect(by('auth0').icon.name).toBe('auth');
+    expect(by('aks').icon.name).toBe('cluster');
+  });
+
+  it('refuses a locked logo that was edited afterwards', async () => {
+    const dir = brandFolder();
+    lockLogoFolder(dir);
+    await expect(render(`logos: ${dir}\nedges: ["client > acme"]`)).resolves.toContain('<image ');
+    writeFileSync(join(dir, 'acme.svg'), ACME.toString().replace('#e11d48', '#000000'));
+    await expect(render(`logos: ${dir}\nedges: ["client > acme"]`)).rejects.toThrow(/fingerprint/);
+  });
+
+  it('imports a folder into the logo home and verifies it on use', async () => {
+    const home = tmp();
+    const r = importLogos(brandFolder(), 'acme-pack', { home });
+    expect(r.count).toBe(2);
+    expect(listLogoSources(home)).toEqual([{ source: 'acme-pack', count: 2 }]);
+    const svg = await render('edges: ["client > acme"]', { logoHome: home });
+    expect(svg).toContain(b64(ACME));
+    writeFileSync(join(r.dir, 'files', 'acme.svg'), 'tampered');
+    await expect(render('edges: ["client > acme"]', { logoHome: home })).rejects.toThrow(
+      /fingerprint/,
+    );
+  });
+
+  it('project folders win over installed sources', () => {
+    const home = tmp();
+    const other = tmp();
+    writeFileSync(join(other, 'acme.svg'), '<svg xmlns="http://www.w3.org/2000/svg"/>');
+    importLogos(other, 'vendor', { home });
+    const logo = createLogoResolver({ dirs: [brandFolder()], home })('acme');
+    expect(logo?.data).toBe(b64(ACME));
+  });
+
+  it('renders logos to PNG', async () => {
+    const svg = await render(`logos: ${brandFolder()}\nedges: ["client > acme"]`);
+    expect(svgToPng(svg, 1).subarray(1, 4).toString()).toBe('PNG');
+  });
+});
+
+/* ------------------------------------------------------------- Simple Icons */
+
+function tarEntry(name: string, body: Buffer): Buffer {
+  const h = Buffer.alloc(512);
+  h.write(name, 0);
+  h.write(body.length.toString(8).padStart(11, '0'), 124);
+  h.write('0', 156);
+  h.write('ustar', 257);
+  const pad = Buffer.alloc((512 - (body.length % 512)) % 512);
+  return Buffer.concat([h, body, pad]);
+}
+
+const STRIPE = Buffer.from(
+  '<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Stripe</title><path d="M2 2h20v20H2z"/></svg>',
+);
+const HIVE = Buffer.from(
+  '<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Apache Hive</title><path d="M2 2h20v20z"/></svg>',
+);
+
+function fakeRegistry(opts: { corrupt?: boolean } = {}): typeof fetch {
+  const data = JSON.stringify([
+    {
+      title: 'Stripe',
+      slug: 'stripe',
+      hex: '635BFF',
+      source: 'https://stripe.com/newsroom/information',
+    },
+    {
+      title: 'Apache Hive',
+      slug: 'apachehive',
+      hex: 'FDEE21',
+      guidelines: 'https://example.org/hive',
+      license: { type: 'Apache-2.0' },
+      aliases: { aka: ['Hive'] },
+    },
+  ]);
+  const tgz = gzipSync(
+    Buffer.concat([
+      tarEntry('package/data/simple-icons.json', Buffer.from(data)),
+      tarEntry('package/icons/stripe.svg', STRIPE),
+      tarEntry('package/icons/apachehive.svg', HIVE),
+      Buffer.alloc(1024),
+    ]),
+  );
+  const integrity = `sha512-${createHash('sha512').update(tgz).digest('base64')}`;
+  return (async (url: string) => {
+    if (url.endsWith('.tgz')) {
+      const body = opts.corrupt ? Buffer.concat([tgz, Buffer.from('x')]) : tgz;
+      return { arrayBuffer: async () => body } as unknown as Response;
+    }
+    return {
+      json: async () => ({
+        version: '99.0.0',
+        dist: {
+          tarball: 'https://registry.npmjs.org/simple-icons/-/simple-icons-99.0.0.tgz',
+          integrity,
+        },
+      }),
+    } as unknown as Response;
+  }) as typeof fetch;
+}
+
+describe('simple-icons install', () => {
+  it('reads npm tarballs', () => {
+    const files = readTar(
+      Buffer.concat([tarEntry('package/a.txt', Buffer.from('hi')), Buffer.alloc(1024)]),
+    );
+    expect(files.get('package/a.txt')?.toString()).toBe('hi');
+  });
+
+  it('installs files byte-for-byte with brand data', async () => {
+    const home = tmp();
+    const r = await installSimpleIcons({ home, fetch: fakeRegistry() });
+    expect(r).toMatchObject({ version: '99.0.0', count: 2 });
+    expect(logoInfo('hive', home)).toMatchObject({
+      name: 'apachehive',
+      license: 'Apache-2.0',
+      guidelines: 'https://example.org/hive',
+    });
+    const logo = createLogoResolver({ home })('stripe')!;
+    expect(Buffer.from(logo.data, 'base64').equals(STRIPE)).toBe(true);
+    expect(logo.color).toBe('#635BFF');
+  });
+
+  it('refuses a download that fails the integrity check', async () => {
+    const home = tmp();
+    await expect(
+      installSimpleIcons({ home, fetch: fakeRegistry({ corrupt: true }) }),
+    ).rejects.toThrow(/integrity/);
+    expect(listLogoSources(home)).toEqual([]);
+  });
+
+  it('fills single-color marks with the official brand color, light ones on a dark tile', async () => {
+    const home = tmp();
+    await installSimpleIcons({ home, fetch: fakeRegistry() });
+    const svg = await render('edges: ["client > stripe > hive"]', { logoHome: home });
+    const marks = [...svg.matchAll(/base64,([^"]+)"/g)].map((m) =>
+      Buffer.from(m[1]!, 'base64').toString(),
+    );
+    expect(marks[0]).toBe(STRIPE.toString().replace('<svg', '<svg fill="#635BFF"'));
+    expect(marks[1]).toContain('fill="#FDEE21"');
+    expect(svg).toContain('fill="#1E293B"'); // dark tile behind the yellow Hive mark
+  });
+
+  it('generic icon names never turn into brand logos', async () => {
+    const home = tmp();
+    mkdirSync(join(home, 'x'));
+    writeFileSync(join(home, 'x', 'vault.svg'), ACME);
+    importLogos(join(home, 'x'), 'pack', { home });
+    expect(await render('edges: ["api > vault"]', { logoHome: home })).not.toContain('<image ');
+  });
+});
+
+describe('vendor icon packs', () => {
+  it('names files from the AWS, Azure and Google Cloud packs', () => {
+    const n = (p: string) => nameLogoFile(p);
+    expect(
+      n(
+        'Architecture-Service-Icons_07312026/Arch_Storage/64/Arch_Amazon-Simple-Storage-Service_64.svg',
+      ),
+    ).toMatchObject({
+      name: 'amazonsimplestorageservice',
+      title: 'Amazon Simple Storage Service',
+    });
+    expect(n('x/Arch_AWS-Lambda_64.svg')?.aliases).toContain('lambda');
+    expect(n('x/Arch_Amazon-Route-53_64.svg')?.aliases).toContain('route53');
+    expect(n('Icons/databases/10121-icon-service-Azure-Cosmos-DB.svg')).toMatchObject({
+      name: 'azurecosmosdb',
+      aliases: expect.arrayContaining(['cosmosdb']),
+    });
+    expect(n('Unique Icons/Cloud Run/SVG/CloudRun-512-color-rgb.svg')).toMatchObject({
+      name: 'cloudrun',
+      title: 'Cloud Run',
+    });
+    expect(n('brand/Acme-Logo.svg')?.name).toBe('acme');
+    expect(n('__MACOSX/x/._Arch_AWS-Lambda_64.svg')).toBeUndefined();
+    expect(
+      n('Category-Icons_07312026/Arch-Category_32/Arch-Category_Storage_32.svg'),
+    ).toBeUndefined();
+  });
+
+  it('prefers SVG over PNG, light over dark and the larger size', () => {
+    const files = ['x/acme.png', 'x/acme-dark.svg', 'x/acme_16.svg', 'x/acme_64.svg'];
+    const scored = files
+      .map((f) => [f, nameLogoFile(f)!.score] as const)
+      .sort((a, b) => b[1] - a[1]);
+    expect(scored[0]![0]).toBe('x/acme_64.svg');
+  });
+
+  it('imports a vendor .zip, detects the source and resolves everyday names', async () => {
+    const home = tmp();
+    const zip = join(tmp(), 'Icon-package.zip');
+    const svg = new Uint8Array(ACME);
+    writeFileSync(
+      zip,
+      zipSync({
+        'Architecture-Service-Icons_07312026/Arch_Storage/64/Arch_Amazon-Simple-Storage-Service_64.svg':
+          svg,
+        'Architecture-Service-Icons_07312026/Arch_Storage/32/Arch_Amazon-Simple-Storage-Service_32.svg':
+          new Uint8Array([60]),
+        'Architecture-Service-Icons_07312026/Arch_Compute/64/Arch_AWS-Lambda_64.svg': svg,
+        '__MACOSX/Architecture-Service-Icons_07312026/._Arch_AWS-Lambda_64.svg': svg,
+        'Category-Icons_07312026/Arch-Category_32/Arch-Category_Compute_32.svg': svg,
+      }),
+    );
+    const r = importLogos(zip, undefined, { home });
+    expect(r).toMatchObject({ source: 'aws', count: 2 });
+    const { model, svg: out } = await renderWithModel('edges: ["api > s3", "api > lambda"]', {
+      logoHome: home,
+    });
+    expect(model.nodes.find((x) => x.id === 's3')?.logo?.source).toBe('aws');
+    expect(out).toContain(b64(ACME)); // the 64px original, not the 32px one
+    expect(out.match(/<image /g)).toHaveLength(2);
+  });
+});
+
+describe('product names', () => {
+  it('every product maps to a real icon', () => {
+    const names = new Set(ICONS.map((i) => i.name));
+    for (const [k, [icon]] of Object.entries(PRODUCTS)) expect(names.has(icon), k).toBe(true);
+  });
+});

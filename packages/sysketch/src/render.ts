@@ -1,5 +1,6 @@
 import { layout, NODE, PILL, SUB, type Pt } from './layout.js';
 import { legendBlock } from './legend.js';
+import type { Logo } from './logos.js';
 import type { EdgeModel, Model } from './model.js';
 import { defaultTheme, iconPaint, type Theme } from './themes.js';
 import { sketch, sketchIcon } from './sketch.js';
@@ -45,6 +46,44 @@ function roundedPath(pts: Pt[], radius: number): string {
 }
 
 const ARROW = { len: 12, half: 6.5 };
+
+/** Tile behind brand logos: logos are never recolored, so they get a neutral backing. */
+const TILE = { size: 52, radius: 12, pad: 8 };
+
+/**
+ * An official logo as an <image>: the file's own bytes, scaled uniformly (never stretched),
+ * with no theme paint, effects or hand-drawn roughening. Simple Icons publishes single-color
+ * marks plus the brand's official color; that color is the only thing added.
+ */
+function logoMarkup(logo: Logo, cx: number, top: number, theme: Theme, key: string): string {
+  const t = TILE.size;
+  const x = r2(cx - t / 2);
+  const y = r2(top + (NODE.icon - t) / 2);
+  const tileFill = logo.darkTile ? '#1E293B' : '#FFFFFF';
+  const tileStroke = logo.darkTile ? '#0F172A' : theme.group.stroke;
+  const tile = theme.sketch
+    ? sketch.rect(
+        x,
+        y,
+        t,
+        t,
+        TILE.radius,
+        { fill: tileFill, fillStyle: 'solid', stroke: tileStroke, strokeWidth: 1.25 },
+        key,
+        theme.sketch,
+      )
+    : `<rect x="${x}" y="${y}" width="${t}" height="${t}" rx="${TILE.radius}" fill="${tileFill}" stroke="${tileStroke}" stroke-width="1"/>`;
+  let data = logo.data;
+  if (logo.color) {
+    const svg = Buffer.from(logo.data, 'base64').toString('utf8');
+    data = Buffer.from(svg.replace(/<svg\b/, `<svg fill="${logo.color}"`)).toString('base64');
+  }
+  const inner = t - TILE.pad * 2;
+  return (
+    tile +
+    `<image x="${r2(x + TILE.pad)}" y="${r2(y + TILE.pad)}" width="${inner}" height="${inner}" preserveAspectRatio="xMidYMid meet" href="data:${logo.mime};base64,${data}"><title>${esc(logo.title)} logo (${esc(logo.source)})</title></image>`
+  );
+}
 
 export interface RenderOptions {
   theme?: Theme;
@@ -241,7 +280,9 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     out.push(
       `<g><title>${esc(n.label)}</title>` +
         shell +
-        `<g transform="translate(${ix} ${iy}) scale(${r2(iconSize / 48)})">${iconMarkup}</g>` +
+        (n.logo
+          ? logoMarkup(n.logo, b.x + b.w / 2, iy, theme, `l:${n.id}`)
+          : `<g transform="translate(${ix} ${iy}) scale(${r2(iconSize / 48)})">${iconMarkup}</g>`) +
         labels +
         subs +
         `</g>`,

@@ -10,3 +10,17 @@ export { renderToFile, type RenderFileOptions } from './files.js';
 
 /** The installed sysketch version (read from package.json at build time). */
 export const VERSION: string = pkg.version;
+export {
+  createLogoResolver,
+  importLogos,
+  installSimpleIcons,
+  listLogoSources,
+  lockLogoFolder,
+  logoHome,
+  logoInfo,
+  removeLogoSource,
+  type Logo,
+  type LogoMatch,
+  type LogoResolver,
+  type ResolverOptions,
+} from './logos.js';
