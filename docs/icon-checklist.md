@@ -2,7 +2,7 @@
 
 **Chosen style: isometric 3D.** See [isometric/GUIDE.md](isometric/GUIDE.md) for the style rules, a copy-paste AI prompt and per-icon briefs.
 
-`[x]` = drawn by you (an isometric SVG in `icons-src/`). The boxes and totals below are updated automatically every time you run `npm run icons`. Icons not drawn yet still work: they use Claude's flat starter art or borrow a similar icon (e.g. `dns` uses `cloud`) and keep their own label.
+`[x]` = drawn (an isometric SVG in `icons-src/`). The boxes and totals below are updated automatically every time you run `npm run icons`. **The set is complete.** If you ever remove an icon's art, its name keeps working by borrowing a similar icon (e.g. `dns` falls back to `cloud`).
 
 ## Workflow (one icon at a time)
 
@@ -117,7 +117,7 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 
 - [x] `cloud`: internet / external
 - [x] `vm`: virtual machine (monitor)
-- [ ] `config`: sliders / settings
+- [x] `config`: sliders / settings
 - [x] `registry`: service discovery (address book)
 - [x] `ci-cd`: pipeline loop (infinity)
 - [x] `repo`: git branch
@@ -128,6 +128,6 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 - [x] `iot`: chip / sensor
 - [x] `desktop`: monitor app
 
-**Progress:** 60 of 61 drawn (updated by `npm run icons`).
+**Progress:** 61 of 61 drawn (updated by `npm run icons`).
 
 Not icons (handled by containers/groups instead): region, availability zone, VPC, data center. Replicas and shards are expressed as duplicate nodes or labels.

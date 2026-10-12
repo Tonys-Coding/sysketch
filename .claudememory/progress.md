@@ -206,3 +206,9 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - Per owner request: graph-db shifted down 7px by wrapping the art in `<g transform="translate(0 7)">` (original kept as graph-db-old.svg); tracing redrawn by Claude as an upright isometric trace panel with three indented span bars + connectors (old kept as tracing-old.svg). Two earlier tracing attempts (spans on a tile) did not read as a waterfall.
 - Notes: pubsub is flat 2D (not isometric); vector-db floats/off-center (bottom 37.8, cx 20.1); notification slightly left (cx 20.9).
 - New example examples/event-analytics.yaml. README gallery regenerated (60 icons) and counts updated. Not pushed yet.
+
+## Icon set complete (2026-10-12)
+- 61/61 drawn: owner added config and an isometric pubsub (its hub connectors are mostly hidden behind the discs; left as is).
+- Position pass: audited all 61 (targets: bottom 42.5-46.6, center 24 +/- 1.5, 1.5px edge clearance). Fixed 11 by wrapping the art in a translate group: vector-db, cache, chat, llm, iot, stream, analytics, storage (down/up) and email, notification, logs (centered). Art untouched. iot and payment: one 1.6 detail stroke each -> 2. Re-audit: none off.
+- Backups moved to icons-src/archive/ (importer reads only top-level files).
+- README: icon section describes the complete set (61 icons, 160+ aliases); roadmap item removed. Checklist legend updated. Gallery regenerated.

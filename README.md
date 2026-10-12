@@ -133,11 +133,11 @@ Themes are pure data (colors, fonts, card style, shadows, texture), so adding on
 
 ## Icons
 
-An original isometric icon set, recolored automatically for every theme. 60 of 61 are drawn so far; the rest temporarily borrow a similar icon, so every name already works in specs.
+A complete set of **61 original isometric icons**, recolored automatically for every theme and covering clients, edge, compute, data, messaging, security, observability, AI and infrastructure. More than 160 aliases (`redis`, `kafka`, `s3`, `lambda`, `k8s`...) map onto them.
 
 ![Icon gallery](docs/icons-gallery.png)
 
-Progress: [docs/icon-checklist.md](docs/icon-checklist.md). Want to draw icons? The style guide and a ready-to-use AI prompt are in [docs/isometric/GUIDE.md](docs/isometric/GUIDE.md). Drop an SVG into `icons-src/` and run `npm run icons`; it validates the file, converts it, and renders a preview of every icon in every theme.
+Full list: [docs/icon-checklist.md](docs/icon-checklist.md). Want to draw or restyle icons? The style guide and a ready-to-use AI prompt are in [docs/isometric/GUIDE.md](docs/isometric/GUIDE.md). Drop an SVG into `icons-src/` and run `npm run icons`; it validates the file, converts it, and renders a preview of every icon in every theme.
 
 ## More examples
 
@@ -185,7 +185,6 @@ Packages: `packages/sysketch` (renderer, CLI, library) and `packages/mcp` (MCP s
 
 ## Roadmap
 
-- Finish the isometric icon set (60 / 61)
 - Publish `sysketch` and `sysketch-mcp` to npm
 - Node subtitles, dashed "response" arrows, colored arrows, step legend
 - Web playground with live preview
