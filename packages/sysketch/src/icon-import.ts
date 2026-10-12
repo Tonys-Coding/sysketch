@@ -54,6 +54,17 @@ function mapColor(value: string, bad: Set<string>): string {
   return mapped ?? value;
 }
 
+/**
+ * Strokes that aren't outlines, so their width is a design choice: round-cap dots
+ * (zero-length segments), tiny circles, and solid shapes whose fill equals their stroke.
+ */
+function isDetail(tag: string, a: Record<string, string>): boolean {
+  if (a.fill && a.fill !== 'none' && a.fill === a.stroke) return true;
+  if (tag === 'circle' && Number(a.r ?? 0) <= 3) return true;
+  const dots = /^\s*(?:M\s*([\d.-]+)[\s,]+([\d.-]+)\s*L\s*\1[\s,]+\2\s*)+$/i;
+  return tag === 'path' && dots.test(a.d ?? '');
+}
+
 export function convertIconSvg(src: string): ConvertedIcon {
   const warnings: string[] = [];
   const s = src
@@ -130,7 +141,10 @@ export function convertIconSvg(src: string): ConvertedIcon {
   }
 
   const widths = [
-    ...[...inner.matchAll(/stroke-width="([\d.]+)"/g)].map((m) => m[1]!),
+    ...[...inner.matchAll(/<(path|rect|circle|ellipse|line|polygon|polyline)\b([^>]*)>/g)]
+      .map((m) => ({ tag: m[1]!, a: attrs(m[2]!) }))
+      .filter(({ tag, a }) => a['stroke-width'] !== undefined && !isDetail(tag, a))
+      .map(({ a }) => a['stroke-width']!),
     ...(root['stroke-width'] ? [root['stroke-width']] : []),
   ]
     .map((v) => Number(v) * scale)

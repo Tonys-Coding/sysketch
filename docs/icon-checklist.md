@@ -84,7 +84,7 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 - [ ] `stream`: event log (Kafka-style partitions)
 - [ ] `notification`: bell (push)
 - [x] `email`: envelope
-- [ ] `webhook`: hook / callback arrow
+- [x] `webhook`: hook / callback arrow
 
 ### Security & identity
 
@@ -101,9 +101,9 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 ## P1: Common feature services (popular "design X" problems)
 
 - [x] `payment`: card
-- [ ] `chat`: speech bubbles
-- [ ] `video`: play button / film (transcoding, streaming)
-- [ ] `image`: picture frame (media processing)
+- [x] `chat`: speech bubbles
+- [x] `video`: play button / film (transcoding, streaming)
+- [x] `image`: picture frame (media processing)
 - [x] `location`: map pin (geo, ride-sharing)
 - [x] `recommendation`: star / thumbs up feed
 - [ ] `analytics`: bar chart
@@ -111,23 +111,23 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 - [x] `llm`: AI sparkle / agent
 - [ ] `vector-db`: cylinder with vector arrows
 - [ ] `etl`: pipeline (funnel or arrows through gear)
-- [ ] `stream-processor`: gear on a stream
+- [x] `stream-processor`: gear on a stream
 
 ## P2: Infrastructure & dev workflow
 
 - [x] `cloud`: internet / external
-- [ ] `vm`: virtual machine (monitor)
+- [x] `vm`: virtual machine (monitor)
 - [ ] `config`: sliders / settings
-- [ ] `registry`: service discovery (address book)
-- [ ] `ci-cd`: pipeline loop (infinity)
-- [ ] `repo`: git branch
-- [ ] `tracing`: connected spans
-- [ ] `dashboard`: panel grid
+- [x] `registry`: service discovery (address book)
+- [x] `ci-cd`: pipeline loop (infinity)
+- [x] `repo`: git branch
+- [x] `tracing`: connected spans
+- [x] `dashboard`: panel grid
 - [ ] `time-series`: cylinder with clock
-- [ ] `graph-db`: connected nodes
-- [ ] `iot`: chip / sensor
-- [ ] `desktop`: monitor app
+- [x] `graph-db`: connected nodes
+- [x] `iot`: chip / sensor
+- [x] `desktop`: monitor app
 
-**Progress:** 39 of 61 drawn (updated by `npm run icons`).
+**Progress:** 53 of 61 drawn (updated by `npm run icons`).
 
 Not icons (handled by containers/groups instead): region, availability zone, VPC, data center. Replicas and shards are expressed as duplicate nodes or labels.

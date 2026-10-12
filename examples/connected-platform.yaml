@@ -1,0 +1,32 @@
+title: Connected Media Platform
+nodes:
+  dev: desktop | Dev Workstation
+  repo: repo | Git Repo
+  hook: webhook | Push Webhook
+  ci: ci-cd | CI/CD Pipeline
+  vm: vm | Build VM
+  reg: registry | Service Registry
+  app: mobile | Mobile App
+  chat: chat | Chat Service
+  video: video | Video Service
+  img: image | Image Service
+  graph: graph-db | Social Graph
+  sensors: iot | Smart Devices
+  proc: stream-processor | Stream Processor
+  traces: tracing | Tracing
+  dash: dashboard | Ops Dashboard
+groups:
+  Delivery: [repo, hook, ci, vm, reg]
+  Product: [chat, video, img, graph]
+  Telemetry: [proc, traces, dash]
+edges:
+  - dev > repo | git push
+  - repo > hook > ci | trigger
+  - ci > vm | build
+  - vm > reg | register
+  - app > chat | messages
+  - app > video | stream
+  - app > img | upload
+  - chat > graph | friends
+  - sensors > proc | events
+  - proc > traces > dash

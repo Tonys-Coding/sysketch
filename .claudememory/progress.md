@@ -194,3 +194,9 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 ## Icon batch 5 (2026-10-11)
 - 14 new icons (nosql, search, storage, queue, email, metrics, logs, alert, payment, location, recommendation, ml-model, llm, cloud): 39/61 drawn. Notes: llm one stroke 3.4 and floats (bottom 41.1); payment one stroke 1.6; email off-center (cx 21.3); logs~search and metrics~alert look alike at small size; cloud reads as monitor+cloud.
 - New example examples/smart-commerce.yaml (+ midnight render in docs/showcase). README counts, gallery and examples updated. Pushed.
+
+## Icon batch 6 (2026-10-12)
+- 14 new icons (desktop, vm, webhook, chat, video, image, dashboard, tracing, graph-db, stream-processor, registry, ci-cd, repo, iot): 53/61 drawn, no duplicates.
+- Stroke check now ignores intentional details: zero-length round-cap dot paths, circles r<=3, solid shapes (fill == stroke). Owner uses dots for chat typing dots and repo commit nodes. Remaining real notes: tracing 4.6 path, thin 1.6 lines in iot/payment.
+- Placement: graph-db floats (bottom 37), chat 40.6, iot 41.5. Style notes: webhook is flat 2D (not isometric); tracing reads like location (map + pin). Slate-hue icons (vm, registry, ci-cd, repo, iot, cloud) look dim in dark themes: consider reassigning hues.
+- New example examples/connected-platform.yaml (3 independent flows). Not yet pushed; README gallery still shows 39.

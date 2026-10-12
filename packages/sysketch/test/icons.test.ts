@@ -30,6 +30,24 @@ describe('convertIconSvg', () => {
     expect(warnings.join(' ')).toMatch(/stroke width 4 at 48px/);
   });
 
+  it('does not warn about round-cap dots, tiny circles or solid shapes', () => {
+    const { warnings } = convertIconSvg(
+      '<svg viewBox="0 0 48 48" fill="none">' +
+        '<path d="M14 23.5L14 23.5M24 28.5L24 28.5" stroke="#0000FF" stroke-width="7.2" stroke-linecap="round"/>' +
+        '<circle cx="30" cy="30" r="1.6" fill="#FFFF00" stroke="#0000FF" stroke-width="1.6"/>' +
+        '<path d="M13 12L9 12L11 8Z" fill="#0000FF" stroke="#0000FF" stroke-width="1.4"/>' +
+        '<path d="M8 40L40 40" stroke="#0000FF" stroke-width="2.5"/></svg>',
+    );
+    expect(warnings).toEqual([]);
+  });
+
+  it('still warns about a heavy outline', () => {
+    const { warnings } = convertIconSvg(
+      '<svg viewBox="0 0 48 48"><path d="M8 40L40 20" fill="none" stroke="#0000FF" stroke-width="4.6"/></svg>',
+    );
+    expect(warnings.join(' ')).toMatch(/stroke width 4.6/);
+  });
+
   it.each([
     ['<svg viewBox="0 0 48 48"><path fill="#123456" d="M0 0"/></svg>', /found #123456/],
     ['<svg viewBox="0 0 48 48"><text>hi</text></svg>', /<text> is not allowed/],
