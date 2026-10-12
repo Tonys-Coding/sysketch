@@ -212,3 +212,12 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - Position pass: audited all 61 (targets: bottom 42.5-46.6, center 24 +/- 1.5, 1.5px edge clearance). Fixed 11 by wrapping the art in a translate group: vector-db, cache, chat, llm, iot, stream, analytics, storage (down/up) and email, notification, logs (centered). Art untouched. iot and payment: one 1.6 detail stroke each -> 2. Re-audit: none off.
 - Backups moved to icons-src/archive/ (importer reads only top-level files).
 - README: icon section describes the complete set (61 icons, 160+ aliases); roadmap item removed. Checklist legend updated. Gallery regenerated.
+
+## npm release prep (2026-10-12)
+- Both packages at 0.1.0 with keywords, author (Tonys-Coding), homepage, bugs, repository.directory, exports incl. ./package.json, prepublishOnly (build + typecheck + test). sysketch-mcp depends on sysketch ^0.1.0.
+- VERSION now read from package.json at build time (import attributes); smoke test compares them.
+- npm-facing READMEs in each package use absolute raw.githubusercontent image URLs (docs/hero.png, docs/icons-gallery.png) because npm cannot resolve repo-relative paths. LICENSE copied into each package. CHANGELOG.md added.
+- npm pkg fix normalized bin paths (./dist/cli.js -> dist/cli.js); without it npm warned it would drop the bin.
+- Verified: npm pack -> clean install of both tarballs -> CLI, library and MCP stdio all work; fonts load from the installed package.
+- .github/workflows/release.yml: publishes both on v* tags with provenance; needs repo secret NPM_TOKEN.
+- First publish must be done by the owner (npm login + 2FA cannot be done by Claude).

@@ -1,14 +1,43 @@
 {
   "name": "sysketch-mcp",
-  "version": "0.0.0",
-  "description": "MCP server for sysketch: render system design diagrams from a tiny spec.",
+  "version": "0.1.0",
+  "description": "MCP server for sysketch: lets Claude, Cursor and other AI clients draw polished system design diagrams for ~100 tokens a call.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "claude",
+    "cursor",
+    "system-design",
+    "architecture",
+    "diagram",
+    "svg",
+    "ai"
+  ],
+  "author": "Tonys-Coding (https://github.com/Tonys-Coding)",
   "license": "MIT",
-  "type": "module",
-  "bin": {
-    "sysketch-mcp": "./dist/cli.js"
+  "homepage": "https://github.com/Tonys-Coding/sysketch#readme",
+  "bugs": {
+    "url": "https://github.com/Tonys-Coding/sysketch/issues"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tonys-Coding/sysketch.git",
+    "directory": "packages/mcp"
+  },
+  "type": "module",
   "main": "./dist/server.js",
   "types": "./dist/server.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "sysketch-mcp": "dist/cli.js"
+  },
   "files": [
     "dist"
   ],
@@ -18,16 +47,12 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Tonys-Coding/sysketch.git",
-    "directory": "packages/mcp"
+    "test": "vitest run",
+    "prepublishOnly": "npm run build && npm run typecheck && npm test"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
-    "sysketch": "0.0.0",
+    "sysketch": "^0.1.0",
     "zod": "^4.6.5"
   }
 }

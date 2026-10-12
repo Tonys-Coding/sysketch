@@ -1,13 +1,45 @@
 {
   "name": "sysketch",
-  "version": "0.0.0",
-  "description": "Turn a tiny diagram spec into a polished system design diagram. The LLM never writes SVG.",
+  "version": "0.1.0",
+  "description": "Polished system design diagrams from a few lines of YAML. Your AI writes a tiny spec; a deterministic renderer draws the SVG/PNG.",
+  "keywords": [
+    "system-design",
+    "architecture",
+    "diagram",
+    "diagrams-as-code",
+    "svg",
+    "png",
+    "yaml",
+    "isometric",
+    "icons",
+    "llm",
+    "ai",
+    "mcp",
+    "elk"
+  ],
+  "author": "Tonys-Coding (https://github.com/Tonys-Coding)",
   "license": "MIT",
+  "homepage": "https://github.com/Tonys-Coding/sysketch#readme",
+  "bugs": {
+    "url": "https://github.com/Tonys-Coding/sysketch/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tonys-Coding/sysketch.git",
+    "directory": "packages/sysketch"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "bin": {
-    "sysketch": "./dist/cli.js"
+    "sysketch": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -19,11 +51,8 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Tonys-Coding/sysketch.git"
+    "test": "vitest run",
+    "prepublishOnly": "npm run build && npm run typecheck && npm test"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
@@ -39,11 +68,5 @@
     "@fontsource/nunito": "^5.3.0",
     "@fontsource/patrick-hand": "^5.3.0",
     "@types/opentype.js": "^1.3.10"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
   }
 }

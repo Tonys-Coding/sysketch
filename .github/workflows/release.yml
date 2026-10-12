@@ -1,0 +1,39 @@
+name: Release
+# Publishes sysketch and sysketch-mcp to npm when a version tag (v0.2.0, ...) is pushed.
+# Needs an npm automation token in the repo secret NPM_TOKEN.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write # npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run typecheck
+      - run: npm test
+      - name: Check tag matches package versions
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          for p in packages/sysketch packages/mcp; do
+            V=$(node -p "require('./$p/package.json').version")
+            [ "$V" = "$TAG" ] || { echo "$p is $V, tag is $TAG"; exit 1; }
+          done
+      - run: npm publish -w sysketch --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npm publish -w sysketch-mcp --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
