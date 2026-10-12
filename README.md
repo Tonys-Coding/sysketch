@@ -1,5 +1,7 @@
 # sysketch
 
+[![npm: sysketch](https://img.shields.io/npm/v/sysketch?label=sysketch)](https://www.npmjs.com/package/sysketch) [![npm: sysketch-mcp](https://img.shields.io/npm/v/sysketch-mcp?label=sysketch-mcp)](https://www.npmjs.com/package/sysketch-mcp) [![CI](https://github.com/Tonys-Coding/sysketch/actions/workflows/ci.yml/badge.svg)](https://github.com/Tonys-Coding/sysketch/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 **Polished system design diagrams from a few lines of YAML.** Your AI writes a tiny spec; a deterministic renderer draws the diagram. The AI never writes SVG, so a diagram costs tens of tokens instead of thousands, and every diagram comes out in the same clean style.
 
 ![Rate-limited API platform](examples/rate-limited-api.svg)
@@ -54,46 +56,55 @@ Measured with Claude Code (Sonnet) on the same "URL shortener" request:
 
 ## Quick start
 
-sysketch is not on npm yet, so run it from source (Node 20+):
+No install needed (Node 20+). Write a spec:
+
+```yaml
+# diagram.yaml
+title: URL Shortener
+groups:
+  Backend: [api, cache, db]
+edges:
+  - client > lb | POST /shorten
+  - lb > api
+  - api > cache
+  - api > db
+```
+
+Render it:
 
 ```bash
-git clone https://github.com/Tonys-Coding/sysketch.git
-cd sysketch
-npm install
-npm run build
-npx sysketch render examples/rate-limited-api.yaml -o diagram.svg
+npx sysketch render diagram.yaml -o diagram.svg
 ```
 
 More options:
 
 ```bash
-npx sysketch render examples/cloud-platform.yaml --png --scale 2      # high-res PNG
-npx sysketch render examples/url-shortener.yaml --theme sketch         # pick a theme
-npx sysketch icons                                                     # list icons + aliases
+npx sysketch render diagram.yaml --png --scale 2       # high-res PNG
+npx sysketch render diagram.yaml --theme sketch        # pick a theme
+npx sysketch icons                                     # list icons + aliases
 ```
+
+Or install it as a dependency: `npm install sysketch` (see [library usage](#how-it-works)).
 
 ## Use it from Claude Code, Claude Desktop or Cursor (MCP)
 
-sysketch ships an MCP server so your AI can draw diagrams directly. After building, register it with the absolute path to your clone:
+sysketch ships an MCP server, [`sysketch-mcp`](https://www.npmjs.com/package/sysketch-mcp), so your AI can draw diagrams directly.
+
+**Claude Code:**
 
 ```bash
-claude mcp add sysketch -- node /absolute/path/to/sysketch/packages/mcp/dist/cli.js
+claude mcp add sysketch -- npx -y sysketch-mcp
 ```
 
-For Claude Desktop or Cursor, add this to the MCP config:
+**Claude Desktop, Cursor and other MCP clients** (add to the MCP config):
 
 ```json
 {
   "mcpServers": {
-    "sysketch": {
-      "command": "node",
-      "args": ["/absolute/path/to/sysketch/packages/mcp/dist/cli.js"]
-    }
+    "sysketch": { "command": "npx", "args": ["-y", "sysketch-mcp"] }
   }
 }
 ```
-
-Inside this repo, the included `.mcp.json` already points at the local build.
 
 Then just ask: _"Use sysketch to diagram a ride-sharing system, as a PNG."_ The AI writes a short spec, the server writes the files, and only a one-line summary comes back into the conversation:
 
@@ -175,17 +186,20 @@ await renderToFile(specText, 'diagram.png', { scale: 2 });
 ## Development
 
 ```bash
+git clone https://github.com/Tonys-Coding/sysketch.git
+cd sysketch
+npm install
+npm run build
 npm test             # unit + golden SVG tests
 npm run test:e2e     # Playwright visual regression
 npm run lint && npm run typecheck
 npm run icons        # import icons-src/*.svg and render a preview sheet
 ```
 
-Packages: `packages/sysketch` (renderer, CLI, library) and `packages/mcp` (MCP server).
+Packages: `packages/sysketch` (renderer, CLI, library) and `packages/mcp` (MCP server). Inside the repo, `.mcp.json` runs the local MCP build. Releases are published by pushing a `vX.Y.Z` tag (see `.github/workflows/release.yml`).
 
 ## Roadmap
 
-- Publish `sysketch` and `sysketch-mcp` to npm
 - Node subtitles, dashed "response" arrows, colored arrows, step legend
 - Web playground with live preview
 

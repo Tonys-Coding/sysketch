@@ -221,3 +221,10 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - Verified: npm pack -> clean install of both tarballs -> CLI, library and MCP stdio all work; fonts load from the installed package.
 - .github/workflows/release.yml: publishes both on v* tags with provenance; needs repo secret NPM_TOKEN.
 - First publish must be done by the owner (npm login + 2FA cannot be done by Claude).
+
+## Published to npm (2026-10-12)
+- sysketch@0.1.0 and sysketch-mcp@0.1.0 are live (maintainer npm user: tony-salty101). The owner published via npm staged publishing: npm first creates a public `0.0.0-stage` placeholder for a new name, the real version appears after approval (sysketch-mcp lagged a few minutes behind).
+- Verified from the registry in clean folders: `npx sysketch` (render svg/png/sketch, icons), `npm install sysketch` library (VERSION 0.1.0, 61 icons), `npx -y sysketch-mcp` over stdio (server 0.1.0, both tools, PNG render).
+- README: npm/CI/license badges; Quick start is now `npx sysketch` (no clone); MCP setup is `claude mcp add sysketch -- npx -y sysketch-mcp` / npx config; from-source steps moved to Development; publish item removed from roadmap.
+- Local npm is 11.6.2 (no `npm stage`); staging commands need npm >= 11.15 (npm 12 requires Node >= 24.15).
+- Future releases: bump both versions, push a vX.Y.Z tag; release.yml needs repo secret NPM_TOKEN (if the account enforces staged publishing, CI publishes will also need approval).
