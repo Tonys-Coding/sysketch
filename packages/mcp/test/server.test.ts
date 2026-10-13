@@ -23,6 +23,11 @@ const call = async (name: string, args: Record<string, unknown> = {}) =>
 const text = (r: CallToolResult) => (r.content[0] as { text: string }).text;
 
 describe('sysketch-mcp', () => {
+  it("reports the MCP package's own version", () => {
+    const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+    expect(client.getServerVersion()?.version).toBe(pkg.version);
+  });
+
   it('exposes two small tools', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name)).toEqual(['render_diagram', 'list_icons']);

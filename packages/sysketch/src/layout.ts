@@ -112,7 +112,11 @@ export async function layout(model: Model, theme: Theme): Promise<Layout> {
   // wrapping was tried and rejected: its wrap-around edges cross the whole diagram.
   const shape = (l: Layout) => Math.abs(Math.log(l.width / l.height / TARGET_ASPECT));
   let best = first;
-  if (model.direction === 'right' && components(model).length === 1) {
+  if (
+    model.direction === 'right' &&
+    first.width > FOLD_MIN_WIDTH &&
+    components(model).length === 1
+  ) {
     for (const k of [2, 3, 4]) {
       const folded = foldRows(first, k);
       if (folded && shape(folded) < shape(best)) best = folded;
@@ -130,6 +134,8 @@ export async function layout(model: Model, theme: Theme): Promise<Layout> {
 
 /** Wider than this (width / height) and an auto-direction diagram also tries top-down. */
 const WIDE = 2.4;
+/** Diagrams narrower than this already fit a page; folding them only adds connectors. */
+const FOLD_MIN_WIDTH = 1800;
 /** The shape that reads best on a page or slide. */
 const TARGET_ASPECT = 1.6;
 

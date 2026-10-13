@@ -302,6 +302,9 @@ function parseNodeValue(
   };
 }
 
+/** A leading step number in a label: "1. ", "2) ", "3: ", "Step 4 - ". */
+const STEP_PREFIX = /^\s*(?:step\s*)?\d+\s*[.):-]\s+/i;
+
 export function buildModel(input: string | object, opts: BuildOptions = {}): Model {
   const parsed = specSchema.safeParse(parseInput(input));
   if (!parsed.success) {
@@ -357,7 +360,10 @@ export function buildModel(input: string | object, opts: BuildOptions = {}): Mod
       from: resolve(e.from, `edges[${i}]`),
       to: resolve(e.to, `edges[${i}]`),
     };
-    if (e.label) edge.label = e.label;
+    // Models often number labels themselves ("1. Upload"); sysketch numbers the steps
+    // already, so a leading number would duplicate (or contradict) the badge.
+    const label = spec.steps === false ? e.label : e.label?.replace(STEP_PREFIX, '');
+    if (label) edge.label = label;
     if (spec.steps !== false) edge.step = e.step ?? i + 1;
     if (e.dashed) edge.dashed = true;
     if (e.color) edge.color = e.color;

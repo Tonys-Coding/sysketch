@@ -1,6 +1,6 @@
 {
   "name": "sysketch-mcp",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "MCP server for sysketch: lets Claude, Cursor and other AI clients draw polished system design diagrams for ~100 tokens a call.",
   "keywords": [
     "mcp",
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
-    "sysketch": "^0.4.1",
+    "sysketch": "^0.4.2",
     "zod": "^4.6.5"
   },
   "mcpName": "io.github.Tonys-Coding/sysketch"

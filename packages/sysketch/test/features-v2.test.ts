@@ -100,4 +100,20 @@ describe('0.2.0 rendering', () => {
     expect(lay.nodes.get('client')!.x).toBeLessThan(lay.nodes.get('lb')!.x);
     expect(lay.nodes.get('lb')!.x).toBeLessThan(lay.nodes.get('api')!.x);
   });
+
+  it('drops step numbers that models put in labels', () => {
+    const m = buildModel({
+      edges: [
+        'a/server > b/db | 1. Upload',
+        'b/db > c/cache | Step 2: Save',
+        'c/cache > d/queue | 3) Fetch',
+      ],
+    });
+    expect(m.edges.map((e) => e.label)).toEqual(['Upload', 'Save', 'Fetch']);
+    const kept = buildModel({ steps: false, edges: ['a/server > b/db | 1. Upload'] });
+    expect(kept.edges[0]!.label).toBe('1. Upload');
+    expect(buildModel({ edges: ['a/server > b/db | 2xx retries'] }).edges[0]!.label).toBe(
+      '2xx retries',
+    );
+  });
 });

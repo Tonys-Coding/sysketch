@@ -15,7 +15,7 @@ const LANE_PILL = 38; // horizontal lane spacing when the connector carries a pi
 const GAP = 44; // empty space between rows (before lanes)
 const PAD = 36;
 /** Folding only pays off when few edges cross a cut; busy cuts become a band of long lines. */
-const MAX_CROSSING = 2;
+const MAX_CROSSING = 4;
 /** Rows must be similar: the shortest at least this share of the longest. */
 const MIN_BALANCE = 0.4;
 
@@ -56,7 +56,7 @@ function crossings(points: Pt[], c: number): { i: number; y: number; right: bool
 
 /** Pick k-1 cut positions (channel midpoints) near equal row widths, avoiding busy channels. */
 function chooseCuts(lay: Layout, cols: Span[], k: number): number[] | undefined {
-  if (cols.length < k * 2) return undefined;
+  if (cols.length < k) return undefined;
   const x0 = cols[0]!.a;
   const x1 = cols[cols.length - 1]!.b;
   const channels = cols.slice(1).map((c, i) => {

@@ -1,8 +1,18 @@
 # Changelog
 
-## 0.4.2
+## sysketch 0.4.2, sysketch-mcp 0.4.3
 
-**sysketch-mcp**
+**sysketch 0.4.2**
+
+- Big diagrams fold into rows more often: a cut may now cross up to four arrows, and a group can fill a row on its own. Diagrams narrower than 1800 px are never folded. In testing with another AI assistant, a 5:1 video pipeline became three readable rows and a 20-service e-commerce platform went from 5092 px wide to 3128 px.
+- Leading step numbers that AI models write into labels ("1. Upload", "Step 2: Save") are removed, since sysketch numbers the arrows itself. `steps: false` keeps labels untouched.
+
+**sysketch-mcp 0.4.3**
+
+- The tool guide tells the model that arrows are numbered automatically, so it shouldn't number labels.
+- The server reports its own version (it reported the core library's). Requires sysketch ^0.4.2.
+
+## sysketch-mcp 0.4.2
 
 - Works in desktop apps: when the client starts the server in `/` (Claude Desktop on macOS), diagrams are saved to `~/sysketch` instead of failing, and replies give the full path so you can find the file. Choose any folder with `--dir <path>` or `SYSKETCH_DIR`.
 
