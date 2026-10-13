@@ -382,13 +382,16 @@ export function createLogoResolver(
   for (const d of opts.dirs ?? []) {
     const dir = resolve(d);
     if (!existsSync(dir)) throw new SysketchError(`Logo folder not found: ${d}`);
+    // Label by folder name: the label ends up in the SVG, and full paths would leak the
+    // author's file system into published diagrams.
+    const label = basename(dir);
     const lockPath = join(dir, LOCK);
     if (existsSync(lockPath)) {
       sources.push(
-        sourceFrom(d, dir, JSON.parse(readFileSync(lockPath, 'utf8')) as LogoIndex, true),
+        sourceFrom(label, dir, JSON.parse(readFileSync(lockPath, 'utf8')) as LogoIndex, true),
       );
     } else {
-      sources.push(sourceFrom(d, dir, scanFolder(dir, false), false));
+      sources.push(sourceFrom(label, dir, scanFolder(dir, false), false));
     }
   }
   const home = opts.home ?? logoHome();

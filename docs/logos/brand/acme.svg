@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Acme (a made-up company for the sysketch examples)">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c3aed"/>
+      <stop offset="1" stop-color="#ec4899"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#g)"/>
+  <path d="M32 13 L49 51 H41 L37.6 43 H26.4 L23 51 H15 Z M29.2 36 H34.8 L32 29 Z" fill="#fff"/>
+  <circle cx="49" cy="15" r="5" fill="#fde047"/>
+</svg>

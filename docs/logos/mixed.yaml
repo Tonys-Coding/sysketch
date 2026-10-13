@@ -1,0 +1,22 @@
+title: Real-Time Analytics at Acme
+logos: ./brand
+nodes:
+  shop: acme/browser | Acme Shop | web + mobile
+  api: server | Events API
+  scoring: flink | Fraud Scoring | Apache Flink
+  db: postgres | Orders DB | PostgreSQL
+  dwh: warehouse | Warehouse
+groups:
+  Streaming: [kafka, scoring]
+  Batch: [airflow, spark]
+  Storage: [cassandra, db, dwh]
+edges:
+  - shop > api | orders & clicks
+  - api > db | write order
+  - api > kafka | events
+  - kafka > scoring | score
+  - scoring > cassandra | risk features
+  - airflow > spark | nightly job
+  - kafka ..> spark | replay
+  - spark > dwh | aggregates
+  - api ..> opentelemetry | traces

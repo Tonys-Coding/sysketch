@@ -124,21 +124,29 @@ Pick one with `theme: graphite` in your diagram file, or ask your assistant for 
 
 Click any diagram to see the description that produced it. More in [examples/](examples/).
 
-## Official AWS and Azure icons (optional)
+## Official logos (optional)
 
-If you work with AWS or Azure, sysketch can use their official architecture icons. Download the icon pack from [AWS](https://aws.amazon.com/architecture/icons/) or [Azure](https://learn.microsoft.com/en-us/azure/architecture/icons/), then import it once:
+sysketch can show the real logos of the products in your system, mixed with its own icons and your company's logo. You still write plain names like `kafka` or `spark`; logos you've installed are picked up automatically.
+
+![An analytics pipeline mixing a company logo, open-source product logos and sysketch icons](docs/logos/mixed.svg)
+
+<sub>Acme is a made-up company logo (from a folder next to the diagram). Apache Kafka, Spark, Flink, Airflow and Cassandra logos (Apache License 2.0) and the OpenTelemetry logo (CC BY 4.0) via Simple Icons. Names and logos are trademarks of their owners; sysketch is not affiliated with them. The rest are sysketch icons.</sub>
+
+sysketch doesn't include any company logos; you install them yourself from the official sources. Product logos take one command (`npx sysketch logos install simple-icons`), and your own logos go in a folder next to your diagrams. See the **[logos guide](docs/logos.md)**.
+
+### AWS, Azure and Google Cloud
+
+The cloud providers publish their own architecture icons as downloadable packs, with their own terms, so they're imported separately. Download a pack from [AWS](https://aws.amazon.com/architecture/icons/), [Azure](https://learn.microsoft.com/en-us/azure/architecture/icons/) or [Google Cloud](https://cloud.google.com/icons), then:
 
 ```bash
 npx sysketch logos import ~/Downloads/<icon-pack>.zip
 ```
 
-From then on, names like `s3`, `lambda` or `cosmosdb` show the official icon:
+Names like `s3`, `lambda`, `cosmosdb` or `bigquery` then show the official icon:
 
-![Serverless orders on AWS, drawn with the official AWS Architecture Icons](docs/logos/aws-serverless.svg)
+<img alt="Serverless orders on AWS, drawn with the official AWS Architecture Icons" src="docs/logos/aws-serverless.svg" width="640">
 
 <sub>Drawn with the official AWS Architecture Icons, unmodified. AWS is a trademark of Amazon; sysketch is not affiliated with or endorsed by AWS.</sub>
-
-sysketch doesn't include any company logos; you install them yourself from the official source. Thousands of other product logos and your own company's logos are supported too. See the **[logos guide](docs/logos.md)**.
 
 ## Benchmark
 
@@ -156,7 +164,7 @@ Method, prompts and side-by-side images: [docs/benchmark.md](docs/benchmark.md).
 ## More
 
 - **[Spec guide](docs/spec.md):** everything you can write in a diagram.
-- **[Logos guide](docs/logos.md):** official AWS, Azure and product logos.
+- **[Logos guide](docs/logos.md):** product logos, your company's logos, and the AWS, Azure and Google Cloud icon packs.
 - **[Icons](docs/icons.md):** the full icon set and how to add your own.
 - **Use it in code:** `npm install sysketch`, then `render(spec)` returns the SVG (see the [package README](packages/sysketch/README.md)).
 - **[Contributing](CONTRIBUTING.md):** run sysketch from source, tests and releases.

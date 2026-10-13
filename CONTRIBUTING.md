@@ -38,13 +38,13 @@ node scripts/docs.mjs    # examples and README images (never includes brand logo
 
 ## Other scripts
 
-| Command                       | What it does                                                         |
-| ----------------------------- | -------------------------------------------------------------------- |
-| `npm run icons`               | Imports `icons-src/*.svg` and renders a preview sheet                |
-| `node scripts/brand.mjs`      | Regenerates the logo set in `docs/brand/`                            |
-| `node scripts/docs-logos.mjs` | Renders the AWS and Azure examples (needs those icon packs imported) |
-| `node bench/run.mjs`          | Runs the token benchmark (needs the Claude Code CLI; costs ~$3-5)    |
-| `node bench/report.mjs`       | Turns a benchmark run into `docs/benchmark.md`                       |
+| Command                       | What it does                                                                                          |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `npm run icons`               | Imports `icons-src/*.svg` and renders a preview sheet                                                 |
+| `node scripts/brand.mjs`      | Regenerates the logo set in `docs/brand/`                                                             |
+| `node scripts/docs-logos.mjs` | Renders the logo showcase in `docs/logos/` (needs Simple Icons and the AWS and Azure packs installed) |
+| `node bench/run.mjs`          | Runs the token benchmark (needs the Claude Code CLI; costs ~$3-5)                                     |
+| `node bench/report.mjs`       | Turns a benchmark run into `docs/benchmark.md`                                                        |
 
 ## Releases
 

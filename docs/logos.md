@@ -1,10 +1,10 @@
 # Logos guide
 
-sysketch can draw the **official logo or icon** of a product (Amazon S3, Azure Cosmos DB, Stripe, PostgreSQL...) instead of its own icon. Logos are optional, and they don't change how you write diagrams: you still write `s3` or `stripe`.
+sysketch can draw the **official logo** of a product (Apache Kafka, Stripe, Amazon S3, Azure Cosmos DB...) or your own company's logo instead of its own icon, and mix all of them in one diagram. Logos are optional, and they don't change how you write diagrams: you still write `kafka` or `s3`.
 
-![Event-driven app on Azure, drawn with the official Azure icons](logos/azure-events.svg)
+![An analytics pipeline mixing a company logo, open-source product logos and sysketch icons](logos/mixed.svg)
 
-<sub>Drawn with the official Azure icons, unmodified. Azure is a trademark of Microsoft; sysketch is not affiliated with or endorsed by Microsoft.</sub>
+<sub>Acme is a made-up company logo from [`logos/brand/`](logos/brand). Apache Kafka, Spark, Flink, Airflow and Cassandra logos (Apache License 2.0) and the OpenTelemetry logo (CC BY 4.0) via Simple Icons. Names and logos are trademarks of their owners; sysketch is not affiliated with them. Spec: [mixed.yaml](logos/mixed.yaml).</sub>
 
 ## Where logos come from
 
@@ -25,6 +25,10 @@ npx sysketch logos import ~/Downloads/<icon-pack>.zip
 ```
 
 sysketch recognizes the provider and its file names. Everyday names then work: `s3`, `lambda`, `sqs`, `eks`, `route53` (AWS), `aks`, `cosmosdb`, `keyvault`, `servicebus` (Azure), `bigquery`, `cloudrun`, `gke`, `spanner` (Google Cloud). To update, import a newer pack the same way.
+
+![Event-driven app on Azure, drawn with the official Azure icons](logos/azure-events.svg)
+
+<sub>Drawn with the official Azure icons, unmodified. Azure is a trademark of Microsoft; sysketch is not affiliated with or endorsed by Microsoft. Spec: [azure-events.yaml](logos/azure-events.yaml). An AWS example: [aws-serverless.svg](logos/aws-serverless.svg).</sub>
 
 ### 2. Product logos (Simple Icons)
 
@@ -74,7 +78,7 @@ Logos belong to their owners. Before publishing a diagram that shows them:
 - Don't use logos in a way that suggests a company endorses you.
 - Don't commit downloaded icon packs to a public repository; each person installs their own.
 
-The AWS and Azure icon packs are published specifically for architecture diagrams, which is why the examples in this repository use them.
+The examples in this repository only use logos that are clearly fine to publish: the AWS and Azure icon packs (made for architecture diagrams), Simple Icons marks published under open licenses, and a made-up company logo.
 
 ## Commands
 

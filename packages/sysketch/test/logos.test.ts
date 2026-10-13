@@ -44,6 +44,7 @@ describe('brand logos', () => {
     expect(svg).toContain(`href="data:image/svg+xml;base64,${b64(ACME)}"`);
     expect(svg).toContain('preserveAspectRatio="xMidYMid meet"');
     expect(svg.match(/<image /g)).toHaveLength(1); // database keeps the sysketch icon
+    expect(svg).not.toContain(dir); // folder sources are labeled by name, never by full path
   });
 
   it('uses the logo title as the label and keeps explicit labels', async () => {
