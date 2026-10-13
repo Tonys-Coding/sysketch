@@ -2,7 +2,7 @@ import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/
 import { SysketchError } from 'sysketch';
 import pkg from '../package.json' with { type: 'json' };
 import { decodeSpec, renderSpec, toPng, type Format } from './diagram.js';
-import { createHostedServer } from './server.js';
+import { createHostedServer } from './mcp.js';
 
 /**
  * One handler for every route, using web-standard Request/Response so the same code runs on

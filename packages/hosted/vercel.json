@@ -1,14 +1,26 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
   "installCommand": "cd ../.. && npm ci",
   "buildCommand": "cd ../.. && npm run build -w sysketch && npm run build -w sysketch-hosted",
   "outputDirectory": "public",
   "rewrites": [
-    { "source": "/mcp", "destination": "/api?route=mcp" },
-    { "source": "/health", "destination": "/api?route=health" },
-    { "source": "/d/:file", "destination": "/api?route=d&file=:file" }
+    {
+      "source": "/mcp",
+      "destination": "/api?route=mcp"
+    },
+    {
+      "source": "/health",
+      "destination": "/api?route=health"
+    },
+    {
+      "source": "/d/:file",
+      "destination": "/api?route=d&file=:file"
+    }
   ],
   "functions": {
-    "api/index.js": { "maxDuration": 30 }
+    "api/index.js": {
+      "maxDuration": 30
+    }
   }
 }
