@@ -44,20 +44,6 @@ export function wrap(text: string, size: number, ref: FontRef, maxWidth: number)
   return lines.length ? lines : [''];
 }
 
-/** SVG path data for `text` with its baseline at y. */
-export function textPathData(
-  text: string,
-  x: number,
-  y: number,
-  size: number,
-  ref: FontRef,
-  anchor: Anchor = 'start',
-): string {
-  const w = measure(text, size, ref);
-  const left = anchor === 'middle' ? x - w / 2 : anchor === 'end' ? x - w : x;
-  return font(ref).getPath(text, left, y, size).toPathData(1);
-}
-
 /**
  * Text drawn with reusable glyph shapes: every glyph used in a diagram is defined once in
  * <defs> (in font units) and each occurrence is a short <use>. Same pixels as drawing every

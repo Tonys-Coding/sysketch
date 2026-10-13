@@ -534,6 +534,9 @@ export async function installSimpleIcons(
   opts: { version?: string; home?: string; fetch?: typeof fetch } = {},
 ): Promise<InstallResult> {
   const f = opts.fetch ?? fetch;
+  if (opts.version && !/^[\w.+-]+$/.test(opts.version)) {
+    throw new SysketchError(`Not a version: ${opts.version}`);
+  }
   const meta = (await (
     await f(`https://registry.npmjs.org/simple-icons/${opts.version ?? 'latest'}`)
   ).json()) as {
@@ -542,8 +545,16 @@ export async function installSimpleIcons(
   };
   if (!meta.dist?.tarball)
     throw new SysketchError(`simple-icons ${opts.version ?? 'latest'} not found on npm`);
-  const tgz = Buffer.from(await (await f(meta.dist.tarball)).arrayBuffer());
-  const [algo, want] = meta.dist.integrity.split('-') as [string, string];
+  // Only download from the npm registry itself, and only trust a sha512 integrity hash.
+  const url = new URL(meta.dist.tarball);
+  if (url.protocol !== 'https:' || url.hostname !== 'registry.npmjs.org') {
+    throw new SysketchError(`Refusing to download simple-icons from ${url.host}.`);
+  }
+  const [algo, want] = (meta.dist.integrity ?? '').split('-') as [string, string];
+  if (algo !== 'sha512' || !want) {
+    throw new SysketchError('simple-icons has no sha512 integrity hash; nothing was installed.');
+  }
+  const tgz = Buffer.from(await (await f(url.href)).arrayBuffer());
   const got = createHash(algo).update(tgz).digest('base64');
   if (got !== want)
     throw new SysketchError(
@@ -560,6 +571,8 @@ export async function installSimpleIcons(
   mkdirSync(join(dir, 'icons'), { recursive: true });
   const logos: Record<string, IndexEntry> = {};
   for (const icon of list) {
+    // slugs become file names: never let one point outside the logo folder
+    if (!/^[a-z0-9]+$/.test(icon.slug)) continue;
     const svg = files.get(`package/icons/${icon.slug}.svg`);
     if (!svg) continue;
     const file = `icons/${icon.slug}.svg`;

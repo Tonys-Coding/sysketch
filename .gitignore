@@ -9,3 +9,9 @@ icons-src/_preview.png
 # Vendor icon packs: never commit (each user imports their own)
 *.zip
 bench/.runs/
+
+# Credentials and local packaging: never commit
+.npmrc
+.env
+.env.*
+*.tgz

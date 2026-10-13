@@ -81,4 +81,48 @@ describe('sysketch-mcp', () => {
       'no logos installed; use brand/icon',
     );
   });
+
+  it('keeps reads and writes inside the project folder', async () => {
+    const outside = mkdtempSync(join(tmpdir(), 'sysketch-outside-'));
+    writeFileSync(join(outside, 'secret.yaml'), 'edges:\n  - a > b');
+    const spec = 'edges:\n  - client > db';
+    const err = async (args: Record<string, unknown>) => {
+      const r = await call('render_diagram', args);
+      expect(r.isError).toBe(true);
+      return text(r);
+    };
+    expect(await err({ spec, out: join(outside, 'x.svg') })).toMatch(/inside the project/);
+    expect(await err({ spec, out: '../escape.svg' })).toMatch(/inside the project/);
+    expect(await err({ file: join(outside, 'secret.yaml') })).toMatch(/inside the project/);
+    expect(await err({ spec, out: 'notes.sh' })).toMatch(/must end in \.svg, \.png/);
+    writeFileSync(join(dir, 'notes.txt'), 'hello');
+    expect(await err({ file: 'notes.txt' })).toMatch(/must end in \.yaml/);
+    expect(existsSync(join(outside, 'x.svg'))).toBe(false);
+  });
+
+  it('never overwrites an unrelated YAML file with a spec', async () => {
+    writeFileSync(join(dir, 'docker-compose.yaml'), 'services:\n  web:\n    image: nginx\n');
+    const r = await call('render_diagram', {
+      spec: 'edges: ["client > db"]',
+      out: 'docker-compose.svg',
+    });
+    expect(r.isError).toBe(true);
+    expect(readFileSync(join(dir, 'docker-compose.yaml'), 'utf8')).toContain('image: nginx');
+    // re-rendering its own spec is still fine
+    const ok = await call('render_diagram', { spec: 'edges: ["client > db"]', out: 'flow.svg' });
+    const again = await call('render_diagram', {
+      spec: 'edges: ["client > api"]',
+      out: 'flow.svg',
+    });
+    expect(ok.isError || again.isError).toBeFalsy();
+  });
+
+  it('refuses spec logo folders outside the project', async () => {
+    const outside = mkdtempSync(join(tmpdir(), 'sysketch-logos-'));
+    const r = await call('render_diagram', {
+      spec: `logos: ${outside}\nedges: ["client > db"]`,
+    });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toMatch(/must be inside/);
+  });
 });

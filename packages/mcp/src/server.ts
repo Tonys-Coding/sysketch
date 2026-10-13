@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 'node:path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -22,6 +22,7 @@ Product names (stripe, s3, sendgrid, aks...) draw official logos if installed, e
 To edit, change the spec file and call again with file=.`;
 
 const PREVIEW_MAX_W = 1000;
+const SPEC_EXTS = ['.yaml', '.yml', '.json'];
 
 function slug(s: string): string {
   return (
@@ -41,6 +42,28 @@ const fail = (text: string): CallToolResult => ({
 export function createServer(cwd: string = process.cwd()): McpServer {
   const server = new McpServer({ name: 'sysketch', version: VERSION });
   const abs = (p: string) => (isAbsolute(p) ? p : resolve(cwd, p));
+  const root = realpathSync(cwd);
+  /** Real path of p, or of its nearest existing parent plus the rest (symlinks followed). */
+  const real = (p: string): string => {
+    if (existsSync(p)) return realpathSync(p);
+    const parent = dirname(p);
+    return parent === p ? p : join(real(parent), basename(p));
+  };
+  /**
+   * Tool arguments come from the model, which may be following instructions planted in a
+   * document or web page. Keep every read and write inside the project folder.
+   */
+  const inProject = (p: string, what: string, exts: string[]): string => {
+    const full = abs(p);
+    const r = relative(root, real(full));
+    if (r.startsWith('..') || isAbsolute(r)) {
+      throw new SysketchError(`${what} must be inside the project folder: ${p}`);
+    }
+    if (!exts.includes(extname(full).toLowerCase())) {
+      throw new SysketchError(`${what} must end in ${exts.join(', ')}: ${p}`);
+    }
+    return full;
+  };
   /** Shorter paths in replies = fewer tokens. */
   const show = (p: string) => {
     const r = relative(cwd, p);
@@ -70,12 +93,12 @@ export function createServer(cwd: string = process.cwd()): McpServer {
     async ({ spec, file, out, theme, preview }): Promise<CallToolResult> => {
       if (!spec && !file) return fail('Pass either spec (YAML text) or file (path to a spec).');
       try {
-        const text = spec ?? readFileSync(abs(file!), 'utf8');
+        const specFile = file ? inProject(file, 'file', SPEC_EXTS) : undefined;
+        const text = spec ?? readFileSync(specFile!, 'utf8');
         let dest: string;
-        if (out) dest = abs(out);
-        else if (file) {
-          const f = abs(file);
-          dest = join(dirname(f), `${basename(f, extname(f))}.svg`);
+        if (out) dest = inProject(out, 'out', ['.svg', '.png']);
+        else if (specFile) {
+          dest = join(dirname(specFile), `${basename(specFile, extname(specFile))}.svg`);
         } else {
           const title = /^title:\s*(.+)$/m.exec(text)?.[1]?.replace(/^["']|["']$/g, '');
           dest = join(cwd, 'diagrams', `${slug(title ?? 'diagram')}.svg`);
@@ -83,12 +106,20 @@ export function createServer(cwd: string = process.cwd()): McpServer {
 
         const result = await renderToFile(text, dest, {
           ...(theme ? { theme } : {}),
-          baseDir: file ? dirname(abs(file)) : cwd,
+          baseDir: specFile ? dirname(specFile) : cwd,
+          logoRoot: cwd,
         });
         let summary = result.summary.replace(dest, show(dest));
         if (!file) {
           // Keep the spec so later edits are a one-line change + file= re-render.
           const specPath = join(dirname(dest), `${basename(dest, extname(dest))}.yaml`);
+          // Only replace a spec we saved before, never an unrelated YAML file
+          // (out: docker-compose.svg must not overwrite docker-compose.yaml).
+          if (existsSync(specPath) && !/^edges\s*:/m.test(readFileSync(specPath, 'utf8'))) {
+            throw new SysketchError(
+              `Not overwriting ${show(specPath)}: it isn't a sysketch spec. Pick another out name.`,
+            );
+          }
           writeFileSync(specPath, text.endsWith('\n') ? text : `${text}\n`);
           summary += `; spec: ${show(specPath)}`;
         }

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.1 (security)
+
+**sysketch-mcp**
+
+- The server now stays inside the project folder it runs in. Tool arguments come from the AI model, which could be following instructions hidden in a document or web page, so: spec files (`file`) must be `.yaml`, `.yml` or `.json` and diagrams (`out`) must be `.svg` or `.png`, both inside the project (symlinks are followed); a saved spec never overwrites a YAML file that isn't a sysketch spec (e.g. `out: docker-compose.svg`); and logo folders named in a spec must be inside the project. Requires sysketch ^0.4.1.
+
+**sysketch**
+
+- New `logoRoot` option: logo folders named in a spec must be inside it (used by the MCP server).
+- `logos install simple-icons` only downloads from `registry.npmjs.org` over HTTPS, requires a sha512 integrity hash, validates `--version`, and skips icon names that could point outside the logo folder.
+
+**Repository**
+
+- `SECURITY.md` with a private reporting channel; CI runs with read-only permissions; `.gitignore` covers `.npmrc`, `.env` and package tarballs; patched esbuild (dev-only advisory) through an override; unused files and code removed.
+
 ## 0.4.0
 
 **sysketch**

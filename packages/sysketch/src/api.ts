@@ -1,4 +1,5 @@
-import { isAbsolute, resolve } from 'node:path';
+import { existsSync, realpathSync } from 'node:fs';
+import { isAbsolute, relative, resolve } from 'node:path';
 import { createLogoResolver } from './logos.js';
 import { buildModel, SysketchError, type BuildOptions, type Model } from './model.js';
 import { renderModel, type RenderOptions } from './render.js';
@@ -15,7 +16,20 @@ export interface RenderInputOptions {
   baseDir?: string;
   /** logo home override (default $SYSKETCH_HOME/logos or ~/.sysketch/logos) */
   logoHome?: string;
+  /**
+   * If set, logo folders named in the spec (`logos: ./brand`) must be inside this folder.
+   * Use it when the spec comes from an untrusted source, such as an AI model.
+   */
+  logoRoot?: string;
 }
+
+const within = (root: string, p: string) => {
+  const r = relative(resolve(root), resolve(p));
+  return r === '' || (!r.startsWith('..') && !isAbsolute(r));
+};
+
+/** Real path (symlinks followed) when the path exists, so links can't escape a root. */
+const realpath = (p: string) => (existsSync(p) ? realpathSync(p) : resolve(p));
 
 function logoOption(opts: RenderInputOptions): BuildOptions['logos'] {
   if (opts.logos === false) return undefined;
@@ -24,11 +38,12 @@ function logoOption(opts: RenderInputOptions): BuildOptions['logos'] {
     const fromSpec =
       typeof specValue === 'string' ? [specValue] : Array.isArray(specValue) ? specValue : [];
     const base = opts.baseDir ?? process.cwd();
+    const specDirs = fromSpec.map((d) => (isAbsolute(d) ? d : resolve(base, d)));
+    const root = opts.logoRoot;
+    const outside = root ? specDirs.find((d) => !within(realpath(root), realpath(d))) : undefined;
+    if (outside) throw new SysketchError(`Logo folder ${outside} must be inside ${root}.`);
     return createLogoResolver({
-      dirs: [
-        ...(opts.logoDirs ?? []),
-        ...fromSpec.map((d) => (isAbsolute(d) ? d : resolve(base, d))),
-      ],
+      dirs: [...(opts.logoDirs ?? []), ...specDirs],
       ...(opts.logoHome ? { home: opts.logoHome } : {}),
     });
   };

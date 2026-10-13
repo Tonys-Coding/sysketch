@@ -1,6 +1,6 @@
 {
   "name": "sysketch",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Polished system design diagrams from a few lines of YAML. Your AI writes a tiny spec; a deterministic renderer draws the SVG/PNG.",
   "keywords": [
     "system-design",

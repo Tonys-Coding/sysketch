@@ -31,7 +31,6 @@ for (const theme of ['sketch', 'graphite', 'blueprint', 'midnight', 'classic']) 
 
 // Showcase.
 const showcase = {
-  'cloud-platform-graphite': ['cloud-platform', 'graphite'],
   'secure-data-platform-blueprint': ['secure-data-platform', 'blueprint'],
   'smart-commerce-midnight': ['smart-commerce', 'midnight'],
 };
@@ -39,6 +38,5 @@ for (const [out, [name, theme]] of Object.entries(showcase)) {
   write(`docs/showcase/${out}.svg`, await render(spec(name), { theme }));
 }
 
-// PNGs for the npm READMEs (npm can't show repo-relative SVGs).
+// PNG for the npm READMEs (npm can't show repo-relative SVGs).
 write('docs/hero.png', svgToPng(await render(spec('rate-limited-api')), 1));
-write('docs/features-v2.png', svgToPng(await render(spec('url-shortener-v2')), 1));

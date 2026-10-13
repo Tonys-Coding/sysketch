@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
@@ -142,8 +142,12 @@ const HIVE = Buffer.from(
   '<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Apache Hive</title><path d="M2 2h20v20z"/></svg>',
 );
 
-function fakeRegistry(opts: { corrupt?: boolean } = {}): typeof fetch {
+function fakeRegistry(
+  opts: { corrupt?: boolean; host?: string; extraSlug?: string } = {},
+): typeof fetch {
+  const evil = opts.extraSlug ? [{ title: 'Evil', slug: opts.extraSlug, hex: '000000' }] : [];
   const data = JSON.stringify([
+    ...evil,
     {
       title: 'Stripe',
       slug: 'stripe',
@@ -163,6 +167,7 @@ function fakeRegistry(opts: { corrupt?: boolean } = {}): typeof fetch {
     Buffer.concat([
       tarEntry('package/data/simple-icons.json', Buffer.from(data)),
       tarEntry('package/icons/stripe.svg', STRIPE),
+      ...(opts.extraSlug ? [tarEntry(`package/icons/${opts.extraSlug}.svg`, STRIPE)] : []),
       tarEntry('package/icons/apachehive.svg', HIVE),
       Buffer.alloc(1024),
     ]),
@@ -177,7 +182,7 @@ function fakeRegistry(opts: { corrupt?: boolean } = {}): typeof fetch {
       json: async () => ({
         version: '99.0.0',
         dist: {
-          tarball: 'https://registry.npmjs.org/simple-icons/-/simple-icons-99.0.0.tgz',
+          tarball: `https://${opts.host ?? 'registry.npmjs.org'}/simple-icons/-/simple-icons-99.0.0.tgz`,
           integrity,
         },
       }),
@@ -186,6 +191,24 @@ function fakeRegistry(opts: { corrupt?: boolean } = {}): typeof fetch {
 }
 
 describe('simple-icons install', () => {
+  it('only downloads from the npm registry', async () => {
+    const home = tmp();
+    await expect(
+      installSimpleIcons({ home, fetch: fakeRegistry({ host: 'evil.example.com' }) }),
+    ).rejects.toThrow(/Refusing to download/);
+    await expect(
+      installSimpleIcons({ home, version: '../../x', fetch: fakeRegistry() }),
+    ).rejects.toThrow(/Not a version/);
+  });
+
+  it('skips icon names that could escape the logo folder', async () => {
+    const home = tmp();
+    const r = await installSimpleIcons({ home, fetch: fakeRegistry({ extraSlug: '../../evil' }) });
+    expect(r.count).toBe(2);
+    expect(existsSync(join(home, 'evil.svg'))).toBe(false);
+    expect(existsSync(join(home, '..', 'evil.svg'))).toBe(false);
+  });
+
   it('reads npm tarballs', () => {
     const files = readTar(
       Buffer.concat([tarEntry('package/a.txt', Buffer.from('hi')), Buffer.alloc(1024)]),

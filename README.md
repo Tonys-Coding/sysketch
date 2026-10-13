@@ -168,6 +168,7 @@ Method, prompts and side-by-side images: [docs/benchmark.md](docs/benchmark.md).
 - **[Icons](docs/icons.md):** the full icon set and how to add your own.
 - **Use it in code:** `npm install sysketch`, then `render(spec)` returns the SVG (see the [package README](packages/sysketch/README.md)).
 - **[Contributing](CONTRIBUTING.md):** run sysketch from source, tests and releases.
+- **[Security](SECURITY.md):** how sysketch handles your files, and how to report a vulnerability.
 - **[Changelog](CHANGELOG.md)**
 
 ## Credits
