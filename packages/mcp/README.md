@@ -2,19 +2,21 @@
 
 <img alt="sysketch: your system, sketched" src="https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/brand/sysketch-logo.png" width="360">
 
-An [MCP](https://modelcontextprotocol.io) server that lets Claude, Cursor and other AI clients draw polished system design diagrams with [sysketch](https://www.npmjs.com/package/sysketch). The AI writes a ~40-token spec instead of thousands of tokens of SVG; the server renders the file and replies with one line.
+Lets Claude, Cursor and other AI assistants draw clean, hand-sketched system design diagrams with [sysketch](https://www.npmjs.com/package/sysketch). The assistant writes a short description of your system instead of drawing the image itself, which makes diagrams faster, cheaper and consistent.
 
-![Diagram rendered by sysketch](https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/hero.png)
+![A diagram drawn by sysketch](https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/hero.png)
 
-## Install
+## Setup
 
-**Claude Code**
+You need [Node.js](https://nodejs.org) 20 or newer.
+
+**Claude Code:** run once in your terminal:
 
 ```bash
 claude mcp add sysketch -- npx -y sysketch-mcp
 ```
 
-**Claude Desktop, Cursor and other clients** (MCP config):
+**Claude Desktop, Cursor and other assistants:** add this to the assistant's MCP settings, then restart it:
 
 ```json
 {
@@ -24,31 +26,29 @@ claude mcp add sysketch -- npx -y sysketch-mcp
 }
 ```
 
-Requires Node 20+.
-
 ## Use
 
-Ask: _"Use sysketch to diagram a ride-sharing system, as a PNG."_ The AI writes a short spec, the server writes the files into your project, and only a summary comes back:
+Ask your assistant, for example:
 
-```
-wrote diagrams/ride-sharing.png (4564x984, 8 nodes, 10 edges, 259.8 KB); spec: diagrams/ride-sharing.yaml
-```
+> Use sysketch to draw a ride-sharing system as a PNG.
 
-The spec is saved next to the diagram, so follow-up edits ("add a notification service") are one-line changes.
+The diagram is saved in your project (in `diagrams/`) together with its description, so you can ask for changes later: "add a notification service", "use the blueprint theme". Only a one-line summary comes back into the conversation, never the image data.
 
-Measured with Claude Code (Sonnet) on 5 system design requests: **4,352 output tokens** with sysketch vs **77,518** when the AI writes the SVG itself, about 18x fewer ([benchmark](https://github.com/Tonys-Coding/sysketch/blob/main/docs/benchmark.md)).
+Measured with Claude Code (Sonnet) on 5 system design requests: **4,352 output tokens** with sysketch vs **77,518** when the assistant drew the SVG itself, about 18x fewer ([benchmark](https://github.com/Tonys-Coding/sysketch/blob/main/docs/benchmark.md)).
 
 ## Tools
 
-| Tool             | What it does                                                                                                                                                                                          |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `render_diagram` | Renders a spec (`spec` text or `file` path) to `.svg` or `.png` (`out`), with an optional `theme`. `preview: true` also returns the image for the AI to look at (costs extra tokens, off by default). |
-| `list_icons`     | Lists the 61 icons and their aliases; `logos` searches installed brand logos.                                                                                                                         |
+| Tool             | What it does                                                                                                                                                                       |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `render_diagram` | Draws a diagram from a description (`spec`) or a file (`file`) to `.svg` or `.png`, with an optional `theme`. `preview: true` returns the image to the assistant (off by default). |
+| `list_icons`     | Lists the icons and recognized names; `logos` searches installed official logos.                                                                                                   |
 
-The tool definitions add about 450 tokens per session.
+The tool definitions add about 450 tokens to each session.
 
-Official brand logos are used automatically when the AI writes a product name like `stripe` or `s3`; nothing extra is sent to the AI. Install them with `npx sysketch logos install simple-icons`, or import the AWS, Azure or Google Cloud icon pack zip with `npx sysketch logos import <pack.zip>` (see the [main README](https://github.com/Tonys-Coding/sysketch#official-brand-logos)).
+## Official logos (optional)
 
-Spec format, themes and examples: **[github.com/Tonys-Coding/sysketch](https://github.com/Tonys-Coding/sysketch)**
+When official logos are installed, product names like `s3` or `stripe` show the real logo. See the [logos guide](https://github.com/Tonys-Coding/sysketch/blob/main/docs/logos.md).
 
-License: MIT
+More examples, themes and the full spec: **[github.com/Tonys-Coding/sysketch](https://github.com/Tonys-Coding/sysketch)**
+
+MIT License.

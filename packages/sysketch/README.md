@@ -2,28 +2,15 @@
 
 <img alt="sysketch: your system, sketched" src="https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/brand/sysketch-logo.png" width="360">
 
-**Polished system design diagrams from a few lines of YAML.** Your AI (or you) writes a tiny spec; a deterministic renderer draws the SVG or PNG. Icons, layout, arrows and styling cost zero AI tokens.
+**Describe your system in a few lines. Get a clean, hand-sketched architecture diagram** as SVG or PNG. Use it from the command line, from your own code, or through your AI assistant with [`sysketch-mcp`](https://www.npmjs.com/package/sysketch-mcp).
 
-![Rate-limited API platform rendered by sysketch](https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/hero.png)
+![A rate-limited API platform drawn by sysketch](https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/hero.png)
 
-## Install
+Requires Node.js 20 or newer.
 
-```bash
-npm install sysketch          # library
-npx sysketch --help           # or use the CLI without installing
-```
+## Command line
 
-Requires Node 20+.
-
-## CLI
-
-```bash
-npx sysketch render diagram.yaml -o diagram.svg
-npx sysketch render diagram.yaml --png --scale 2 --theme blueprint
-npx sysketch icons            # list icon names and aliases
-```
-
-`diagram.yaml`:
+Describe your system in `diagram.yaml`:
 
 ```yaml
 title: URL Shortener
@@ -36,56 +23,42 @@ edges:
   - api > db
 ```
 
-## Library
+Draw it, no install needed:
+
+```bash
+npx sysketch render diagram.yaml
+```
+
+Add `--png` for an image file or `--theme graphite` for another look. `npx sysketch icons` lists every icon and recognized name.
+
+## In your code
+
+```bash
+npm install sysketch
+```
 
 ```ts
 import { render, renderToFile } from 'sysketch';
 
-const svg = await render('edges: ["client > lb > api > db"]', { theme: 'blueprint' });
-await renderToFile(specText, 'diagram.png', { scale: 2 });
+const svg = await render('edges: ["client > lb > api > db"]');
+await renderToFile(specText, 'diagram.png', { theme: 'blueprint' });
 ```
 
-## Spec
+The same spec always produces the same file.
 
-| Key         | Meaning                                                                                                                                                           |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `title`     | Optional heading                                                                                                                                                  |
-| `nodes`     | `id: icon`, `id: icon \| Label` or `id: icon \| Label \| subtitle`. Optional: an icon name or alias used in an edge creates the node                              |
-| `groups`    | `Label: [node ids]` draws a labeled container                                                                                                                     |
-| `edges`     | `a > b`, `a > b > c`, `a > b \| label` (label on the last hop). `a ..> b` is dashed (responses, async); a trailing `[red]` or `[green, dashed]` colors the arrows |
-| `theme`     | `sketch` (default, hand-drawn), `graphite`, `blueprint`, `midnight`, `classic`                                                                                    |
-| `steps`     | `false` hides the numbered step badges                                                                                                                            |
-| `legend`    | `true` adds a numbered list of the steps under the diagram                                                                                                        |
-| `logos`     | `./folder` adds your own logo files; `false` turns brand logos off                                                                                                |
-| `direction` | `right` or `down`; leave it out to let sysketch pick the more readable shape                                                                                      |
+## Features
 
-New in 0.2.0: node subtitles, dashed (`..>`) and colored (`[red]`) arrows, and `legend: true`:
+- **Five themes:** hand-drawn `sketch` (default), `graphite`, `blueprint`, `midnight` and `classic`.
+- **61 original icons** with 160+ everyday names (`redis`, `kafka`, `s3`, `lambda`...) and about 230 recognized products.
+- **Readable layouts:** flows read left to right and long ones fold into rows; groups, labels, dashed and colored arrows, and a numbered step legend.
+- **Official logos (optional):** import the AWS, Azure or Google Cloud icon pack, or install product logos, and they're drawn unmodified.
+- **Helpful errors:** `unknown node "databse". Did you mean: database?`
 
-![Subtitles, colored and dashed arrows, step legend](https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/features-v2.png)
+## Learn more
 
-61 original isometric icons with 160+ aliases (`redis`, `kafka`, `s3`, `postgres`, `lambda`, `k8s`...). Errors are short and fixable: `unknown node "databse". Did you mean: database?`
+- [Spec guide](https://github.com/Tonys-Coding/sysketch/blob/main/docs/spec.md): everything you can write in a diagram
+- [Logos guide](https://github.com/Tonys-Coding/sysketch/blob/main/docs/logos.md)
+- [Examples and themes](https://github.com/Tonys-Coding/sysketch#examples)
+- [Benchmark](https://github.com/Tonys-Coding/sysketch/blob/main/docs/benchmark.md): 18x fewer AI tokens than having an AI write the SVG
 
-![Icon gallery](https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/icons-gallery.png)
-
-## Official brand logos
-
-sysketch ships no logos, but draws official ones you install, unedited (original file, even scaling, fingerprint-checked). They live in `~/.sysketch/logos`:
-
-```bash
-npx sysketch logos install simple-icons             # ~3,400 brand marks, integrity-checked
-npx sysketch logos import ~/Downloads/<pack>.zip    # AWS, Azure or Google Cloud icon pack
-```
-
-Download the cloud packs from [AWS](https://aws.amazon.com/architecture/icons/), [Azure](https://learn.microsoft.com/en-us/azure/architecture/icons/) or [Google Cloud](https://cloud.google.com/icons). Then `stripe`, `s3`, `cosmosdb` or `bigquery` in a spec show the official logo. Without logos, about 230 product names (`sendgrid`, `auth0`, `aks`...) fall back to a fitting icon; `acme/queue` covers anything else. Check each brand's guidelines with `npx sysketch logos info <name>`.
-
-## Use it from Claude, Cursor and other AI tools
-
-Install the MCP server, [`sysketch-mcp`](https://www.npmjs.com/package/sysketch-mcp):
-
-```bash
-claude mcp add sysketch -- npx -y sysketch-mcp
-```
-
-More examples, themes and docs: **[github.com/Tonys-Coding/sysketch](https://github.com/Tonys-Coding/sysketch)**
-
-License: MIT. Fonts are SIL Open Font License (see `assets/`).
+MIT License. Fonts are SIL Open Font License (see `assets/`).
