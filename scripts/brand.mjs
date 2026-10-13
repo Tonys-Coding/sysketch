@@ -8,7 +8,7 @@ import rough from 'roughjs';
 
 const { svgToPng } = await import('../packages/sysketch/dist/index.js');
 
-const TAGLINE = 'system design, sketched';
+const TAGLINE = 'your system, sketched';
 const PAPER = '#fffdf7';
 const LIGHT = { ink: '#1f2328', sub: '#5c574b' };
 const DARK = { ink: '#f1f3f5', sub: '#b9b3a5' };
@@ -109,7 +109,7 @@ function social() {
   const scale = 1.45;
   const x = (1280 - l.w * scale) / 2;
   const install = 'claude mcp add sysketch -- npx -y sysketch-mcp';
-  const line = '18x fewer AI tokens than writing the SVG';
+  const line = 'Describe your system. Get the diagram.';
   const lw = width(medium, line, 34);
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">` +

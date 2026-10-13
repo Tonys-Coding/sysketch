@@ -1,7 +1,7 @@
 <h1 align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/brand/sysketch-logo-dark.svg">
-    <img alt="sysketch: system design, sketched" src="docs/brand/sysketch-logo.svg" width="460">
+    <img alt="sysketch: your system, sketched" src="docs/brand/sysketch-logo.svg" width="460">
   </picture>
 </h1>
 
