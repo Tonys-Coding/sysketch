@@ -81,7 +81,7 @@ describe('0.2.0 rendering', () => {
       expect(svg).toContain('stroke-dasharray');
       expect(svg).toBe(await render(spec, { theme }));
     }
-    expect(await render(spec)).toContain('#4ade80'); // graphite green accent
+    expect(await render(spec, { theme: 'graphite' })).toContain('#4ade80'); // graphite green accent
   });
 
   it('adds a steps legend below the diagram', async () => {

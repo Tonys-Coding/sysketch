@@ -1,0 +1,18 @@
+title: Event-Driven App on Azure
+nodes:
+  users: client | Users
+  fd: frontdoor | Front Door
+  web: appservice | Web App | App Service
+  fn: azure-functions | Order Processor | Functions
+groups:
+  Edge: [fd, apim]
+  App: [web, aks]
+  Events: [servicebus, fn]
+  Data: [cosmosdb, keyvault]
+edges:
+  - users > fd > apim > web | HTTPS
+  - web > aks | recommendations
+  - web > servicebus | order placed
+  - servicebus > fn | trigger
+  - fn > cosmosdb | save order
+  - fn ..> keyvault | secrets

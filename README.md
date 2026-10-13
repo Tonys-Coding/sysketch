@@ -124,7 +124,7 @@ The spec is saved next to the diagram, so follow-up edits are one-line changes. 
 | `nodes`     | `id: icon`, `id: icon \| Label` or `id: icon \| Label \| subtitle`. Optional: an icon name or alias used in an edge creates the node for you                      |
 | `groups`    | `Label: [node ids]` draws a labeled container                                                                                                                     |
 | `edges`     | `a > b`, `a > b > c`, `a > b \| label` (label on the last hop). `a ..> b` is dashed (responses, async); a trailing `[red]` or `[green, dashed]` colors the arrows |
-| `theme`     | `graphite` (default), `blueprint`, `midnight`, `classic`, `sketch`                                                                                                |
+| `theme`     | `sketch` (default, hand-drawn), `graphite`, `blueprint`, `midnight`, `classic`                                                                                    |
 | `steps`     | `false` hides the numbered step badges (default: numbered in edge order)                                                                                          |
 | `legend`    | `true` adds a numbered list of the steps under the diagram                                                                                                        |
 | `logos`     | `./folder` adds a folder of your own logo files; `false` turns brand logos off (see [Official brand logos](#official-brand-logos))                                |
@@ -166,11 +166,11 @@ Colors: `blue`, `green`, `amber`, `red`, `violet`, `teal`, `pink`, `sky`, `orang
 
 ## Themes
 
-| Graphite (default)                    | Blueprint                               | Midnight                              | Classic                             | Sketch                            |
-| ------------------------------------- | --------------------------------------- | ------------------------------------- | ----------------------------------- | --------------------------------- |
-| ![graphite](docs/themes/graphite.svg) | ![blueprint](docs/themes/blueprint.svg) | ![midnight](docs/themes/midnight.svg) | ![classic](docs/themes/classic.svg) | ![sketch](docs/themes/sketch.svg) |
+| Sketch (default)                  | Graphite                              | Blueprint                               | Midnight                              | Classic                             |
+| --------------------------------- | ------------------------------------- | --------------------------------------- | ------------------------------------- | ----------------------------------- |
+| ![sketch](docs/themes/sketch.svg) | ![graphite](docs/themes/graphite.svg) | ![blueprint](docs/themes/blueprint.svg) | ![midnight](docs/themes/midnight.svg) | ![classic](docs/themes/classic.svg) |
 
-Themes are pure data (colors, fonts, card style, shadows, texture), so adding one never touches the renderer. The sketch theme redraws everything hand-made with rough.js.
+The default `sketch` theme redraws everything by hand with rough.js, deterministically: the same spec always gives the same wobbles. Pick another with `theme:` in the spec or `--theme`. Themes are pure data (colors, fonts, card style, shadows, texture), so adding one never touches the renderer.
 
 ## Icons
 
@@ -183,6 +183,14 @@ Full list: [docs/icon-checklist.md](docs/icon-checklist.md). Want to draw or res
 ## Official brand logos
 
 sysketch can draw the **official logo** of a product (Stripe, PostgreSQL, Amazon S3, Azure Cosmos DB, BigQuery...) instead of the generic icon, unedited: the original file, scaled evenly on a neutral tile, with no recoloring, 3D effect or hand-drawn roughening. Logos cost the AI nothing extra: it still writes `stripe` or `s3`, and sysketch looks the name up on your machine.
+
+With the AWS or Azure icon pack installed, the same specs draw the vendor's official architecture icons ([spec](docs/logos/aws-serverless.yaml), [spec](docs/logos/azure-events.yaml)):
+
+![Serverless orders on AWS, drawn with the official AWS Architecture Icons](docs/logos/aws-serverless.svg)
+
+![Event-driven app on Azure, drawn with the official Azure icons](docs/logos/azure-events.svg)
+
+<sub>Icons from the [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/) and [Azure icons](https://learn.microsoft.com/en-us/azure/architecture/icons/) packs, used unmodified in architecture diagrams as their terms permit. AWS and Azure names and icons are trademarks of Amazon and Microsoft; sysketch is not affiliated with or endorsed by either.</sub>
 
 sysketch ships **no logos**. You install them yourself from the official sources, and they are stored in `~/.sysketch/logos` (or `$SYSKETCH_HOME/logos`), outside your projects:
 
@@ -229,9 +237,9 @@ Logos stay trademarks of their owners: check each brand's guidelines (`sysketch 
 
 ## More examples
 
-**Cloud-Native Platform** in the sketch theme ([spec](examples/cloud-platform.yaml)):
+**Cloud-Native Platform** in the graphite theme ([spec](examples/cloud-platform.yaml)):
 
-![Cloud-native platform, sketch theme](docs/showcase/cloud-platform-sketch.svg)
+![Cloud-native platform, graphite theme](docs/showcase/cloud-platform-graphite.svg)
 
 **Smart Commerce Platform** in the midnight theme, with search, recommendations, an AI assistant, payments and an observability pipeline ([spec](examples/smart-commerce.yaml)):
 
@@ -271,6 +279,8 @@ npm test             # unit + golden SVG tests
 npm run test:e2e     # Playwright visual regression
 npm run lint && npm run typecheck
 npm run icons        # import icons-src/*.svg and render a preview sheet
+node scripts/docs.mjs        # regenerate README images (never includes brand logos)
+node scripts/docs-logos.mjs  # regenerate docs/logos/ (needs the AWS and Azure packs imported)
 ```
 
 Packages: `packages/sysketch` (renderer, CLI, library) and `packages/mcp` (MCP server). Inside the repo, `.mcp.json` runs the local MCP build. Releases are published by pushing a `vX.Y.Z` tag (see `.github/workflows/release.yml`).

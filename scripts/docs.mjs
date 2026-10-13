@@ -17,22 +17,23 @@ const write = (path, data) => {
 };
 
 // Golden examples (also checked by the core test suite).
-for (const f of readdirSync('examples').filter((f) => f.endsWith('.yaml')).sort()) {
+for (const f of readdirSync('examples')
+  .filter((f) => f.endsWith('.yaml'))
+  .sort()) {
   const name = f.replace(/\.yaml$/, '');
   write(`examples/${name}.svg`, await render(spec(name)));
 }
 
 // Theme strip.
-for (const theme of ['graphite', 'blueprint', 'midnight', 'classic', 'sketch']) {
+for (const theme of ['sketch', 'graphite', 'blueprint', 'midnight', 'classic']) {
   write(`docs/themes/${theme}.svg`, await render(spec('url-shortener'), { theme }));
 }
 
 // Showcase.
 const showcase = {
-  'cloud-platform-sketch': ['cloud-platform', 'sketch'],
+  'cloud-platform-graphite': ['cloud-platform', 'graphite'],
   'secure-data-platform-blueprint': ['secure-data-platform', 'blueprint'],
   'smart-commerce-midnight': ['smart-commerce', 'midnight'],
-  'url-shortener-v2-sketch': ['url-shortener-v2', 'sketch'],
 };
 for (const [out, [name, theme]] of Object.entries(showcase)) {
   write(`docs/showcase/${out}.svg`, await render(spec(name), { theme }));

@@ -1,0 +1,20 @@
+title: Serverless Orders on AWS
+nodes:
+  users: client | Customers
+  api: apigw | API Gateway | REST + auth
+  orders: lambda | Orders Function
+  worker: lambda | Fulfilment Worker
+groups:
+  Edge: [route53, cloudfront]
+  API: [api, cognito, orders]
+  Async: [sqs, worker]
+  Storage: [dynamodb, s3, ses]
+edges:
+  - users > route53 > cloudfront > api | HTTPS
+  - api > cognito | verify token
+  - api > orders | POST /orders
+  - orders > dynamodb | write order
+  - orders > sqs | order.created
+  - sqs > worker | consume
+  - worker > s3 | invoice PDF
+  - worker > ses | email receipt

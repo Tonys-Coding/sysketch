@@ -64,7 +64,7 @@ describe('themes', () => {
     const dark = await render('theme: midnight\nedges:\n  - client > api');
     expect(dark).toContain('#070b16');
     await expect(render('theme: neon\nedges:\n  - client > api')).rejects.toThrow(
-      /Unknown theme "neon"\. Available: graphite, blueprint, midnight, classic, sketch/,
+      /Unknown theme "neon"\. Available: sketch, graphite, blueprint, midnight, classic/,
     );
   });
 });

@@ -276,12 +276,13 @@ export const sketchTheme: Theme = {
 };
 
 /** Default: corporate dark. */
-export const defaultTheme = graphiteTheme;
+/** The hand-drawn theme is the default: it's the look the name promises. */
+export const defaultTheme = sketchTheme;
 
 export const themes: Record<string, Theme> = {
+  sketch: sketchTheme,
   graphite: graphiteTheme,
   blueprint: blueprintTheme,
   midnight: midnightTheme,
   classic: classicTheme,
-  sketch: sketchTheme,
 };

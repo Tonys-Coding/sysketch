@@ -51,7 +51,7 @@ await renderToFile(specText, 'diagram.png', { scale: 2 });
 | `nodes`     | `id: icon`, `id: icon \| Label` or `id: icon \| Label \| subtitle`. Optional: an icon name or alias used in an edge creates the node                              |
 | `groups`    | `Label: [node ids]` draws a labeled container                                                                                                                     |
 | `edges`     | `a > b`, `a > b > c`, `a > b \| label` (label on the last hop). `a ..> b` is dashed (responses, async); a trailing `[red]` or `[green, dashed]` colors the arrows |
-| `theme`     | `graphite` (default), `blueprint`, `midnight`, `classic`, `sketch`                                                                                                |
+| `theme`     | `sketch` (default, hand-drawn), `graphite`, `blueprint`, `midnight`, `classic`                                                                                    |
 | `steps`     | `false` hides the numbered step badges                                                                                                                            |
 | `legend`    | `true` adds a numbered list of the steps under the diagram                                                                                                        |
 | `logos`     | `./folder` adds your own logo files; `false` turns brand logos off                                                                                                |
