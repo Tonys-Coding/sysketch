@@ -128,7 +128,7 @@ The spec is saved next to the diagram, so follow-up edits are one-line changes. 
 | `steps`     | `false` hides the numbered step badges (default: numbered in edge order)                                                                                          |
 | `legend`    | `true` adds a numbered list of the steps under the diagram                                                                                                        |
 | `logos`     | `./folder` adds a folder of your own logo files; `false` turns brand logos off (see [Official brand logos](#official-brand-logos))                                |
-| `direction` | `right` or `down`. Leave it out and sysketch uses `right`, switching to `down` when that gives a more readable shape                                              |
+| `direction` | `right` or `down`. Leave it out and sysketch picks the more readable shape; long left-to-right flows fold into rows                                               |
 
 The smallest useful spec is one line, because aliases create nodes automatically:
 

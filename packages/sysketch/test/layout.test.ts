@@ -83,19 +83,62 @@ edges:
     expect(ids).toEqual(['api>client']);
   });
 
-  it('switches a too-wide diagram without a direction to top-down', async () => {
+  it('brings a too-wide diagram back to a readable shape', async () => {
     const edges = `edges:
   - client > lb | a fairly long request label
   - lb > api | another long label here
   - api > cache | read through cache layer
   - cache > db | fallback to the database`;
-    const auto = buildModel(edges);
-    const lay = await layout(auto, defaultTheme);
-    expect(auto.direction).toBe('down');
-    expect(lay.height).toBeGreaterThan(lay.width);
+    const lay = await layout(buildModel(edges), defaultTheme);
+    // one row would be ~9:1; folded into rows (or top-down) it reads on a page
+    expect(lay.width / lay.height).toBeLessThan(3.5);
     const fixed = buildModel(`direction: right\n${edges}`);
-    const lay2 = await layout(fixed, defaultTheme);
+    await layout(fixed, defaultTheme);
     expect(fixed.direction).toBe('right');
-    expect(lay2.width).toBeGreaterThan(lay2.height);
+  });
+});
+
+describe('long flows fold into rows', () => {
+  const chain = `edges:
+  - client > lb | HTTPS request
+  - lb > gateway | route by path
+  - gateway > auth | verify token
+  - auth > api | create order
+  - api > payment | charge card
+  - payment > db | record entry
+  - db > warehouse | nightly export
+  - warehouse > dashboard | daily report`;
+
+  it('folds a long chain into readable rows that stay on the canvas', async () => {
+    const model = buildModel(chain);
+    const lay = await layout(model, defaultTheme);
+    expect(lay.width / lay.height).toBeLessThan(2.4);
+    expect(model.direction).toBe('right');
+    const boxes = [...lay.nodes.values()];
+    for (const e of lay.edges.values()) {
+      for (const p of e.points) {
+        expect(p.x).toBeGreaterThanOrEqual(0);
+        expect(p.x).toBeLessThanOrEqual(lay.width);
+        expect(p.y).toBeLessThanOrEqual(lay.height);
+      }
+    }
+    for (const a of boxes)
+      for (const b of boxes) {
+        if (a === b) continue;
+        const apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
+        expect(apart).toBe(true);
+      }
+    // rows read left to right: the first hop stays on one row, going right
+    const c = lay.nodes.get('client')!;
+    const l = lay.nodes.get('lb')!;
+    expect(l.x).toBeGreaterThan(c.x);
+    expect(Math.abs(l.y - c.y)).toBeLessThan(40);
+  });
+
+  it('respects an explicit top-down direction', async () => {
+    const model = buildModel(`direction: down\n${chain}`);
+    const lay = await layout(model, defaultTheme);
+    expect(model.direction).toBe('down');
+    expect(lay.height).toBeGreaterThan(lay.width);
   });
 });

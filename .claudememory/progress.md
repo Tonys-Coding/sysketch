@@ -262,3 +262,10 @@ Built: `src/{model,icons,themes,text,layout,render,index,cli}.ts`; 16 unit/golde
 - text.ts `GlyphSheet`: glyph shapes in font units defined once in <defs> (`t<font>-<glyph>`), placed with `<use xlink:href x>` inside a translate/scale group; root svg has xmlns:xlink. Pixel check vs full-precision inline paths: 0.06% channels differ (edge AA only). Files 4-6x smaller (video-streaming 725 KB -> 125 KB graphite; sketch theme still 200-340 KB from rough.js).
 - scripts/docs.mjs regenerates examples/*.svg (goldens), docs/themes, docs/showcase, docs/hero.png, docs/features-v2.png with an empty SYSKETCH_HOME (no brand logos in repo images). Playwright snapshots updated.
 - MCP guide: "direction (omit: auto-fit; right|down only if asked)". bench/run.mjs `--modes`; bench/report.mjs merges several run dirs (later wins) and notes dates.
+
+## Row folding + 0.4.0 prep (2026-10-13)
+- src/fold.ts `foldRows(layout, k)`: ELK is unable to do it (SEPARATE_CHILDREN leaves cross-row edges unrouted; INCLUDE_CHILDREN ignores per-row direction), so the finished single-row layout is cut in channels between merged node/group x-extents, parts are stacked, and crossing edges get connectors: right margin lane -> horizontal lane in the gap -> left margin lane -> into the row. Pills of crossing edges move onto their gap lane.
+- Guards: cut channels must have <= 2 crossing edges (MAX_CROSSING), rows must be balanced (shortest >= 40% of longest by box extent), only single-component `right` layouts wider than 2.4:1; k = 2..4, keep the shape closest to 1.6. Then auto-direction may still pick top-down if better.
+- Bug fixed during development: cuts in wide (label-filled) channels pushed connectors off the left edge; row extents now include route points and the left lane is pinned to the margin.
+- Effect: rate-limited-api (hero) 2350x648 -> 1241x1120, event-analytics folds, web-scale/payments stay wide (only lopsided folds possible), video-streaming edit 5:1 -> 2.3:1.
+- Both packages 0.4.0 (mcp depends on ^0.4.0, set together with `npm pkg set` to avoid the registry-copy gotcha). Tests: 77 core + 7 mcp + 3 playwright.

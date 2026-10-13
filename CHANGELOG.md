@@ -1,17 +1,18 @@
 # Changelog
 
-## Unreleased
+## 0.4.0
 
 **sysketch**
 
 - Layout follows the spec order even with loops: edges that close a cycle (responses like `api ..> client`, callbacks, `chat > gateway`) are laid out as return arrows instead of reordering the whole flow. Dashed edges that don't close a loop (`kafka ..> ledger`) keep pointing forward.
-- Specs without `direction` switch to top-down when left-to-right would be too wide to read.
+- Long flows that would be too wide fold into rows that still read left to right: the diagram is cut only between columns where at most two arrows cross, and those arrows wrap through the margins. Folds that would leave a short, lopsided row are skipped.
+- Specs without `direction` can also switch to top-down when that gives a more readable shape.
 - Tighter spacing between columns and around arrow labels (diagrams about 8% narrower).
 - SVG files are 4-6x smaller: each glyph is defined once and reused, instead of drawing every letter as its own path. Rendering is unchanged.
 
 **sysketch-mcp**
 
-- Tool guide asks the model to leave `direction` out unless the user wants one.
+- Tool guide asks the model to leave `direction` out unless the user wants one. Requires sysketch ^0.4.0.
 
 **Repository**
 

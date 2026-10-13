@@ -2,6 +2,7 @@ import ELK from 'elkjs/lib/elk.bundled.js';
 import type { ElkNode, ElkExtendedEdge, LayoutOptions } from 'elkjs/lib/elk-api.js';
 import type { Model } from './model.js';
 import type { Theme } from './themes.js';
+import { foldRows } from './fold.js';
 import { measure, wrap, type FontRef } from './text.js';
 
 export interface Pt {
@@ -105,17 +106,26 @@ function shift(lay: Layout, dx: number, dy: number, into: Layout): void {
  */
 export async function layout(model: Model, theme: Theme): Promise<Layout> {
   const first = await layoutParts(model, theme);
-  if (!model.autoDirection || first.width / first.height <= WIDE) return first;
-  // Too wide to read when scaled to a page, and the spec didn't choose a direction:
-  // try top-down and keep whichever shape is closer to a page. (ELK's row wrapping was
-  // tried and rejected: its wrap-around edges cross the whole diagram.)
+  if (first.width / first.height <= WIDE) return first;
+  // Too wide to read when scaled to a page. Candidates: the flow folded into rows (still
+  // left to right), and top-down when the spec didn't choose a direction. ELK's own row
+  // wrapping was tried and rejected: its wrap-around edges cross the whole diagram.
   const shape = (l: Layout) => Math.abs(Math.log(l.width / l.height / TARGET_ASPECT));
-  const down = await layoutParts({ ...model, direction: 'down' }, theme);
-  if (shape(down) < shape(first)) {
-    model.direction = 'down';
-    return down;
+  let best = first;
+  if (model.direction === 'right' && components(model).length === 1) {
+    for (const k of [2, 3, 4]) {
+      const folded = foldRows(first, k);
+      if (folded && shape(folded) < shape(best)) best = folded;
+    }
   }
-  return first;
+  if (model.autoDirection) {
+    const down = await layoutParts({ ...model, direction: 'down' }, theme);
+    if (shape(down) < shape(best)) {
+      model.direction = 'down';
+      return down;
+    }
+  }
+  return best;
 }
 
 /** Wider than this (width / height) and an auto-direction diagram also tries top-down. */
