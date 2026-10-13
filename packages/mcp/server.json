@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Tonys-Coding/sysketch",
+  "title": "sysketch",
+  "description": "Polished system design diagrams (SVG/PNG) from a tiny YAML spec, ~18x fewer tokens than raw SVG.",
+  "repository": {
+    "url": "https://github.com/Tonys-Coding/sysketch",
+    "source": "github",
+    "subfolder": "packages/mcp"
+  },
+  "websiteUrl": "https://github.com/Tonys-Coding/sysketch",
+  "version": "0.4.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "sysketch-mcp",
+      "version": "0.4.0",
+      "transport": { "type": "stdio" }
+    }
+  ]
+}
