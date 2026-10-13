@@ -55,7 +55,7 @@ await renderToFile(specText, 'diagram.png', { scale: 2 });
 | `steps`     | `false` hides the numbered step badges                                                                                                                            |
 | `legend`    | `true` adds a numbered list of the steps under the diagram                                                                                                        |
 | `logos`     | `./folder` adds your own logo files; `false` turns brand logos off                                                                                                |
-| `direction` | `right` (default) or `down`                                                                                                                                       |
+| `direction` | `right` or `down`; leave it out to let sysketch pick the more readable shape                                                                                      |
 
 New in 0.2.0: node subtitles, dashed (`..>`) and colored (`[red]`) arrows, and `legend: true`:
 

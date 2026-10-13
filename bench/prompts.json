@@ -1,0 +1,27 @@
+[
+  {
+    "id": "url-shortener",
+    "topic": "a URL shortener: users, a load balancer, stateless API servers, a Redis cache and a PostgreSQL database. Show the read path and the write path.",
+    "edit": "add a rate limiter between the load balancer and the API servers"
+  },
+  {
+    "id": "ride-sharing",
+    "topic": "a ride-sharing app: rider and driver mobile apps, an API gateway, a matching service, a location service with a geo index, Kafka, a trip database and a payment service.",
+    "edit": "add a notification service that consumes trip events from Kafka and pushes updates to riders"
+  },
+  {
+    "id": "chat",
+    "topic": "a real-time chat app: clients connected over WebSockets to a gateway, a chat service, a presence service backed by Redis, messages stored in Cassandra, and push notifications for offline users.",
+    "edit": "add a media service that stores uploaded images in object storage behind a CDN"
+  },
+  {
+    "id": "video-streaming",
+    "topic": "a video streaming platform: an upload service, a queue of transcoding jobs, transcoding workers, S3 for video files, a metadata database, and a CDN that serves video to viewers.",
+    "edit": "add a recommendation service that reads watch history and feeds the home page"
+  },
+  {
+    "id": "payments",
+    "topic": "an e-commerce checkout: web clients, an API gateway, an order service, a payment service calling Stripe, a fraud check, Kafka order events, and a ledger database.",
+    "edit": "add an email service that sends receipts when an order is paid"
+  }
+]

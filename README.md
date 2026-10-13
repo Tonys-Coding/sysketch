@@ -41,12 +41,14 @@ edges:
 
 Asking an AI to draw a diagram usually means it writes the whole SVG: every coordinate, path and color, every time. sysketch moves all of that into a renderer.
 
-Measured with Claude Code (Sonnet) on the same "URL shortener" request:
+Measured with Claude Code (Sonnet) on 5 system design requests plus one follow-up edit each ([full benchmark](docs/benchmark.md)):
 
-|                   | Output tokens | Edit ("add a notification service") |
-| ----------------- | ------------- | ----------------------------------- |
-| AI writes raw SVG | **10,538**    | Rewrites the whole file again       |
-| AI uses sysketch  | **846**       | Two one-line edits, ~1,100 tokens   |
+|                                    | AI writes SVG | AI uses sysketch | Difference      |
+| ---------------------------------- | ------------- | ---------------- | --------------- |
+| Output tokens, creating 5 diagrams | 77,518        | **4,352**        | **18x fewer**   |
+| Output tokens, 5 edits             | 28,919        | **7,746**        | 3.7x fewer      |
+| Cost, all 10 runs                  | $2.44         | **$0.95**        | 2.6x cheaper    |
+| Time to create a diagram           | ~99 s         | **~11 s**        | about 9x faster |
 
 - **Cheap:** icons, layout, arrows and styling cost zero AI tokens.
 - **Consistent:** same spec in, byte-identical SVG out. Every diagram matches.
@@ -126,7 +128,7 @@ The spec is saved next to the diagram, so follow-up edits are one-line changes. 
 | `steps`     | `false` hides the numbered step badges (default: numbered in edge order)                                                                                          |
 | `legend`    | `true` adds a numbered list of the steps under the diagram                                                                                                        |
 | `logos`     | `./folder` adds a folder of your own logo files; `false` turns brand logos off (see [Official brand logos](#official-brand-logos))                                |
-| `direction` | `right` (default) or `down`                                                                                                                                       |
+| `direction` | `right` or `down`. Leave it out and sysketch uses `right`, switching to `down` when that gives a more readable shape                                              |
 
 The smallest useful spec is one line, because aliases create nodes automatically:
 

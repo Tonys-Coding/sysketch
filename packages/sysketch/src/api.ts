@@ -49,7 +49,10 @@ export async function renderWithModel(
 ): Promise<{ svg: string; model: Model }> {
   const logos = logoOption(opts);
   const model = buildModel(input, logos ? { logos } : {});
-  if (opts.direction) model.direction = opts.direction;
+  if (opts.direction) {
+    model.direction = opts.direction;
+    delete model.autoDirection;
+  }
   const ro: RenderOptions = {};
   const name = opts.theme ?? model.theme;
   if (name) {

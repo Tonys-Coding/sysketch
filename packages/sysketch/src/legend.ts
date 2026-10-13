@@ -1,13 +1,13 @@
 import type { EdgeModel, Model } from './model.js';
 import { sketch } from './sketch.js';
-import { measure, textPathData, type FontRef } from './text.js';
+import { measure, type GlyphSheet, type FontRef } from './text.js';
 import type { Theme } from './themes.js';
 
 /** A numbered "Steps" panel listing every edge, drawn under the diagram. */
 export interface LegendBlock {
   width: number;
   height: number;
-  render(x: number, y: number): string;
+  render(x: number, y: number, glyphs: GlyphSheet): string;
 }
 
 const ROW = 30;
@@ -68,7 +68,7 @@ export function legendBlock(
   return {
     width,
     height,
-    render(x, y) {
+    render(x, y, glyphs) {
       const out: string[] = [];
       out.push(
         sk
@@ -91,7 +91,14 @@ export function legendBlock(
       );
       const head = theme.group.uppercase ? 'STEPS' : 'Steps';
       out.push(
-        `<path d="${textPathData(head, x + PAD, y + 26, theme.group.uppercase ? 13 : 16, theme.fonts.group)}" fill="${muted}"/>`,
+        glyphs.draw(
+          head,
+          x + PAD,
+          y + 26,
+          theme.group.uppercase ? 13 : 16,
+          theme.fonts.group,
+          muted,
+        ),
       );
       rows.forEach((row, i) => {
         const col = Math.floor(i / perCol);
@@ -110,7 +117,15 @@ export function legendBlock(
                 sk,
               )
             : `<circle cx="${r2(rx + BADGE_R)}" cy="${r2(cy)}" r="${BADGE_R}" fill="${paint.badge}"/>`,
-          `<path d="${textPathData(num, rx + BADGE_R, r2(cy + 4.4), 12, theme.fonts.badge, 'middle')}" fill="${paint.badgeText}"/>`,
+          glyphs.draw(
+            num,
+            rx + BADGE_R,
+            r2(cy + 4.4),
+            12,
+            theme.fonts.badge,
+            paint.badgeText,
+            'middle',
+          ),
         );
         let tx = rx + BADGE_R * 2 + 12;
         for (const seg of row.segs) {
@@ -122,9 +137,7 @@ export function legendBlock(
                 `<path d="M${r2(tx + ARROW_W - 10)} ${r2(ay - 4)}L${r2(tx + ARROW_W - 4)} ${ay}L${r2(tx + ARROW_W - 10)} ${r2(ay + 4)}Z" fill="${paint.line}"/>`,
             );
           } else {
-            out.push(
-              `<path d="${textPathData(seg.text, r2(tx), r2(cy + 5), seg.size, seg.font)}" fill="${seg.fill}"/>`,
-            );
+            out.push(glyphs.draw(seg.text, r2(tx), r2(cy + 5), seg.size, seg.font, seg.fill));
           }
           tx += segWidth(seg);
         }

@@ -42,7 +42,7 @@ export const NODE = {
 export const PILL = { h: 28, badge: 26, labelSize: 13 } as const;
 export const SUB = { size: 12, line: 16, maxW: 170 } as const;
 /** Extra room reserved on each side of a pill so the arrow stays visible around it. */
-const PILL_GAP = 18;
+const PILL_GAP = 12;
 
 export function pillSize(
   label: string | undefined,
@@ -104,6 +104,26 @@ function shift(lay: Layout, dx: number, dy: number, into: Layout): void {
  * makes ELK share columns between unrelated flows, which leaves large empty gaps.
  */
 export async function layout(model: Model, theme: Theme): Promise<Layout> {
+  const first = await layoutParts(model, theme);
+  if (!model.autoDirection || first.width / first.height <= WIDE) return first;
+  // Too wide to read when scaled to a page, and the spec didn't choose a direction:
+  // try top-down and keep whichever shape is closer to a page. (ELK's row wrapping was
+  // tried and rejected: its wrap-around edges cross the whole diagram.)
+  const shape = (l: Layout) => Math.abs(Math.log(l.width / l.height / TARGET_ASPECT));
+  const down = await layoutParts({ ...model, direction: 'down' }, theme);
+  if (shape(down) < shape(first)) {
+    model.direction = 'down';
+    return down;
+  }
+  return first;
+}
+
+/** Wider than this (width / height) and an auto-direction diagram also tries top-down. */
+const WIDE = 2.4;
+/** The shape that reads best on a page or slide. */
+const TARGET_ASPECT = 1.6;
+
+async function layoutParts(model: Model, theme: Theme): Promise<Layout> {
   const topPad = model.title ? 92 : 36;
   const parts = components(model);
   if (parts.length < 2) return layoutOnce(model, theme, topPad);
@@ -126,6 +146,57 @@ export async function layout(model: Model, theme: Theme): Promise<Layout> {
     merged.height = down ? Math.max(merged.height, lay.height) : offset;
   }
   return merged;
+}
+
+/**
+ * Edges that point back against the flow, i.e. that close a cycle. Solid edges are walked
+ * first in spec order (depth-first) and the ones that close a cycle are marked; then each
+ * dashed edge (responses, callbacks, async consumers) is marked only if it would close a
+ * cycle. Laying marked edges out reversed keeps the flow reading in spec order, so
+ * `api ..> client` loops back while `kafka ..> ledger` still points forward.
+ */
+export function feedbackEdges(model: Model, rank: Map<string, number>): Set<string> {
+  const back = new Set<string>();
+  const out = new Map<string, string[]>();
+  const add = (from: string, to: string) => out.set(from, [...(out.get(from) ?? []), to]);
+  const solid = model.edges.filter((e) => !e.dashed);
+  const next = new Map<string, typeof solid>();
+  for (const e of solid) next.set(e.from, [...(next.get(e.from) ?? []), e]);
+
+  const state = new Map<string, 'open' | 'done'>();
+  const visit = (id: string) => {
+    state.set(id, 'open');
+    for (const e of next.get(id) ?? []) {
+      const s = state.get(e.to);
+      if (s === 'open') back.add(e.id);
+      else if (!s) visit(e.to);
+    }
+    state.set(id, 'done');
+  };
+  for (const id of [...rank.keys()].sort((a, b) => rank.get(a)! - rank.get(b)!)) {
+    if (!state.has(id)) visit(id);
+  }
+  for (const e of solid) if (!back.has(e.id)) add(e.from, e.to);
+
+  const reaches = (from: string, to: string): boolean => {
+    const seen = new Set([from]);
+    const stack = [from];
+    while (stack.length) {
+      const id = stack.pop()!;
+      if (id === to) return true;
+      for (const n of out.get(id) ?? []) {
+        if (seen.has(n)) continue;
+        seen.add(n);
+        stack.push(n);
+      }
+    }
+    return false;
+  };
+  for (const e of model.edges.filter((x) => x.dashed)) {
+    if (reaches(e.to, e.from)) back.add(e.id);
+    else add(e.from, e.to);
+  }
+  return back;
 }
 
 async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<Layout> {
@@ -156,7 +227,7 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
   // ELK does not inherit spacing into compound nodes, so groups get the same options.
   const spacing: LayoutOptions = {
     'elk.spacing.nodeNode': '56',
-    'elk.layered.spacing.nodeNodeBetweenLayers': down ? '84' : '70',
+    'elk.layered.spacing.nodeNodeBetweenLayers': down ? '72' : '56',
     'elk.spacing.edgeNode': '28',
     'elk.spacing.edgeEdge': '22',
     'elk.layered.spacing.edgeNodeBetweenLayers': down ? '34' : '28',
@@ -170,6 +241,7 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
     for (const id of [e.from, e.to]) if (!rank.has(id)) rank.set(id, rank.size);
   for (const n of model.nodes) if (!rank.has(n.id)) rank.set(n.id, rank.size);
   const byRank = (a: string, b: string) => rank.get(a)! - rank.get(b)!;
+  const backward = feedbackEdges(model, rank);
 
   const grouped = new Set(model.groups.flatMap((g) => g.nodes));
   const groupNodes: ElkNode[] = model.groups.map((g) => ({
@@ -184,12 +256,15 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
       : (rank.get(n.id.slice(2)) ?? Infinity);
   const rootChildren = [...groupNodes, ...loose].sort((a, b) => firstMember(a) - firstMember(b));
 
+  // Feedback edges are laid out reversed (so the graph ELK sees is acyclic and follows the
+  // spec order), then their routes are flipped back so arrows still point the right way.
   const edges: ElkExtendedEdge[] = model.edges.map((e) => {
     const size = pillSize(e.label, e.step, theme.fonts.edge);
+    const flip = backward.has(e.id);
     return {
       id: `e:${e.id}`,
-      sources: [`n:${e.from}`],
-      targets: [`n:${e.to}`],
+      sources: [`n:${flip ? e.to : e.from}`],
+      targets: [`n:${flip ? e.from : e.to}`],
       ...(size
         ? {
             labels: [
@@ -258,6 +333,7 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
       x: r2(p.x),
       y: r2(p.y),
     }));
+    if (backward.has(e.id.slice(2))) points.reverse();
     const l = e.labels?.[0];
     const route: EdgeRoute = { points };
     if (l && l.x !== undefined && l.y !== undefined) {

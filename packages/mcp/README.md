@@ -34,7 +34,7 @@ wrote diagrams/ride-sharing.png (4564x984, 8 nodes, 10 edges, 259.8 KB); spec: d
 
 The spec is saved next to the diagram, so follow-up edits ("add a notification service") are one-line changes.
 
-Measured with Claude Code on the same request: **846 output tokens** with sysketch vs **10,538** when the AI writes the SVG itself.
+Measured with Claude Code (Sonnet) on 5 system design requests: **4,352 output tokens** with sysketch vs **77,518** when the AI writes the SVG itself, about 18x fewer ([benchmark](https://github.com/Tonys-Coding/sysketch/blob/main/docs/benchmark.md)).
 
 ## Tools
 

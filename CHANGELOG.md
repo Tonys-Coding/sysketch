@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+**sysketch**
+
+- Layout follows the spec order even with loops: edges that close a cycle (responses like `api ..> client`, callbacks, `chat > gateway`) are laid out as return arrows instead of reordering the whole flow. Dashed edges that don't close a loop (`kafka ..> ledger`) keep pointing forward.
+- Specs without `direction` switch to top-down when left-to-right would be too wide to read.
+- Tighter spacing between columns and around arrow labels (diagrams about 8% narrower).
+- SVG files are 4-6x smaller: each glyph is defined once and reused, instead of drawing every letter as its own path. Rendering is unchanged.
+
+**sysketch-mcp**
+
+- Tool guide asks the model to leave `direction` out unless the user wants one.
+
+**Repository**
+
+- Token benchmark: `bench/` runs 5 prompts plus edits through headless Claude Code with and without sysketch; results in `docs/benchmark.md` (18x fewer output tokens to create a diagram).
+- `scripts/docs.mjs` regenerates every README image without brand logos.
+
 ## 0.3.0
 
 **sysketch**

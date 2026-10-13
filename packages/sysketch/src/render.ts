@@ -4,23 +4,11 @@ import type { Logo } from './logos.js';
 import type { EdgeModel, Model } from './model.js';
 import { defaultTheme, iconPaint, type Theme } from './themes.js';
 import { sketch, sketchIcon } from './sketch.js';
-import { textPathData, type Anchor, type FontRef } from './text.js';
+import { GlyphSheet, type Anchor, type FontRef } from './text.js';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-function textPath(
-  text: string,
-  x: number,
-  y: number,
-  size: number,
-  font: FontRef,
-  fill: string,
-  anchor: Anchor = 'start',
-): string {
-  return `<path d="${textPathData(text, x, y, size, font, anchor)}" fill="${fill}"/>`;
-}
 
 /** Polyline with rounded corners. */
 function roundedPath(pts: Pt[], radius: number): string {
@@ -94,6 +82,16 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
   const theme = opts.theme ?? defaultTheme;
   const lay = await layout(model, theme);
   const out: string[] = [];
+  const glyphs = new GlyphSheet();
+  const textPath = (
+    text: string,
+    x: number,
+    y: number,
+    size: number,
+    font: FontRef,
+    fill: string,
+    anchor: Anchor = 'start',
+  ) => glyphs.draw(text, x, y, size, font, fill, anchor);
 
   /** Line, badge and badge-text colors for an edge (colored edges use their palette hue). */
   const edgePaint = (e: EdgeModel) => {
@@ -344,12 +342,12 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
         `${model.nodes.find((n) => n.id === e.from)?.label} to ${model.nodes.find((n) => n.id === e.to)?.label}`,
     )
     .join('; ');
-  if (legend) out.push(legend.render(36, legendY));
+  if (legend) out.push(legend.render(36, legendY, glyphs));
   const title = model.title ?? 'System design diagram';
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(title)}">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(title)}">` +
     `<title>${esc(title)}</title><desc>${esc(desc)}</desc>` +
-    (defs.length ? `<defs>${defs.join('')}</defs>` : '') +
+    `<defs>${defs.join('')}${glyphs.defs()}</defs>` +
     `<rect width="${W}" height="${H}" fill="${theme.bg}"/>` +
     (theme.backdrop ? `<rect width="${W}" height="${H}" fill="url(#sk-bg)"/>` : '') +
     out.join('') +

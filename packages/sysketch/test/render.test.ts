@@ -18,6 +18,15 @@ describe('render', () => {
     expect(svg).toContain('role="img"');
   });
 
+  it('defines each glyph once and reuses it', async () => {
+    const svg = await render('edges: ["client > api | Service Service Service"]');
+    const ids = [...svg.matchAll(/<path id="(t\d+-\d+)"/g)].map((m) => m[1]);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.length).toBeGreaterThan(5);
+    expect((svg.match(/<use xlink:href="#t/g) ?? []).length).toBeGreaterThan(ids.length);
+    expect(svg).toContain('xmlns:xlink="http://www.w3.org/1999/xlink"');
+  });
+
   it('supports vertical direction', async () => {
     const down = await render('edges:\n  - client > lb > api', { direction: 'down' });
     const right = await render('edges:\n  - client > lb > api');

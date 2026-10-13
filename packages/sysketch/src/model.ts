@@ -76,6 +76,8 @@ export interface Model {
   title?: string;
   theme?: string;
   direction: 'right' | 'down';
+  /** the spec left direction out: layout may pick whichever reads better */
+  autoDirection?: boolean;
   legend?: boolean;
   /** spec `logos:` value: false turns logos off, a path (or list) adds logo folders */
   logos?: boolean | string | string[];
@@ -381,6 +383,7 @@ export function buildModel(input: string | object, opts: BuildOptions = {}): Mod
     ...(spec.title ? { title: spec.title } : {}),
     ...(spec.theme ? { theme: spec.theme } : {}),
     direction: spec.direction ?? 'right',
+    ...(spec.direction ? {} : { autoDirection: true }),
     ...(spec.legend ? { legend: true } : {}),
     ...(spec.logos !== undefined ? { logos: spec.logos } : {}),
     nodes: [...nodes.values()],
