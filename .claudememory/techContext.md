@@ -51,6 +51,7 @@ Every stage is a pure function so each is unit-testable and the whole pipeline i
 
 - **npm:** publish `core`, `cli`, `mcp` under one scope (name TBD). `npx <name>` must work with zero config.
 - **MCP:** document one-line install for Claude Code (`claude mcp add ...`) and Claude Desktop JSON config; list in MCP registries/awesome lists.
+- **Hosted MCP:** `packages/hosted` (private, not on npm) on Vercel Hobby (free; Cloudflare free ruled out: 10 ms CPU, 3 MB bundle). Stateless Streamable HTTP at /mcp; spec-in-URL diagram links /d/<deflate-base64url>.png|svg|yaml (no storage, CDN-cached); no brand logos.
 - **Web playground:** static deploy (GitHub Pages / Vercel). No backend, no DB, no auth.
 - **CI:** GitHub Actions — lint, typecheck, test, build, release via changesets.
 - **License:** MIT (confirm; icons and font licenses must be compatible).

@@ -17,6 +17,7 @@ The repository has two packages:
 
 - `packages/sysketch`: the renderer, command line tool and library.
 - `packages/mcp`: the MCP server for AI assistants.
+- `packages/hosted`: the same server as a web service for ChatGPT and claude.ai (not published to npm; see its README to deploy).
 
 Inside the repository, `.mcp.json` runs the local MCP build, so Claude Code uses your changes after `npm run build`.
 

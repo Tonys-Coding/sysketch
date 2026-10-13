@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>sysketch MCP</title>
+    <meta
+      name="description"
+      content="Describe your system. Get the diagram. Add sysketch to ChatGPT, Claude and other AI assistants."
+    />
+    <link rel="icon" href="brand/sysketch-icon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #fbf8f1;
+        --card: #ffffff;
+        --ink: #1f2430;
+        --muted: #5b6372;
+        --line: #e4ded0;
+        --accent: #e8743b;
+        --code: #f3efe5;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #15181f;
+          --card: #1d212a;
+          --ink: #eceae4;
+          --muted: #a3a9b5;
+          --line: #2e3440;
+          --accent: #f08a55;
+          --code: #252a35;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          16px/1.6 system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 40px 16px 64px;
+      }
+      header img {
+        width: min(360px, 100%);
+        height: auto;
+      }
+      h1 {
+        font-size: 1.6rem;
+        margin: 24px 0 8px;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin: 32px 0 8px;
+      }
+      p,
+      li {
+        color: var(--muted);
+      }
+      strong {
+        color: var(--ink);
+      }
+      a {
+        color: var(--accent);
+      }
+      .url {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        background: var(--card);
+        border: 1.5px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin: 12px 0;
+      }
+      .url code {
+        flex: 1;
+        overflow-wrap: anywhere;
+        background: none;
+        padding: 0;
+      }
+      code {
+        background: var(--code);
+        border-radius: 6px;
+        padding: 1px 6px;
+        font-size: 0.92em;
+      }
+      button {
+        font: inherit;
+        border: 1.5px solid var(--ink);
+        background: var(--ink);
+        color: var(--bg);
+        border-radius: 8px;
+        padding: 4px 12px;
+        cursor: pointer;
+      }
+      ol {
+        padding-left: 20px;
+      }
+      .dark {
+        display: none;
+      }
+      @media (prefers-color-scheme: dark) {
+        .light {
+          display: none;
+        }
+        .dark {
+          display: inline;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <img class="light" src="brand/sysketch-logo.svg" alt="sysketch: your system, sketched" />
+        <img
+          class="dark"
+          src="brand/sysketch-logo-dark.svg"
+          alt="sysketch: your system, sketched"
+        />
+      </header>
+
+      <h1>Describe your system. Get the diagram.</h1>
+      <p>
+        Add sysketch to your AI assistant and ask for a system design diagram. The assistant writes
+        a few lines describing your system, and sysketch draws a clean, hand-sketched diagram you
+        can open, download or share.
+      </p>
+
+      <p><strong>Server URL</strong></p>
+      <div class="url">
+        <code id="url">/mcp</code>
+        <button type="button" id="copy">Copy</button>
+      </div>
+
+      <h2>Claude (web, desktop and mobile)</h2>
+      <ol>
+        <li>
+          Open <strong>Settings → Connectors</strong> and choose
+          <strong>Add custom connector</strong>.
+        </li>
+        <li>
+          Name it <code>sysketch</code>, paste the server URL and click <strong>Add</strong>. No
+          sign-in is needed.
+        </li>
+        <li>In a chat, ask: <em>“Use sysketch to draw a ride-sharing system.”</em></li>
+      </ol>
+
+      <h2>ChatGPT</h2>
+      <ol>
+        <li>
+          Open <strong>Settings → Apps &amp; Connectors → Advanced</strong> and turn on
+          <strong>Developer mode</strong>.
+        </li>
+        <li>
+          Choose <strong>Create</strong>, name it <code>sysketch</code>, paste the server URL and
+          pick <strong>No authentication</strong>.
+        </li>
+        <li>
+          In a new chat, turn on sysketch from the <strong>+</strong> menu and ask for a diagram.
+        </li>
+      </ol>
+
+      <h2>Other assistants</h2>
+      <p>
+        Any app that supports remote MCP servers over Streamable HTTP can use the same URL. Coding
+        assistants like Claude Code and Cursor can also run sysketch on your computer, which saves
+        diagrams straight into your project and supports official logos: see
+        <a href="https://github.com/Tonys-Coding/sysketch#readme">the setup guide</a>.
+      </p>
+
+      <h2>Privacy</h2>
+      <p>
+        Nothing is stored. Each diagram link contains its own description, so anyone you share a
+        link with can see that diagram. Don’t put secrets in diagrams.
+      </p>
+
+      <p>
+        <a href="https://github.com/Tonys-Coding/sysketch">GitHub</a> ·
+        <a href="https://www.npmjs.com/package/sysketch-mcp">npm</a> · MIT License
+      </p>
+    </main>
+    <script>
+      const url = location.origin + '/mcp';
+      document.getElementById('url').textContent = url;
+      document.getElementById('copy').addEventListener('click', async (e) => {
+        try {
+          await navigator.clipboard.writeText(url);
+          e.target.textContent = 'Copied';
+        } catch {
+          e.target.textContent = 'Select and copy';
+        }
+      });
+    </script>
+  </body>
+</html>
