@@ -1,5 +1,7 @@
 # sysketch-mcp
 
+<img alt="sysketch: system design, sketched" src="https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/brand/sysketch-logo.png" width="360">
+
 An [MCP](https://modelcontextprotocol.io) server that lets Claude, Cursor and other AI clients draw polished system design diagrams with [sysketch](https://www.npmjs.com/package/sysketch). The AI writes a ~40-token spec instead of thousands of tokens of SVG; the server renders the file and replies with one line.
 
 ![Diagram rendered by sysketch](https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/hero.png)

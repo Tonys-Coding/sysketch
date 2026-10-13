@@ -80,7 +80,8 @@ export interface Theme {
 const nunito = (weight: number): FontRef => ({ family: 'nunito', weight });
 const inter = (weight: number): FontRef => ({ family: 'inter', weight });
 const mono = (weight: number): FontRef => ({ family: 'jetbrains-mono', weight });
-const hand: FontRef = { family: 'patrick-hand', weight: 400 };
+/** Shantell Sans: handwritten marker look, designed to stay readable at small sizes. */
+const hand = (weight: number): FontRef => ({ family: 'shantell-sans', weight });
 
 /** Bright accents over deep fills, for dark canvases. */
 const darkHues: Record<string, Hue> = withSurfaces(
@@ -245,7 +246,13 @@ const INK = '#1f2328';
 /** Hand-drawn: ink outlines, crayon-scribbled icon fills, paper background. */
 export const sketchTheme: Theme = {
   name: 'sketch',
-  fonts: { title: hand, label: hand, edge: hand, group: hand, badge: hand },
+  fonts: {
+    title: hand(800),
+    label: hand(600),
+    edge: hand(500),
+    group: hand(700),
+    badge: hand(700),
+  },
   bg: '#fffdf7',
   title: INK,
   text: INK,

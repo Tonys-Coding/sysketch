@@ -1,4 +1,9 @@
-# sysketch
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/sysketch-logo-dark.svg">
+    <img alt="sysketch: system design, sketched" src="docs/brand/sysketch-logo.svg" width="460">
+  </picture>
+</h1>
 
 [![npm: sysketch](https://img.shields.io/npm/v/sysketch?label=sysketch)](https://www.npmjs.com/package/sysketch) [![npm: sysketch-mcp](https://img.shields.io/npm/v/sysketch-mcp?label=sysketch-mcp)](https://www.npmjs.com/package/sysketch-mcp) [![CI](https://github.com/Tonys-Coding/sysketch/actions/workflows/ci.yml/badge.svg)](https://github.com/Tonys-Coding/sysketch/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -281,6 +286,7 @@ npm run lint && npm run typecheck
 npm run icons        # import icons-src/*.svg and render a preview sheet
 node scripts/docs.mjs        # regenerate README images (never includes brand logos)
 node scripts/docs-logos.mjs  # regenerate docs/logos/ (needs the AWS and Azure packs imported)
+node scripts/brand.mjs       # regenerate the logo set in docs/brand/
 ```
 
 Packages: `packages/sysketch` (renderer, CLI, library) and `packages/mcp` (MCP server). Inside the repo, `.mcp.json` runs the local MCP build. Releases are published by pushing a `vX.Y.Z` tag (see `.github/workflows/release.yml`).
@@ -291,6 +297,6 @@ Packages: `packages/sysketch` (renderer, CLI, library) and `packages/mcp` (MCP s
 
 ## Credits
 
-Icons and palettes are original. Fonts: Inter, JetBrains Mono, Nunito and Patrick Hand (all SIL Open Font License, see `packages/sysketch/assets/`). Layout by [ELK](https://github.com/kieler/elkjs), PNG export by [resvg](https://github.com/yisibl/resvg-js), sketch style by [rough.js](https://roughjs.com).
+Icons and palettes are original. Fonts: Shantell Sans, Inter, JetBrains Mono and Nunito (all SIL Open Font License, see `packages/sysketch/assets/`). Layout by [ELK](https://github.com/kieler/elkjs), PNG export by [resvg](https://github.com/yisibl/resvg-js), sketch style by [rough.js](https://roughjs.com).
 
 License: MIT

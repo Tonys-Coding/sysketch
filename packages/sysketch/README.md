@@ -1,5 +1,7 @@
 # sysketch
 
+<img alt="sysketch: system design, sketched" src="https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/brand/sysketch-logo.png" width="360">
+
 **Polished system design diagrams from a few lines of YAML.** Your AI (or you) writes a tiny spec; a deterministic renderer draws the SVG or PNG. Icons, layout, arrows and styling cost zero AI tokens.
 
 ![Rate-limited API platform rendered by sysketch](https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/hero.png)
