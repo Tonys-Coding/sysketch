@@ -54,6 +54,8 @@ claude mcp add sysketch -- npx -y sysketch-mcp
 }
 ```
 
+Claude Desktop saves diagrams in a `sysketch` folder in your home folder. To use another folder, add `"--dir", "/path/to/folder"` after `"sysketch-mcp"`.
+
 Then just ask:
 
 > Use sysketch to draw a ride-sharing app: rider and driver apps, an API gateway, a matching service, a location service and a trip database.

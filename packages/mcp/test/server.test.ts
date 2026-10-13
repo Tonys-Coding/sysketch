@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
@@ -124,5 +124,17 @@ describe('sysketch-mcp', () => {
     });
     expect(r.isError).toBe(true);
     expect(text(r)).toMatch(/must be inside/);
+  });
+
+  it('reports full paths when asked, so desktop users can find the file', async () => {
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    await createServer(dir, { fullPaths: true }).connect(a);
+    const c = new Client({ name: 'test', version: '0' });
+    await c.connect(b);
+    const r = (await c.callTool({
+      name: 'render_diagram',
+      arguments: { spec: 'title: Full\nedges: ["client > db"]' },
+    })) as CallToolResult;
+    expect(text(r)).toContain(join(dir, 'diagrams', 'full.svg').replace(homedir(), '~'));
   });
 });

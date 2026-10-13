@@ -9,12 +9,12 @@
     "subfolder": "packages/mcp"
   },
   "websiteUrl": "https://github.com/Tonys-Coding/sysketch",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "sysketch-mcp",
-      "version": "0.4.1",
+      "version": "0.4.2",
       "transport": { "type": "stdio" }
     }
   ]

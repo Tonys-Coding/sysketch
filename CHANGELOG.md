@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2
+
+**sysketch-mcp**
+
+- Works in desktop apps: when the client starts the server in `/` (Claude Desktop on macOS), diagrams are saved to `~/sysketch` instead of failing, and replies give the full path so you can find the file. Choose any folder with `--dir <path>` or `SYSKETCH_DIR`.
+
 ## 0.4.1 (security)
 
 **sysketch-mcp**

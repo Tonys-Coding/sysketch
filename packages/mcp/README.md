@@ -26,13 +26,15 @@ claude mcp add sysketch -- npx -y sysketch-mcp
 }
 ```
 
+Diagrams are saved in the folder your assistant runs the server in (your project, in Claude Code and Cursor). Claude Desktop starts servers outside any project, so there they go to a `sysketch` folder in your home folder. To choose a folder, add `"--dir", "/path/to/folder"` to `args`, or set the `SYSKETCH_DIR` environment variable.
+
 ## Use
 
 Ask your assistant, for example:
 
 > Use sysketch to draw a ride-sharing system as a PNG.
 
-The diagram is saved in your project (in `diagrams/`) together with its description, so you can ask for changes later: "add a notification service", "use the blueprint theme". Only a one-line summary comes back into the conversation, never the image data.
+The diagram is saved in `diagrams/` inside that folder, together with its description, so you can ask for changes later: "add a notification service", "use the blueprint theme". Only a one-line summary comes back into the conversation, never the image data.
 
 Measured with Claude Code (Sonnet) on 5 system design requests: **4,352 output tokens** with sysketch vs **77,518** when the assistant drew the SVG itself, about 18x fewer ([benchmark](https://github.com/Tonys-Coding/sysketch/blob/main/docs/benchmark.md)).
 

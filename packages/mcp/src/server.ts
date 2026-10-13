@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
-import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 'node:path';
+import { homedir } from 'node:os';
+import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
@@ -39,7 +40,15 @@ const fail = (text: string): CallToolResult => ({
   content: [{ type: 'text', text }],
 });
 
-export function createServer(cwd: string = process.cwd()): McpServer {
+export interface ServerOptions {
+  /**
+   * Report full paths (`~/sysketch/diagrams/x.svg`) instead of project-relative ones. Used
+   * when the folder isn't the one the client started us in, so the user can find the file.
+   */
+  fullPaths?: boolean;
+}
+
+export function createServer(cwd: string = process.cwd(), opts: ServerOptions = {}): McpServer {
   const server = new McpServer({ name: 'sysketch', version: VERSION });
   const abs = (p: string) => (isAbsolute(p) ? p : resolve(cwd, p));
   const root = realpathSync(cwd);
@@ -66,6 +75,10 @@ export function createServer(cwd: string = process.cwd()): McpServer {
   };
   /** Shorter paths in replies = fewer tokens. */
   const show = (p: string) => {
+    if (opts.fullPaths) {
+      const home = homedir();
+      return p === home || p.startsWith(home + sep) ? `~${p.slice(home.length)}` : p;
+    }
     const r = relative(cwd, p);
     return r && !r.startsWith('..') && !isAbsolute(r) ? r : p;
   };
