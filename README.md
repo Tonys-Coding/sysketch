@@ -7,7 +7,7 @@
 
 <p align="center">
   <b>Describe your system in a few lines. Get a clean, hand-sketched architecture diagram.</b><br>
-  Works with Claude, Cursor and other AI assistants, or on its own from the command line.
+  Works in ChatGPT, Claude, Perplexity and other AI chats, in coding assistants like Claude Code and Cursor, or on its own from the command line.
 </p>
 
 <p align="center">
@@ -32,11 +32,29 @@ With sysketch, the AI writes a short description of your system and sysketch dra
 
 ## Get started
 
-You need [Node.js](https://nodejs.org) 20 or newer. Nothing else to install.
+sysketch connects to AI assistants through [MCP](https://modelcontextprotocol.io), the standard way to give them new tools. Pick the option that matches how you use AI.
 
-### With your AI assistant (recommended)
+### In your AI chat (nothing to install)
 
-sysketch connects to AI assistants through [MCP](https://modelcontextprotocol.io), the standard way to give them new tools.
+Any web-based AI chat that supports **custom connectors** (also called MCP servers) can use sysketch, including Claude, ChatGPT and Perplexity. Add a custom connector with this URL. No account or sign-in is needed.
+
+```text
+https://sysketch.vercel.app/mcp
+```
+
+- **Claude** (web, desktop and mobile): Settings → Connectors → Add custom connector.
+- **ChatGPT:** turn on Developer mode (Settings → Apps & Connectors → Advanced), then create a connector with the URL and no authentication. Developer mode is available on paid plans.
+- **Perplexity and other chats:** look for custom connectors or MCP in the settings.
+
+Then ask for a diagram:
+
+> Use sysketch to draw a ride-sharing app: rider and driver apps, an API gateway, a matching service, a location service and a trip database.
+
+You get a preview in the chat, plus links to the full PNG and SVG that you can download or share. To change it, just ask ("add a payment service"). Nothing is stored on the server: each link contains the diagram's description, so anyone with the link can see that diagram. Official logos are only available in the local version below. Setup and the connector's limits are in the **[hosted server guide](packages/hosted/README.md)**.
+
+### In Claude Code, Cursor and other coding assistants
+
+This runs sysketch on your computer and saves diagrams straight into your project. You need [Node.js](https://nodejs.org) 20 or newer.
 
 **Claude Code:** run this once in your terminal:
 
@@ -56,15 +74,11 @@ claude mcp add sysketch -- npx -y sysketch-mcp
 
 Claude Desktop saves diagrams in a `sysketch` folder in your home folder. To use another folder, add `"--dir", "/path/to/folder"` after `"sysketch-mcp"`.
 
-Then just ask:
-
-> Use sysketch to draw a ride-sharing app: rider and driver apps, an API gateway, a matching service, a location service and a trip database.
-
-The diagram is saved in your project as an image, along with its short description, so you can ask for changes later ("add a payment service").
+Then ask the same way, for example "use sysketch to draw this repo's architecture as a PNG". The diagram is saved in your project as an image, along with its short description, so you can ask for changes later. This version also supports [official logos](#official-logos-optional).
 
 ### From the command line
 
-Write a description of your system in a file called `diagram.yaml`:
+You need [Node.js](https://nodejs.org) 20 or newer. Write a description of your system in a file called `diagram.yaml`:
 
 ```yaml
 title: URL Shortener
@@ -168,6 +182,7 @@ Method, prompts and side-by-side images: [docs/benchmark.md](docs/benchmark.md).
 - **[Spec guide](docs/spec.md):** everything you can write in a diagram.
 - **[Logos guide](docs/logos.md):** product logos, your company's logos, and the AWS, Azure and Google Cloud icon packs.
 - **[Icons](docs/icons.md):** the full icon set and how to add your own.
+- **[Hosted server](packages/hosted/README.md):** how the AI chat connector works, its limits, and how to run your own copy for free.
 - **Use it in code:** `npm install sysketch`, then `render(spec)` returns the SVG (see the [package README](packages/sysketch/README.md)).
 - **[Contributing](CONTRIBUTING.md):** run sysketch from source, tests and releases.
 - **[Security](SECURITY.md):** how sysketch handles your files, and how to report a vulnerability.

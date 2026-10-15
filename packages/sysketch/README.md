@@ -2,7 +2,7 @@
 
 <img alt="sysketch: your system, sketched" src="https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/brand/sysketch-logo.png" width="360">
 
-**Describe your system in a few lines. Get a clean, hand-sketched architecture diagram** as SVG or PNG. Use it from the command line, from your own code, or through your AI assistant with [`sysketch-mcp`](https://www.npmjs.com/package/sysketch-mcp).
+**Describe your system in a few lines. Get a clean, hand-sketched architecture diagram** as SVG or PNG. Use it from the command line, from your own code, through your coding assistant with [`sysketch-mcp`](https://www.npmjs.com/package/sysketch-mcp), or in ChatGPT, Claude and other AI chats with the [hosted connector](https://github.com/Tonys-Coding/sysketch#in-your-ai-chat-nothing-to-install).
 
 ![A rate-limited API platform drawn by sysketch](https://raw.githubusercontent.com/Tonys-Coding/sysketch/main/docs/hero.png)
 

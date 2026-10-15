@@ -28,6 +28,8 @@ claude mcp add sysketch -- npx -y sysketch-mcp
 
 Diagrams are saved in the folder your assistant runs the server in (your project, in Claude Code and Cursor). Claude Desktop starts servers outside any project, so there they go to a `sysketch` folder in your home folder. To choose a folder, add `"--dir", "/path/to/folder"` to `args`, or set the `SYSKETCH_DIR` environment variable.
 
+**ChatGPT, Claude on the web, Perplexity and other AI chats:** you don't need this package. Add `https://sysketch.vercel.app/mcp` as a custom connector instead ([details](https://github.com/Tonys-Coding/sysketch#in-your-ai-chat-nothing-to-install)).
+
 ## Use
 
 Ask your assistant, for example:
