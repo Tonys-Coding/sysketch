@@ -70,6 +70,30 @@ edges:
     expect(x('chat')).toBeLessThan(x('notif'));
   });
 
+  it('starts the flow at people and apps even when the spec lists them last', async () => {
+    // Models often begin with the gateway and add the clients at the end; the push back to
+    // the apps must not pull them to the far right.
+    const x = await xOf(`nodes:
+  rider: mobile | Rider App
+  driver: mobile | Driver App
+  gw: api-gateway
+  trip: service
+  notif: notification
+  push: cloud | Push Provider
+groups:
+  Clients: [rider, driver]
+edges:
+  - gw > trip
+  - trip > notif > push
+  - push > rider
+  - push > driver
+  - rider > gw | Request ride
+  - driver > gw | Location`);
+    expect(x('rider')).toBeLessThan(x('gw'));
+    expect(x('driver')).toBeLessThan(x('gw'));
+    expect(x('gw')).toBeLessThan(x('push'));
+  });
+
   it('marks only edges that close a cycle, dashed ones first', () => {
     const model = buildModel(`edges:
   - api > db
@@ -133,6 +157,48 @@ describe('long flows fold into rows', () => {
     const l = lay.nodes.get('lb')!;
     expect(l.x).toBeGreaterThan(c.x);
     expect(Math.abs(l.y - c.y)).toBeLessThan(40);
+  });
+
+  it('drops connectors straight between rows when nothing is in the way', async () => {
+    const model = buildModel(`title: URL Shortener
+legend: true
+nodes:
+  client: user | Client
+  lb: load-balancer | Load Balancer
+  write: service | Write Service
+  read: service | Read Service
+  idgen: service | ID Generator
+  cache: cache | Cache
+  db: database | URL Database
+groups:
+  Application Tier: [write, read, idgen]
+  Data Tier: [cache, db]
+edges:
+  - client > lb | create or open short link
+  - lb > write | POST /shorten
+  - write > idgen | get unique code
+  - write > db | save code + long URL
+  - lb > read | GET /abc123
+  - read > cache | lookup code
+  - cache ..> db | cache miss, fetch
+  - read > client | 301/302 redirect to long URL`);
+    const lay = await layout(model, defaultTheme);
+    const edge = (from: string, to: string) =>
+      lay.edges.get(model.edges.find((e) => e.from === from && e.to === to)!.id)!.points;
+    // the load balancer feeds the row below through its bottom edge
+    const lb = lay.nodes.get('lb')!;
+    expect(edge('lb', 'write')[0]!.y).toBeCloseTo(lb.y + lb.h, 1);
+    expect(edge('lb', 'read')[0]!.y).toBeCloseTo(lb.y + lb.h, 1);
+    // the reply enters Client from below instead of looping around the margins
+    const client = lay.nodes.get('client')!;
+    const reply = edge('read', 'client');
+    expect(reply.at(-1)!.y).toBeCloseTo(client.y + client.h, 1);
+    expect(reply.at(-2)!.x).toBe(reply.at(-1)!.x);
+    for (const e of lay.edges.values()) {
+      if (!e.pill) continue;
+      expect(e.pill.x).toBeGreaterThanOrEqual(0);
+      expect(e.pill.x + e.pill.w).toBeLessThanOrEqual(lay.width);
+    }
   });
 
   it('respects an explicit top-down direction', async () => {

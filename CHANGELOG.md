@@ -1,5 +1,12 @@
 # Changelog
 
+## sysketch 0.4.3
+
+Layout fixes from testing the hosted server in ChatGPT, Claude and Perplexity.
+
+- People and apps (`user`, `mobile`, `browser`, `desktop` icons) start the flow even when the spec lists them last. Arrows into them from elsewhere (notifications, redirects) are drawn as replies. Before, a ride-sharing diagram written gateway-first put the rider and driver apps on the far right, with "Request ride" looping around the whole diagram.
+- Arrows between folded rows drop straight down from the bottom of a node to the top of the next one when nothing is in the way, instead of always detouring through both side margins. They step around group titles, and labels stay on the canvas and clear of the margin lines.
+
 ## sysketch 0.4.2, sysketch-mcp 0.4.3
 
 **sysketch 0.4.2**

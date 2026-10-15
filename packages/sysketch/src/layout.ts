@@ -13,6 +13,10 @@ export interface Box extends Pt {
   w: number;
   h: number;
 }
+export interface GroupBox extends Box {
+  /** width of the group's title from the group's left edge (folded connectors avoid it) */
+  labelW?: number;
+}
 export interface NodeBox extends Box {
   lines: string[];
   /** wrapped subtitle lines (empty when the node has no subtitle) */
@@ -28,7 +32,7 @@ export interface Layout {
   height: number;
   titleY: number;
   nodes: Map<string, NodeBox>;
-  groups: Map<string, Box>;
+  groups: Map<string, GroupBox>;
   edges: Map<string, EdgeRoute>;
 }
 
@@ -139,7 +143,7 @@ const FOLD_MIN_WIDTH = 1800;
 /** The shape that reads best on a page or slide. */
 const TARGET_ASPECT = 1.6;
 
-async function layoutParts(model: Model, theme: Theme): Promise<Layout> {
+export async function layoutParts(model: Model, theme: Theme): Promise<Layout> {
   const topPad = model.title ? 92 : 36;
   const parts = components(model);
   if (parts.length < 2) return layoutOnce(model, theme, topPad);
@@ -164,6 +168,9 @@ async function layoutParts(model: Model, theme: Theme): Promise<Layout> {
   return merged;
 }
 
+/** Icons of nodes where requests come from: users and the apps they use. */
+const ENTRY_ICONS = new Set(['user', 'mobile', 'browser', 'desktop']);
+
 /**
  * Edges that point back against the flow, i.e. that close a cycle. Solid edges are walked
  * first in spec order (depth-first) and the ones that close a cycle are marked; then each
@@ -175,7 +182,17 @@ export function feedbackEdges(model: Model, rank: Map<string, number>): Set<stri
   const back = new Set<string>();
   const out = new Map<string, string[]>();
   const add = (from: string, to: string) => out.set(from, [...(out.get(from) ?? []), to]);
-  const solid = model.edges.filter((e) => !e.dashed);
+  // People and apps start the flow even when the spec lists them late (models often begin
+  // with the gateway and add "rider > gateway" at the end): an arrow into one of them from
+  // elsewhere is a reply or notification, as long as it also sends requests.
+  const senders = new Set(model.edges.map((e) => e.from));
+  const entry = new Set(
+    model.nodes
+      .filter((n) => !n.logo && ENTRY_ICONS.has(n.icon.name) && senders.has(n.id))
+      .map((n) => n.id),
+  );
+  for (const e of model.edges) if (entry.has(e.to) && !entry.has(e.from)) back.add(e.id);
+  const solid = model.edges.filter((e) => !e.dashed && !back.has(e.id));
   const next = new Map<string, typeof solid>();
   for (const e of solid) next.set(e.from, [...(next.get(e.from) ?? []), e]);
 
@@ -189,7 +206,8 @@ export function feedbackEdges(model: Model, rank: Map<string, number>): Set<stri
     }
     state.set(id, 'done');
   };
-  for (const id of [...rank.keys()].sort((a, b) => rank.get(a)! - rank.get(b)!)) {
+  const order = (id: string) => (entry.has(id) ? -1e6 : 0) + rank.get(id)!;
+  for (const id of [...rank.keys()].sort((a, b) => order(a) - order(b))) {
     if (!state.has(id)) visit(id);
   }
   for (const e of solid) if (!back.has(e.id)) add(e.from, e.to);
@@ -208,7 +226,7 @@ export function feedbackEdges(model: Model, rank: Map<string, number>): Set<stri
     }
     return false;
   };
-  for (const e of model.edges.filter((x) => x.dashed)) {
+  for (const e of model.edges.filter((x) => x.dashed && !back.has(x.id))) {
     if (reaches(e.to, e.from)) back.add(e.id);
     else add(e.from, e.to);
   }
@@ -329,14 +347,20 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
   };
   walk(out);
 
-  const groups = new Map<string, Box>();
+  const groups = new Map<string, GroupBox>();
   for (const g of out.children ?? []) {
     if (g.id.startsWith('g:')) {
+      const label = model.groups.find((m) => `g:${m.id}` === g.id)?.label ?? '';
+      const upper = theme.group.uppercase;
+      const size = upper ? 13 : 16;
       groups.set(g.id.slice(2), {
         x: r2(g.x ?? 0),
         y: r2(g.y ?? 0),
         w: r2(g.width ?? 0),
         h: r2(g.height ?? 0),
+        labelW: Math.ceil(
+          20 + measure(upper ? label.toUpperCase() : label, size, theme.fonts.group),
+        ),
       });
     }
   }

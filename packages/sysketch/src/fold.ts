@@ -1,12 +1,14 @@
-import type { Box, EdgeRoute, Layout, NodeBox, Pt } from './layout.js';
+import type { Box, EdgeRoute, GroupBox, Layout, NodeBox, Pt } from './layout.js';
 
 /**
  * Fold a long left-to-right layout into rows that still read left to right.
  *
  * The diagram is cut only in the empty channels between columns (never through a node or
  * group), each part is moved below the previous one, and every edge that crosses a cut is
- * joined by a connector that runs through the margins and the gap between rows, so it
- * never crosses a node. Routes inside a row are ELK's own.
+ * joined by a connector through the gap between rows. Where nothing in the row is in the
+ * way, the connector drops straight from the bottom of the node above to the top of the node
+ * below; otherwise it runs through the side margins, so it never crosses a node. Routes
+ * inside a row are ELK's own.
  */
 
 const LANE_X = 14; // spacing of vertical connector lanes in the side margins
@@ -112,7 +114,6 @@ export function foldRows(lay: Layout, k: number): Layout | undefined {
         crossings(lay.edges.get(a)!.points, c)[0]!.y - crossings(lay.edges.get(b)!.points, c)[0]!.y,
     ),
   );
-  const lanes = Math.max(0, ...gapEdges.map((g) => g.length));
 
   // Content extents of each part (nodes, groups, pills of edges that stay inside it).
   const parts = Array.from({ length: k }, () => ({
@@ -151,8 +152,15 @@ export function foldRows(lay: Layout, k: number): Layout | undefined {
   const widths = boxWidths.map((w) => w.b - w.a);
   if (Math.min(...widths) < MIN_BALANCE * Math.max(...widths)) return undefined;
 
+  // Straight connectors for edges that cross one cut, per side when that side is clear.
+  const straight = straightPorts(lay, cuts, partOf, parts, gapEdges);
+  const marginUsers = (side: 'up' | 'down') =>
+    gapEdges.map((g) => g.filter((id) => straight.get(id)?.[side] === undefined));
+  const rightUsers = marginUsers('up');
+  const leftUsers = marginUsers('down');
+
   // Placement: rows left-aligned after a margin for the left connector lanes.
-  const left = lanes * LANE_X + 20;
+  const left = Math.max(0, ...leftUsers.map((g) => g.length)) * LANE_X + 20;
   const dx = parts.map((p) => left + parts[0]!.minX - p.minX);
   const dy: number[] = [];
   const laneBase: number[] = [];
@@ -170,12 +178,89 @@ export function foldRows(lay: Layout, k: number): Layout | undefined {
 
   const nodes = new Map<string, NodeBox>();
   for (const [id, b] of lay.nodes) nodes.set(id, { ...b, ...move(partOf(center(b)), b) });
-  const groups = new Map<string, Box>();
-  for (const [id, b] of lay.groups) groups.set(id, move(partOf(center(b)), b));
+  const groups = new Map<string, GroupBox>();
+  for (const [id, b] of lay.groups) groups.set(id, { ...b, ...move(partOf(center(b)), b) });
 
   const rightEdge = (p: number) => parts[p]!.maxX + dx[p]!;
   const edges = new Map<string, EdgeRoute>();
+
+  /** Route of an edge with at least one straight side; each side is written node -> lane. */
+  const straightRoute = (id: string, e: EdgeRoute, plan: Straight): EdgeRoute => {
+    const c = plan.cut;
+    const [up, lo] = [c, c + 1];
+    const ly = laneY(c, id);
+    const h = crossings(e.points, cuts[c]!)[0]!;
+    const at = (p: number) => (q: Pt) => ({ x: q.x + dx[p]!, y: q.y + dy[p]! });
+    const a = at(up)({ x: cuts[c]!, y: h.y });
+    const b = at(lo)({ x: cuts[c]!, y: h.y });
+    const head = e.points.slice(0, h.i + 1);
+    const tail = e.points.slice(h.i + 1).reverse();
+    let upperSide: Pt[];
+    if (plan.up !== undefined) {
+      const box = move(up, plan.upper);
+      const x = plan.up + dx[up]!;
+      upperSide = [
+        { x, y: box.y + box.h },
+        { x, y: ly },
+      ];
+    } else {
+      const xr = xRight(c, id, a.x);
+      upperSide = [
+        ...(plan.forward ? head : tail).map(at(up)),
+        a,
+        { x: xr, y: a.y },
+        { x: xr, y: ly },
+      ];
+    }
+    let lowerSide: Pt[];
+    if (plan.down !== undefined) {
+      const box = move(lo, plan.lower);
+      const x = plan.down + dx[lo]!;
+      lowerSide = [
+        { x, y: box.y },
+        { x, y: ly },
+      ];
+    } else {
+      const xl = xLeft(c, id);
+      lowerSide = [...(plan.forward ? tail : head).map(at(lo)), ...(b.x > xl ? [b] : [])];
+      lowerSide.push({ x: xl, y: b.y }, { x: xl, y: ly });
+    }
+    // x where each side meets the lane; the pill sits midway between them
+    const ux = upperSide[upperSide.length - 1]!.x;
+    const lx = lowerSide[lowerSide.length - 1]!.x;
+    const route = plan.forward
+      ? [...upperSide, ...[...lowerSide].reverse()]
+      : [...lowerSide, ...[...upperSide].reverse()];
+    const pts: Pt[] = [];
+    for (const q of route) {
+      const last = pts[pts.length - 1];
+      if (!last || last.x !== q.x || last.y !== q.y) pts.push({ x: r2(q.x), y: r2(q.y) });
+    }
+    const out: EdgeRoute = { points: pts };
+    if (e.pill) {
+      // Midway along the lane, but right of the left-margin lines (which run down past this
+      // lane to the row below) and never off the canvas.
+      const margin = leftUsers[c]!.length ? left + parts[0]!.minX - 2 : PAD / 2;
+      const x = Math.max(margin, (ux + lx) / 2 - e.pill.w / 2);
+      out.pill = { ...e.pill, x: r2(x), y: r2(ly - e.pill.h / 2) };
+    }
+    return out;
+  };
+  const laneY = (c: number, id: string) => {
+    const laneH = gapPills[c] ? LANE_PILL : LANE_Y;
+    return laneBase[c]! + gapEdges[c]!.indexOf(id) * laneH + laneH / 2;
+  };
+  const xRight = (c: number, id: string, ax: number) =>
+    Math.max(ax, rightEdge(c) + 10) + rightUsers[c]!.indexOf(id) * LANE_X;
+  const xLeft = (c: number, id: string) =>
+    left + parts[0]!.minX - 12 - leftUsers[c]!.indexOf(id) * LANE_X;
+
   for (const [id, e] of lay.edges) {
+    const plan = straight.get(id);
+    if (plan && (plan.up !== undefined || plan.down !== undefined)) {
+      edges.set(id, straightRoute(id, e, plan));
+      continue;
+    }
     const pts: Pt[] = [];
     let part = partOf(e.points[0]!.x);
     let pill: Box | undefined;
@@ -196,13 +281,11 @@ export function foldRows(lay: Layout, k: number): Layout | undefined {
         const yAt = p.y + h.x * (q.y - p.y);
         const upper = h.j - 1; // row above the gap
         const lower = h.j;
-        const lane = gapEdges[h.j - 1]!.indexOf(id);
-        const laneH = gapPills[h.j - 1] ? LANE_PILL : LANE_Y;
-        const ly = laneBase[h.j - 1]! + lane * laneH + laneH / 2;
+        const ly = laneY(upper, id);
         const a = { x: h.c + dx[upper]!, y: yAt + dy[upper]! };
         const b = { x: h.c + dx[lower]!, y: yAt + dy[lower]! };
-        const xr = Math.max(a.x, rightEdge(upper) + 10) + lane * LANE_X;
-        const xl = left + parts[0]!.minX - 12 - lane * LANE_X;
+        const xr = xRight(upper, id, a.x);
+        const xl = xLeft(upper, id);
         // Enter the lower row from the left margin. The crossing point is dropped when it
         // lies further left (cut in a wide channel), so the connector stays on the canvas.
         const path = [a, { x: xr, y: a.y }, { x: xr, y: ly }, { x: xl, y: ly }, { x: xl, y: b.y }];
@@ -224,8 +307,122 @@ export function foldRows(lay: Layout, k: number): Layout | undefined {
     Math.max(
       ...parts.map((_, p) => rightEdge(p)),
       ...[...edges.values()].flatMap((e) => e.points.map((q) => q.x)),
+      ...[...edges.values()].flatMap((e) => (e.pill ? [e.pill.x + e.pill.w - PAD / 2] : [])),
     ) + PAD,
   );
   const height = Math.ceil(y + PAD);
   return { ...lay, width, height, nodes, groups, edges };
+}
+
+interface Straight {
+  /** index of the cut the edge crosses (upper row = cut, lower row = cut + 1) */
+  cut: number;
+  /** the edge travels from the upper row to the lower one */
+  forward: boolean;
+  upper: NodeBox;
+  lower: NodeBox;
+  /** x of the port on the upper node's bottom, when the way down is clear */
+  up?: number;
+  /** x of the port on the lower node's top, when the way up is clear */
+  down?: number;
+}
+
+/**
+ * For each edge that crosses exactly one cut, find ports on the bottom of its node in the
+ * upper row and the top of its node in the lower row whose vertical path to the gap between
+ * rows meets no other node, group, group title, pill or parallel edge.
+ */
+function straightPorts(
+  lay: Layout,
+  cuts: number[],
+  partOf: (x: number) => number,
+  parts: { minX: number; top: number; bottom: number }[],
+  gapEdges: string[][],
+): Map<string, Straight> {
+  const center = (b: Box) => b.x + b.w / 2;
+  const boxes = [...lay.nodes.values()];
+  const nodeAt = (p: Pt) =>
+    boxes.find(
+      (b) => p.x >= b.x - 2 && p.x <= b.x + b.w + 2 && p.y >= b.y - 2 && p.y <= b.y + b.h + 2,
+    );
+  const plans = new Map<string, Straight>();
+  for (const [id, e] of lay.edges) {
+    const hits = cuts.flatMap((c, cut) => crossings(e.points, c).map((h) => ({ ...h, cut })));
+    if (hits.length !== 1) continue;
+    const h = hits[0]!;
+    const from = nodeAt(e.points[0]!);
+    const to = nodeAt(e.points[e.points.length - 1]!);
+    if (!from || !to) continue;
+    const [upper, lower] = h.right ? [from, to] : [to, from];
+    if (partOf(center(upper)) !== h.cut || partOf(center(lower)) !== h.cut + 1) continue;
+    plans.set(id, { cut: h.cut, forward: h.right, upper, lower });
+  }
+
+  const rerouted = new Set(gapEdges.flat());
+  const clear = (part: number, x: number, y1: number, y2: number, own: NodeBox) => {
+    const blocks = (b: Box, m: number) =>
+      x > b.x - m && x < b.x + b.w + m && b.y < y2 && b.y + b.h > y1;
+    if (boxes.some((b) => b !== own && partOf(center(b)) === part && blocks(b, 10))) return false;
+    for (const g of lay.groups.values()) {
+      if (partOf(center(g)) !== part) continue;
+      const inside =
+        own.x >= g.x && own.x + own.w <= g.x + g.w && own.y >= g.y && own.y + own.h <= g.y + g.h;
+      const title = { x: g.x, y: g.y, w: (g.labelW ?? g.w) + 14, h: 44 };
+      if (inside ? blocks(title, 0) : blocks(g, 6)) return false;
+    }
+    for (const [id, e] of lay.edges) {
+      if (rerouted.has(id)) continue;
+      if (e.pill && blocks(e.pill, 6)) return false;
+      for (let i = 0; i + 1 < e.points.length; i++) {
+        const [p, q] = [e.points[i]!, e.points[i + 1]!];
+        const vertical = p.x === q.x && Math.abs(p.x - x) < 8;
+        if (vertical && Math.min(p.y, q.y) < y2 && Math.max(p.y, q.y) > y1) return false;
+      }
+    }
+    return true;
+  };
+
+  // Ports on one side of a node are spread evenly, ordered by where the other end sits.
+  const sides = new Map<string, { box: NodeBox; side: 'up' | 'down'; ids: string[] }>();
+  for (const [id, plan] of plans) {
+    for (const side of ['up', 'down'] as const) {
+      const box = side === 'up' ? plan.upper : plan.lower;
+      const key = `${side}:${box.x}:${box.y}`;
+      if (!sides.has(key)) sides.set(key, { box, side, ids: [] });
+      sides.get(key)!.ids.push(id);
+    }
+  }
+  const rowX = (b: Box) => center(b) - parts[partOf(center(b))]!.minX;
+  for (const { box, side, ids } of sides.values()) {
+    const other = (id: string) => (side === 'up' ? plans.get(id)!.lower : plans.get(id)!.upper);
+    const part = partOf(center(box));
+    const lane = (id: string) => gapEdges[plans.get(id)!.cut]!.indexOf(id);
+    ids.sort((a, b) => {
+      const d = rowX(other(a)) - rowX(other(b));
+      if (Math.abs(d) > 40) return d;
+      // Same column: the edge on the nearer lane takes the port on the side it turns
+      // toward, so the other edge's vertical doesn't cross its lane.
+      const left = rowX(other(a)) < rowX(box);
+      return (lane(a) - lane(b)) * (left ? 1 : -1);
+    });
+    const taken: number[] = [];
+    ids.forEach((id, i) => {
+      const [y1, y2] =
+        side === 'up' ? [box.y + box.h, parts[part]!.bottom] : [parts[part]!.top, box.y];
+      // the evenly spread port, else the nearest clear spot on that side (e.g. beside a
+      // group title)
+      const want = box.x + (box.w * (i + 1)) / (ids.length + 1);
+      const spots: number[] = [];
+      for (let x = box.x + 18; x <= box.x + box.w - 18; x += 6) spots.push(x);
+      spots.sort((a, b) => Math.abs(a - want) - Math.abs(b - want));
+      const x = [want, ...spots].find(
+        (x) => taken.every((t) => Math.abs(t - x) >= 14) && clear(part, x, y1, y2, box),
+      );
+      if (x !== undefined) {
+        taken.push(x);
+        plans.get(id)![side] = r2(x);
+      }
+    });
+  }
+  return plans;
 }
