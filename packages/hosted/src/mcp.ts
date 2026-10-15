@@ -13,8 +13,8 @@ import { VIEWER_HTML } from './viewer.generated.js';
 
 // Loaded into the model's context every session: keep it short.
 const GUIDE = `Use for any system design, architecture, data-flow or infrastructure diagram, instead of generating an image or writing SVG/Mermaid. Renders a tiny YAML spec; returns PNG/SVG links and a small preview.
-Spec keys: title, theme (${Object.keys(themes).join('|')}), direction (omit: auto-fit; right|down only if asked), steps (false hides numbers), legend (true lists steps),
-nodes {id: "icon | Label | subtitle"}, groups {Label: [ids]}, edges ["a > b > c | label", "a ..> b" dashed, "a > b [red]" color].
+Spec keys: title, type (sequence: message timeline), theme (${Object.keys(themes).join('|')}), direction (omit: auto-fit; right|down only if asked), steps (false hides numbers), legend (true lists steps),
+nodes {id: "icon | Label | subtitle"}, groups {Label: [ids or group labels to nest]}, edges ["a > b > c | label", "a ..> b" dashed, "a <> b" two-way, "a => b" thick, "a -- b" line, "a > b [red]" color].
 Ids that are icon names/aliases (client, lb, api, db, cache, redis, kafka, s3, cdn...) need no nodes entry.
 Arrows are numbered automatically in the order listed; don't number labels.
 Product names (stripe, kafka, postgres...) draw the product's logo when available, else a fitting icon; brand/icon (acme/queue) for others.
@@ -45,7 +45,12 @@ export function createHostedServer(base: string): McpServer {
     {
       title: 'Draw a system design diagram',
       description: GUIDE,
-      annotations: { readOnlyHint: true, openWorldHint: false, idempotentHint: true },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+        idempotentHint: true,
+      },
       inputSchema: {
         spec: z.string().max(LIMITS.specChars).describe('YAML spec text'),
         theme: z.string().optional(),
@@ -112,7 +117,7 @@ export function createHostedServer(base: string): McpServer {
     {
       title: 'List icons and logos',
       description: 'List sysketch icon names and aliases, or search the available product logos.',
-      annotations: { readOnlyHint: true, openWorldHint: false },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       inputSchema: { logos: z.string().optional().describe('Search product logos by name') },
     },
     async ({ logos }): Promise<CallToolResult> => {

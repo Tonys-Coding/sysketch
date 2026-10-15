@@ -26,6 +26,10 @@ createServer(async (req, res) => {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(landing);
       return;
     }
+    if (req.method === 'GET' && /^\/(privacy|terms)\.html$/.test(path)) {
+      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(file(path.slice(1)));
+      return;
+    }
     if (req.method === 'GET' && /^\/brand\/[\w-]+\.svg$/.test(path)) {
       res.writeHead(200, { 'content-type': 'image/svg+xml' }).end(file(path.slice(1)));
       return;

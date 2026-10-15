@@ -16,6 +16,14 @@
     {
       "source": "/d/:file",
       "destination": "/api?route=d&file=:file"
+    },
+    {
+      "source": "/.well-known/openai-apps-challenge",
+      "destination": "/api?route=.well-known/openai-apps-challenge"
+    },
+    {
+      "source": "/.well-known/glama.json",
+      "destination": "/api?route=.well-known/glama.json"
     }
   ],
   "functions": {

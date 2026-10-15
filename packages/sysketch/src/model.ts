@@ -21,6 +21,8 @@ const edgeValue = z.union([
       label: z.string().optional(),
       step: z.number().int().positive().optional(),
       dashed: z.boolean().optional(),
+      thick: z.boolean().optional(),
+      ends: z.enum(['end', 'both', 'none']).optional(),
       color: z.string().optional(),
       note: z.string().optional(),
     })
@@ -32,6 +34,7 @@ const edgeValue = z.union([
 export const specSchema = z
   .object({
     title: z.string().optional(),
+    type: z.enum(['architecture', 'sequence']).optional(),
     theme: z.string().optional(),
     direction: z.enum(['right', 'down']).optional(),
     steps: z.boolean().optional(),
@@ -57,7 +60,12 @@ export interface NodeModel {
 export interface GroupModel {
   id: string;
   label: string;
+  /** nodes directly inside this group */
   nodes: string[];
+  /** groups directly inside this group (ids) */
+  groups: string[];
+  /** id of the group this one sits in */
+  parent?: string;
 }
 export interface EdgeModel {
   id: string;
@@ -67,6 +75,10 @@ export interface EdgeModel {
   step?: number;
   /** dashed line, for responses and async calls */
   dashed?: boolean;
+  /** heavier line, for the main or "hot" path */
+  thick?: boolean;
+  /** arrowheads: at the target (default), at both ends, or none (a plain line) */
+  ends?: 'both' | 'none';
   /** palette name from EDGE_COLORS */
   color?: string;
   /** legend text for this step (defaults to "from → to · label") */
@@ -74,6 +86,8 @@ export interface EdgeModel {
 }
 export interface Model {
   title?: string;
+  /** `sequence`: participants across the top, messages top to bottom */
+  type?: 'sequence';
   theme?: string;
   direction: 'right' | 'down';
   /** the spec left direction out: layout may pick whichever reads better */
@@ -170,6 +184,8 @@ interface RawEdge {
   label?: string | undefined;
   step?: number | undefined;
   dashed?: boolean | undefined;
+  thick?: boolean | undefined;
+  ends?: 'end' | 'both' | 'none' | undefined;
   color?: string | undefined;
   note?: string | undefined;
 }
@@ -184,37 +200,57 @@ function edgeColor(name: string, where: string): string {
   return c;
 }
 
+/** Arrow operators: `>` arrow, `..>` dashed, `<>` two-way, `<..>` two-way dashed, `=>` thick, `--` line. */
+const OPS: Record<string, Pick<RawEdge, 'dashed' | 'thick' | 'ends'>> = {
+  '>': {},
+  '..>': { dashed: true },
+  '<>': { ends: 'both' },
+  '<..>': { ends: 'both', dashed: true },
+  '=>': { thick: true },
+  '--': { ends: 'none' },
+};
+
 /**
  * "a > b > c | label [red, dashed]" -> edges a>b, b>c. The label goes on the last hop;
- * `..>` makes a hop dashed; a trailing [...] applies a color and/or `dashed` to every hop.
+ * the operator sets each hop's style (see OPS); a trailing [...] applies a color, `dashed`
+ * and/or `thick` to every hop.
  */
 function expandEdge(src: string): RawEdge[] {
   let rest = src;
   let color: string | undefined;
   let dashedAll = false;
+  let thickAll = false;
   const attrs = /\[([^\]]*)\]\s*$/.exec(rest);
   if (attrs) {
     rest = rest.slice(0, attrs.index);
     for (const a of attrs[1]!.split(/[\s,]+/).filter(Boolean)) {
-      if (a.toLowerCase() === 'dashed') dashedAll = true;
+      const k = a.toLowerCase();
+      if (k === 'dashed') dashedAll = true;
+      else if (k === 'thick' || k === 'bold') thickAll = true;
       else color = edgeColor(a, `Edge "${src}"`);
     }
   }
   const sep = rest.indexOf('|');
-  const chain = (sep === -1 ? rest : rest.slice(0, sep)).replace(/(^|[^.-])->/g, '$1>');
+  // Common spellings: "->" is ">", "<->" is "<>", "==>" is "=>".
+  const chain = (sep === -1 ? rest : rest.slice(0, sep))
+    .replace(/<-+>/g, '<>')
+    .replace(/<\.\.+>/g, '<..>')
+    .replace(/=+>/g, '=>')
+    .replace(/(^|[^.<-])-+>/g, '$1>');
   const label = sep === -1 ? undefined : rest.slice(sep + 1).trim() || undefined;
-  const parts = chain.split(/(\.\.>|>)/).map((s) => s.trim());
+  const parts = chain.split(/(<\.\.>|\.\.>|<>|=>|\s--\s|>)/).map((s) => s.trim());
   const ids = parts.filter((_, i) => i % 2 === 0);
   const ops = parts.filter((_, i) => i % 2 === 1);
   if (ids.length < 2 || ids.some((s) => !s)) {
     throw new SysketchError(
-      `Bad edge "${src}". Use "from > to", "a > b > c", "a ..> b" (dashed) or "a > b | label [red]".`,
+      `Bad edge "${src}". Use "from > to", "a > b > c", "a ..> b" (dashed), "a <> b" (two-way), "a => b" (thick), "a -- b" (line) or "a > b | label [red]".`,
     );
   }
   return ids.slice(1).map((to, i) => {
-    const e: RawEdge = { from: ids[i]!, to };
+    const e: RawEdge = { from: ids[i]!, to, ...OPS[ops[i]!] };
     if (label && i === ids.length - 2) e.label = label;
-    if (dashedAll || ops[i] === '..>') e.dashed = true;
+    if (dashedAll) e.dashed = true;
+    if (thickAll) e.thick = true;
     if (color) e.color = color;
     return e;
   });
@@ -313,7 +349,7 @@ export function buildModel(input: string | object, opts: BuildOptions = {}): Mod
       .map((i) => `${i.path.join('.') || 'spec'}: ${i.message}`)
       .join('; ');
     throw new SysketchError(
-      `Invalid spec. ${msg}. Expected keys: title, theme, direction, steps, legend, logos, nodes, groups, edges.`,
+      `Invalid spec. ${msg}. Expected keys: title, type, theme, direction, steps, legend, logos, nodes, groups, edges.`,
     );
   }
   const spec = parsed.data;
@@ -366,27 +402,53 @@ export function buildModel(input: string | object, opts: BuildOptions = {}): Mod
     if (label) edge.label = label;
     if (spec.steps !== false) edge.step = e.step ?? i + 1;
     if (e.dashed) edge.dashed = true;
+    if (e.thick) edge.thick = true;
+    if (e.ends && e.ends !== 'end') edge.ends = e.ends;
     if (e.color) edge.color = e.color;
     if (e.note) edge.note = e.note;
     return edge;
   });
 
+  // A group may list other groups by name (nesting): AWS: [VPC], VPC: [Public, Private].
+  const specGroups = Object.entries(spec.groups ?? {});
+  const groupId = new Map(specGroups.map(([label], gi) => [label, `g${gi}`]));
   const seen = new Map<string, string>();
-  const groups: GroupModel[] = Object.entries(spec.groups ?? {}).map(([label, members], gi) => {
+  const groups: GroupModel[] = specGroups.map(([label, members]) => {
+    const g: GroupModel = { id: groupId.get(label)!, label, nodes: [], groups: [] };
     for (const m of members) {
-      resolve(m, `groups.${label}`);
       const prev = seen.get(m);
-      if (prev)
+      if (prev) {
+        const what = groupId.has(m) ? 'Group' : 'Node';
         throw new SysketchError(
-          `Node "${m}" is in two groups ("${prev}" and "${label}"). Use one.`,
+          `${what} "${m}" is in two groups ("${prev}" and "${label}"). Use one.`,
         );
+      }
       seen.set(m, label);
+      if (groupId.has(m)) {
+        if (m === label) throw new SysketchError(`Group "${label}" can't contain itself.`);
+        g.groups.push(groupId.get(m)!);
+      } else {
+        resolve(m, `groups.${label}`);
+        g.nodes.push(m);
+      }
     }
-    return { id: `g${gi}`, label, nodes: members };
+    return g;
   });
+  const byId = new Map(groups.map((g) => [g.id, g]));
+  for (const g of groups) for (const c of g.groups) byId.get(c)!.parent = g.id;
+  for (const g of groups) {
+    // walking up must end at a top-level group, or the nesting loops
+    const path = new Set<string>();
+    for (let at: GroupModel | undefined = g; at; at = at.parent ? byId.get(at.parent) : undefined) {
+      if (path.has(at.id))
+        throw new SysketchError(`Groups "${g.label}" and "${at.label}" contain each other.`);
+      path.add(at.id);
+    }
+  }
 
   return {
     ...(spec.title ? { title: spec.title } : {}),
+    ...(spec.type === 'sequence' ? { type: 'sequence' as const } : {}),
     ...(spec.theme ? { theme: spec.theme } : {}),
     direction: spec.direction ?? 'right',
     ...(spec.direction ? {} : { autoDirection: true }),
@@ -396,4 +458,15 @@ export function buildModel(input: string | object, opts: BuildOptions = {}): Mod
     groups,
     edges,
   };
+}
+
+/** Every node inside a group, including nodes of the groups nested in it. */
+export function groupNodes(model: Pick<Model, 'groups'>, g: GroupModel): string[] {
+  return [
+    ...g.nodes,
+    ...g.groups.flatMap((id) => {
+      const child = model.groups.find((c) => c.id === id);
+      return child ? groupNodes(model, child) : [];
+    }),
+  ];
 }

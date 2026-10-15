@@ -16,7 +16,8 @@ The sysketch MCP server as a web service, for AI apps that can't run programs on
   - 30 s per request.
 - **Product logos from Simple Icons.** The build installs the latest Simple Icons release (`npm run logos`, checked the same way as `sysketch logos install`), so a logo a brand asked Simple Icons to remove disappears on the next deploy. Logos are drawn unaltered and only inside diagrams, under nominative fair use (naming the actual product in an architecture diagram). Specs can't name logo folders (`logos: ./folder`), and `logos: false` turns logos off. The AWS, Azure and Google Cloud packs and company logos stay features of the local `sysketch-mcp`.
 - **Removing a logo:** add its Simple Icons slug to [`blocked-logos.txt`](blocked-logos.txt) and push; the next deploy leaves it out.
-- **Landing page:** `/` explains how to connect and shows the server URL.
+- **Landing page:** `/` explains how to connect and shows the server URL. [`/privacy.html`](public/privacy.html) and [`/terms.html`](public/terms.html) are the legal pages app directories ask for.
+- **Directory verification:** set `OPENAI_APPS_CHALLENGE` (ChatGPT) or `GLAMA_JSON` (Glama) in Vercel's environment variables and redeploy; the server returns them at `/.well-known/openai-apps-challenge` and `/.well-known/glama.json`.
 
 A render takes about 0.1 to 0.4 s of CPU, so Vercel's free Hobby plan (4 CPU-hours a month) covers roughly 40,000 renders. Repeat views of a link come from the CDN.
 

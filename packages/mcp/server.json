@@ -8,14 +8,22 @@
     "source": "github",
     "subfolder": "packages/mcp"
   },
-  "websiteUrl": "https://github.com/Tonys-Coding/sysketch",
-  "version": "0.4.3",
+  "websiteUrl": "https://sysketch.vercel.app",
+  "version": "0.5.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "sysketch-mcp",
-      "version": "0.4.3",
-      "transport": { "type": "stdio" }
+      "version": "0.5.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://sysketch.vercel.app/mcp"
     }
   ]
 }

@@ -1,8 +1,9 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
 import type { ElkNode, ElkExtendedEdge, LayoutOptions } from 'elkjs/lib/elk-api.js';
-import type { Model } from './model.js';
+import { groupNodes, type GroupModel, type Model } from './model.js';
 import type { Theme } from './themes.js';
 import { foldRows } from './fold.js';
+import { layoutSequence } from './sequence.js';
 import { measure, wrap, type FontRef } from './text.js';
 
 export interface Pt {
@@ -34,6 +35,8 @@ export interface Layout {
   nodes: Map<string, NodeBox>;
   groups: Map<string, GroupBox>;
   edges: Map<string, EdgeRoute>;
+  /** sequence diagrams: dashed lines down from each participant */
+  lifelines?: { x: number; y1: number; y2: number }[];
 }
 
 export const NODE = {
@@ -60,6 +63,20 @@ export function pillSize(
   return { w: Math.ceil(tw + 22 + (step === undefined ? 0 : PILL.badge - 4)), h: PILL.h };
 }
 
+/** Card size and wrapped text for a node, at the origin. */
+export function nodeBox(n: Model['nodes'][number], theme: Theme): NodeBox {
+  const lines = wrap(n.label, NODE.labelSize, theme.fonts.label, NODE.maxLabelW);
+  const subLines = n.sub ? wrap(n.sub, SUB.size, theme.fonts.edge, SUB.maxW) : [];
+  const textW = Math.max(
+    ...lines.map((l) => measure(l, NODE.labelSize, theme.fonts.label)),
+    ...subLines.map((l) => measure(l, SUB.size, theme.fonts.edge)),
+  );
+  const w = Math.max(NODE.minW, Math.ceil(textW + 36));
+  const h =
+    NODE.h + (lines.length - 1) * 19 + (subLines.length ? subLines.length * SUB.line + 2 : 0);
+  return { x: 0, y: 0, w, h, lines, subLines };
+}
+
 const elk = new ELK();
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -75,7 +92,10 @@ function components(model: Model): Model[] {
   };
   const join = (a: string, b: string) => parent.set(find(a), find(b));
   for (const e of model.edges) join(e.from, e.to);
-  for (const g of model.groups) for (const m of g.nodes.slice(1)) join(g.nodes[0]!, m);
+  for (const g of model.groups) {
+    const all = groupNodes(model, g);
+    for (const m of all.slice(1)) join(all[0]!, m);
+  }
 
   const parts = new Map<string, Set<string>>();
   for (const n of model.nodes) {
@@ -86,7 +106,7 @@ function components(model: Model): Model[] {
   return [...parts.values()].map((ids) => ({
     direction: model.direction,
     nodes: model.nodes.filter((n) => ids.has(n.id)),
-    groups: model.groups.filter((g) => g.nodes.length > 0 && ids.has(g.nodes[0]!)),
+    groups: model.groups.filter((g) => ids.has(groupNodes(model, g)[0] ?? '')),
     edges: model.edges.filter((e) => ids.has(e.from)),
   }));
 }
@@ -109,6 +129,7 @@ function shift(lay: Layout, dx: number, dy: number, into: Layout): void {
  * makes ELK share columns between unrelated flows, which leaves large empty gaps.
  */
 export async function layout(model: Model, theme: Theme): Promise<Layout> {
+  if (model.type === 'sequence') return layoutSequence(model, theme);
   const first = await layoutParts(model, theme);
   if (first.width / first.height <= WIDE) return first;
   // Too wide to read when scaled to a page. Candidates: the flow folded into rows (still
@@ -230,7 +251,63 @@ export function feedbackEdges(model: Model, rank: Map<string, number>): Set<stri
     if (reaches(e.to, e.from)) back.add(e.id);
     else add(e.from, e.to);
   }
+  if (model.groups.length) groupCycles(model, back);
   return back;
+}
+
+/**
+ * Groups are laid out as blocks, so two sibling groups that point at each other (lb > api
+ * from Public Subnet into Private Subnet, api ..> nat back again) form a loop even when the
+ * nodes don't. Edges are compared at the level where their ends' group chains split; solid
+ * edges in spec order keep their direction first, then dashed ones, and any edge that would
+ * close a loop between those blocks is marked as feedback too.
+ */
+function groupCycles(model: Model, back: Set<string>): void {
+  const parentOf = new Map<string, string | undefined>();
+  for (const g of model.groups) {
+    for (const n of g.nodes) parentOf.set(`n:${n}`, `g:${g.id}`);
+    for (const c of g.groups) parentOf.set(`g:${c}`, `g:${g.id}`);
+  }
+  const chain = (node: string) => {
+    const out = [`n:${node}`];
+    for (let at = parentOf.get(out[0]!); at; at = parentOf.get(at)) out.unshift(at);
+    return out;
+  };
+  /** The two blocks, children of the lowest shared group (or of the root), that hold the ends. */
+  const blocks = (from: string, to: string): [string, string] | undefined => {
+    const [a, b] = [chain(from), chain(to)];
+    let i = 0;
+    while (i < a.length && i < b.length && a[i] === b[i]) i++;
+    return i < a.length && i < b.length ? [a[i]!, b[i]!] : undefined;
+  };
+  const out = new Map<string, string[]>();
+  const add = (a: string, b: string) => out.set(a, [...(out.get(a) ?? []), b]);
+  const reaches = (from: string, to: string): boolean => {
+    const seen = new Set([from]);
+    const stack = [from];
+    while (stack.length) {
+      const id = stack.pop()!;
+      if (id === to) return true;
+      for (const n of out.get(id) ?? []) {
+        if (seen.has(n)) continue;
+        seen.add(n);
+        stack.push(n);
+      }
+    }
+    return false;
+  };
+  // edges already reversed are laid out the other way round
+  for (const e of model.edges.filter((x) => back.has(x.id))) {
+    const bl = blocks(e.to, e.from);
+    if (bl) add(bl[0], bl[1]);
+  }
+  const rest = model.edges.filter((x) => !back.has(x.id));
+  for (const e of [...rest.filter((x) => !x.dashed), ...rest.filter((x) => x.dashed)]) {
+    const bl = blocks(e.from, e.to);
+    if (!bl) continue;
+    if (reaches(bl[1], bl[0])) back.add(e.id);
+    else add(bl[0], bl[1]);
+  }
 }
 
 async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<Layout> {
@@ -238,16 +315,9 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
   const elkNodes = new Map<string, ElkNode>();
 
   for (const n of model.nodes) {
-    const lines = wrap(n.label, NODE.labelSize, theme.fonts.label, NODE.maxLabelW);
-    const subLines = n.sub ? wrap(n.sub, SUB.size, theme.fonts.edge, SUB.maxW) : [];
-    const textW = Math.max(
-      ...lines.map((l) => measure(l, NODE.labelSize, theme.fonts.label)),
-      ...subLines.map((l) => measure(l, SUB.size, theme.fonts.edge)),
-    );
-    const w = Math.max(NODE.minW, Math.ceil(textW + 36));
-    const h =
-      NODE.h + (lines.length - 1) * 19 + (subLines.length ? subLines.length * SUB.line + 2 : 0);
-    nodes.set(n.id, { x: 0, y: 0, w, h, lines, subLines });
+    const box = nodeBox(n, theme);
+    const { w, h } = box;
+    nodes.set(n.id, box);
     elkNodes.set(n.id, {
       id: `n:${n.id}`,
       width: w,
@@ -274,21 +344,28 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
   for (const e of model.edges)
     for (const id of [e.from, e.to]) if (!rank.has(id)) rank.set(id, rank.size);
   for (const n of model.nodes) if (!rank.has(n.id)) rank.set(n.id, rank.size);
-  const byRank = (a: string, b: string) => rank.get(a)! - rank.get(b)!;
   const backward = feedbackEdges(model, rank);
 
   const grouped = new Set(model.groups.flatMap((g) => g.nodes));
-  const groupNodes: ElkNode[] = model.groups.map((g) => ({
-    id: `g:${g.id}`,
-    layoutOptions: { ...spacing, 'elk.padding': '[top=46,left=26,bottom=26,right=26]' },
-    children: [...g.nodes].sort(byRank).map((id) => elkNodes.get(id)!),
-  }));
-  const loose = model.nodes.filter((n) => !grouped.has(n.id)).map((n) => elkNodes.get(n.id)!);
-  const firstMember = (n: ElkNode) =>
+  const firstMember = (n: ElkNode): number =>
     n.id.startsWith('g:')
-      ? Math.min(...(n.children ?? []).map((c) => rank.get(c.id.slice(2)) ?? Infinity))
+      ? Math.min(...(n.children ?? []).map(firstMember))
       : (rank.get(n.id.slice(2)) ?? Infinity);
-  const rootChildren = [...groupNodes, ...loose].sort((a, b) => firstMember(a) - firstMember(b));
+  // Groups nest as ELK compound nodes; children keep the spec's flow order.
+  const groupNode = (g: GroupModel): ElkNode => {
+    const children = [
+      ...model.groups.filter((c) => c.parent === g.id).map(groupNode),
+      ...g.nodes.map((id) => elkNodes.get(id)!),
+    ].sort((a, b) => firstMember(a) - firstMember(b));
+    return {
+      id: `g:${g.id}`,
+      layoutOptions: { ...spacing, 'elk.padding': '[top=46,left=26,bottom=26,right=26]' },
+      children,
+    };
+  };
+  const groupNodesTop = model.groups.filter((g) => !g.parent).map(groupNode);
+  const loose = model.nodes.filter((n) => !grouped.has(n.id)).map((n) => elkNodes.get(n.id)!);
+  const rootChildren = [...groupNodesTop, ...loose].sort((a, b) => firstMember(a) - firstMember(b));
 
   // Feedback edges are laid out reversed (so the graph ELK sees is acyclic and follows the
   // spec order), then their routes are flipped back so arrows still point the right way.
@@ -348,8 +425,9 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
   walk(out);
 
   const groups = new Map<string, GroupBox>();
-  for (const g of out.children ?? []) {
-    if (g.id.startsWith('g:')) {
+  const collect = (n: ElkNode) => {
+    for (const g of n.children ?? []) {
+      if (!g.id.startsWith('g:')) continue;
       const label = model.groups.find((m) => `g:${m.id}` === g.id)?.label ?? '';
       const upper = theme.group.uppercase;
       const size = upper ? 13 : 16;
@@ -362,8 +440,10 @@ async function layoutOnce(model: Model, theme: Theme, topPad: number): Promise<L
           20 + measure(upper ? label.toUpperCase() : label, size, theme.fonts.group),
         ),
       });
+      collect(g);
     }
-  }
+  };
+  collect(out);
 
   const routes = new Map<string, EdgeRoute>();
   for (const e of (out.edges ?? []) as ElkExtendedEdge[]) {

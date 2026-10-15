@@ -34,6 +34,15 @@ const TYPES: Record<Format, string> = {
   yaml: 'text/yaml; charset=utf-8',
 };
 
+/** Domain verification files for app directories (ChatGPT, Glama), served from env vars. */
+const WELL_KNOWN: Record<string, { env: string; type: string }> = {
+  '/.well-known/openai-apps-challenge': {
+    env: 'OPENAI_APPS_CHALLENGE',
+    type: 'text/plain; charset=utf-8',
+  },
+  '/.well-known/glama.json': { env: 'GLAMA_JSON', type: 'application/json' },
+};
+
 const hits = new Map<string, { count: number; reset: number }>();
 
 function limited(req: Request): boolean {
@@ -136,6 +145,14 @@ export async function fromRewrite(req: Request): Promise<Request> {
 export async function handle(req: Request): Promise<Response> {
   const path = new URL(req.url).pathname.replace(/\/+$/, '') || '/';
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+  // Ownership checks for app directories: the token or file they ask for, set as an env var.
+  const proof = WELL_KNOWN[path];
+  if (proof) {
+    const value = process.env[proof.env];
+    return value
+      ? new Response(value, { headers: { 'content-type': proof.type, ...CORS } })
+      : text(404, 'Not found.');
+  }
   if (path === '/health') {
     return Response.json({ ok: true, version: pkg.version }, { headers: CORS });
   }

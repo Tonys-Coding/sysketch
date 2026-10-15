@@ -21,8 +21,11 @@ Each line is one arrow, or a chain of arrows.
 | `a > b > c`               | a chain of two arrows                                |
 | `a > b \| GET /users`     | an arrow with a label (on the last arrow of a chain) |
 | `a ..> b`                 | a dashed arrow, for responses and background work    |
+| `a <> b`                  | a two-way arrow (`a <..> b` for a dashed one)        |
+| `a => b`                  | a thick arrow, for the main or "hot" path            |
+| `a -- b`                  | a plain line with no arrowhead                       |
 | `a > b \| lookup [green]` | a colored arrow                                      |
-| `a > b [red, dashed]`     | a dashed, colored arrow                              |
+| `a > b [red, dashed]`     | a dashed, colored arrow (also `thick`)               |
 
 Colors: `blue`, `green`, `amber`, `red`, `violet`, `teal`, `pink`, `sky`, `orange`, `slate` (also `yellow`, `purple`, `cyan`, `gray`).
 
@@ -52,6 +55,40 @@ groups:
 
 A part can be in one group.
 
+Groups can sit inside other groups: list a group by its name, like a part. This is how you draw cloud networks:
+
+```yaml
+groups:
+  AWS Region: [VPC, s3]
+  VPC: [Public Subnet, Private Subnet]
+  Public Subnet: [lb]
+  Private Subnet: [api, db]
+```
+
+![A web app inside nested AWS region, VPC and subnet groups](../examples/aws-network.svg)
+
+## Sequence diagrams
+
+Add `type: sequence` to show the same arrows as a timeline: the parts across the top, a dashed lifeline under each, and one row per message, top to bottom in the order you write them. Use `..>` for replies, and `a > a` for a step a part does by itself. Groups draw a box around their parts.
+
+```yaml
+title: Sign-in Flow
+type: sequence
+groups:
+  Backend: [api, auth, db]
+edges:
+  - user > app | click "Sign in"
+  - app > api | POST /login
+  - api > auth | verify password
+  - auth > db | find user
+  - db ..> auth | user row
+  - auth > auth | hash + compare
+  - auth ..> api | JWT
+  - api ..> app | 200 + session cookie
+```
+
+![A sign-in sequence diagram](../examples/login-sequence.svg)
+
 ## Names and icons
 
 sysketch understands three kinds of names:
@@ -71,6 +108,7 @@ Run `npx sysketch icons` to list every icon and name, or see the [icon set](icon
 | Setting     | Values                                                             | What it does                                                |
 | ----------- | ------------------------------------------------------------------ | ----------------------------------------------------------- |
 | `title`     | any text                                                           | a heading above the diagram                                 |
+| `type`      | `sequence`                                                         | a [sequence diagram](#sequence-diagrams) instead            |
 | `theme`     | `sketch` (default), `graphite`, `blueprint`, `midnight`, `classic` | the look                                                    |
 | `legend`    | `true`                                                             | a numbered list of the steps under the diagram              |
 | `steps`     | `false`                                                            | hides the step numbers on the arrows                        |
@@ -112,6 +150,8 @@ edges:
     label: write order
     color: amber
     dashed: true
+    thick: false
+    ends: end # or both, none
     note: Orders are written synchronously before replying
 ```
 

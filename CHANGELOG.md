@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.0
+
+**sysketch 0.5.0**
+
+- **Sequence diagrams:** `type: sequence` draws the same arrows as a timeline: parts across the top, dashed lifelines, one row per message, replies with `..>`, steps a part does itself with `a > a`, and group boxes around participants.
+- **Nested groups:** a group can list other groups by name (`VPC: [Public Subnet, Private Subnet]`) for cloud networks, clusters and namespaces. Inner groups get a slightly deeper fill. Sibling groups that point at each other keep the main flow's direction.
+- **More arrows:** `a <> b` two-way (`<..>` dashed), `a => b` thick for the hot path, `a -- b` a plain line, and `thick` in `[...]`. `<->`, `-->` and `==>` are accepted too. The legend shows each style.
+- Examples: `login-sequence` and `aws-network`.
+
+**sysketch-mcp 0.5.0**
+
+- The tool guide covers sequence diagrams, nested groups and the new arrows (about 30 more tokens per session). Requires sysketch ^0.5.0.
+- `server.json` lists the hosted server (`https://sysketch.vercel.app/mcp`) next to the npm package.
+
+**Hosted server**
+
+- Same new features. Tools carry `title` plus `readOnlyHint`, `destructiveHint` and `openWorldHint` for the Claude and ChatGPT directories. Privacy policy and terms pages, and `/.well-known/` verification files for ChatGPT and Glama, served from environment variables.
+
 ## Hosted server update
 
 - The in-chat viewer pans by dragging at any zoom, including Fit, and zooms out to half the fitted size as well as in. Pinch or Ctrl/Cmd + scroll zooms around the cursor.

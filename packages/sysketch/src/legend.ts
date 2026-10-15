@@ -132,9 +132,18 @@ export function legendBlock(
           if ('arrow' in seg) {
             const ay = r2(cy);
             const dash = row.e.dashed ? ' stroke-dasharray="4 3"' : '';
+            const both = row.e.ends === 'both';
+            const end = row.e.ends !== 'none';
+            const x0 = r2(tx + (both ? 9 : 5));
+            const x1 = r2(tx + ARROW_W - (end ? 9 : 5));
             out.push(
-              `<path d="M${r2(tx + 5)} ${ay}H${r2(tx + ARROW_W - 9)}" stroke="${paint.line}" stroke-width="2" stroke-linecap="round"${dash}/>` +
-                `<path d="M${r2(tx + ARROW_W - 10)} ${r2(ay - 4)}L${r2(tx + ARROW_W - 4)} ${ay}L${r2(tx + ARROW_W - 10)} ${r2(ay + 4)}Z" fill="${paint.line}"/>`,
+              `<path d="M${x0} ${ay}H${x1}" stroke="${paint.line}" stroke-width="${row.e.thick ? 3.5 : 2}" stroke-linecap="round"${dash}/>` +
+                (end
+                  ? `<path d="M${r2(tx + ARROW_W - 10)} ${r2(ay - 4)}L${r2(tx + ARROW_W - 4)} ${ay}L${r2(tx + ARROW_W - 10)} ${r2(ay + 4)}Z" fill="${paint.line}"/>`
+                  : '') +
+                (both
+                  ? `<path d="M${r2(tx + 10)} ${r2(ay - 4)}L${r2(tx + 4)} ${ay}L${r2(tx + 10)} ${r2(ay + 4)}Z" fill="${paint.line}"/>`
+                  : ''),
             );
           } else {
             out.push(glyphs.draw(seg.text, r2(tx), r2(cy + 5), seg.size, seg.font, seg.fill));

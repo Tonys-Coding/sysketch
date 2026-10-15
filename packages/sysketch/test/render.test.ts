@@ -40,7 +40,7 @@ describe('render', () => {
     expect(example('url-shortener').length).toBeLessThan(260);
   });
 
-  it.each(['url-shortener', 'web-scale', 'microservices'])(
+  it.each(['url-shortener', 'web-scale', 'microservices', 'login-sequence', 'aws-network'])(
     'matches the golden SVG for %s',
     async (name) => {
       await expect(await render(example(name))).toMatchFileSnapshot(

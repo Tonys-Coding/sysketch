@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy policy · sysketch</title>
+    <link rel="icon" href="brand/sysketch-icon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #fbf8f1;
+        --ink: #1f2430;
+        --muted: #5b6372;
+        --accent: #e8743b;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #15181f;
+          --ink: #eceae4;
+          --muted: #a3a9b5;
+          --accent: #f08a55;
+        }
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          16px/1.6 system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 40px 16px 64px;
+      }
+      h1 {
+        font-size: 1.6rem;
+      }
+      h2 {
+        font-size: 1.1rem;
+        margin-top: 28px;
+      }
+      p,
+      li {
+        color: var(--muted);
+      }
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><a href="/">← sysketch</a></p>
+      <h1>Privacy policy</h1>
+      <p>Last updated: October 15, 2026</p>
+      <p>
+        This policy covers the hosted sysketch server at <code>sysketch.vercel.app</code>, which AI
+        chat apps such as Claude and ChatGPT use to draw diagrams. sysketch is an open-source
+        project; questions go to the address at the end.
+      </p>
+
+      <h2>What we receive</h2>
+      <p>
+        When you ask your AI app for a diagram, the app sends sysketch a short text description of
+        the diagram (its parts, arrows and labels). We use it only to draw that diagram. There are
+        no accounts, and we don't ask for or receive your name, email or chat history.
+      </p>
+
+      <h2>What we keep</h2>
+      <ul>
+        <li>
+          <strong>No diagram storage.</strong> Descriptions are not saved to any database. Each
+          diagram link contains its own description in compressed form, so the link is the only
+          copy, and anyone you share a link with can see that diagram.
+        </li>
+        <li>
+          <strong>Hosting logs.</strong> Our hosting provider, Vercel, keeps standard request logs
+          (time, IP address, and the requested URL, which for diagram links includes the compressed
+          description) for operations and security, for the period its plan allows. We don't copy
+          these logs elsewhere or use them for anything else.
+        </li>
+        <li>
+          <strong>Image caching.</strong> Vercel's network caches rendered diagram images so repeat
+          views load quickly.
+        </li>
+        <li>
+          <strong>Rate limiting.</strong> To prevent abuse, the server counts requests per IP
+          address in memory for one minute. These counts are not stored.
+        </li>
+      </ul>
+      <p>
+        We don't use cookies, analytics, advertising or tracking, and we don't sell or share data.
+      </p>
+
+      <h2>Third parties</h2>
+      <p>
+        Vercel hosts the server (<a href="https://vercel.com/legal/privacy-policy"
+          >Vercel's privacy policy</a
+        >). Your AI app sends requests to sysketch on your behalf, and its own privacy policy covers
+        your conversation.
+      </p>
+
+      <h2>Your choices</h2>
+      <p>
+        Don't put secrets or personal data in diagrams. To draw diagrams without sending anything to
+        a server, use the local version of sysketch, which runs on your own computer.
+      </p>
+
+      <h2>Children</h2>
+      <p>The service isn't directed at children under 13.</p>
+
+      <h2>Changes and contact</h2>
+      <p>
+        We'll update this page and its date if anything changes. Questions or requests:
+        <a href="https://github.com/Tonys-Coding/sysketch/issues">open an issue on GitHub</a>.
+      </p>
+    </main>
+  </body>
+</html>

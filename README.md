@@ -113,7 +113,7 @@ A diagram has three parts. Only `edges` is required.
 | `nodes`  | Optional names, icons and notes     | `api: server \| API Server \| 3 replicas` |
 | `groups` | Optional boxes around related parts | `Backend: [api, cache, db]`               |
 
-Common names like `client`, `api`, `db`, `cache`, `queue`, `redis`, `kafka`, `s3` or `stripe` pick the right icon automatically. You can also add dashed arrows for responses, colors, a numbered step legend and more. Everything is in the **[spec guide](docs/spec.md)**.
+Common names like `client`, `api`, `db`, `cache`, `queue`, `redis`, `kafka`, `s3` or `stripe` pick the right icon automatically. You can also use dashed (`..>`), two-way (`<>`), thick (`=>`) and plain (`--`) arrows, colors, groups inside groups for cloud networks, a numbered step legend, and `type: sequence` for [sequence diagrams](docs/spec.md#sequence-diagrams). Everything is in the **[spec guide](docs/spec.md)**.
 
 If something is wrong, sysketch says how to fix it: `unknown node "databse". Did you mean: database?`
 
@@ -135,6 +135,10 @@ Pick one with `theme: graphite` in your diagram file, or ask your assistant for 
   <tr>
     <td width="50%"><a href="examples/smart-commerce.yaml"><img alt="Smart commerce platform, midnight theme" src="docs/showcase/smart-commerce-midnight.svg"></a><br><sub><b>Smart commerce platform</b> in the midnight theme</sub></td>
     <td width="50%"><a href="examples/secure-data-platform.yaml"><img alt="Secure data platform, blueprint theme" src="docs/showcase/secure-data-platform-blueprint.svg"></a><br><sub><b>Secure data platform</b> in the blueprint theme</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><a href="examples/login-sequence.yaml"><img alt="Sign-in sequence diagram" src="examples/login-sequence.svg"></a><br><sub><b>Sign-in flow:</b> a sequence diagram (<code>type: sequence</code>)</sub></td>
+    <td width="50%"><a href="examples/aws-network.yaml"><img alt="Web app in nested AWS region, VPC and subnet groups" src="examples/aws-network.svg"></a><br><sub><b>Web app on AWS:</b> groups inside groups, two-way and thick arrows</sub></td>
   </tr>
 </table>
 

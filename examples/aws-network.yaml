@@ -1,0 +1,17 @@
+title: Web App on AWS
+nodes:
+  api: server | API | 3 tasks
+  worker: worker | Worker
+groups:
+  AWS Region: [VPC, s3]
+  VPC: [Public Subnet, Private Subnet]
+  Public Subnet: [lb]
+  Private Subnet: [api, worker, db, cache]
+edges:
+  - client => cdn => lb | HTTPS
+  - lb => api
+  - api <> cache | sessions
+  - api > db
+  - api ..> worker | jobs
+  - worker > s3 | reports
+  - worker -- db

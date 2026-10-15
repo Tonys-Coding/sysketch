@@ -1,8 +1,8 @@
 import { layout, NODE, PILL, SUB, type Pt } from './layout.js';
 import { legendBlock } from './legend.js';
 import type { Logo } from './logos.js';
-import type { EdgeModel, Model } from './model.js';
-import { defaultTheme, iconPaint, type Theme } from './themes.js';
+import type { EdgeModel, GroupModel, Model } from './model.js';
+import { defaultTheme, iconPaint, mix, type Theme } from './themes.js';
 import { sketch, sketchIcon } from './sketch.js';
 import { GlyphSheet, type Anchor, type FontRef } from './text.js';
 
@@ -133,9 +133,20 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     );
   }
 
-  for (const g of model.groups) {
+  // Outer groups first; nested ones get a slightly deeper fill so the levels read apart.
+  const depth = (g: GroupModel): number => {
+    const parent = g.parent && model.groups.find((p) => p.id === g.parent);
+    return parent ? depth(parent) + 1 : 0;
+  };
+  const groupFill = (d: number) => {
+    const f = theme.group.fill;
+    if (!d || !/^#[0-9a-f]{6}/i.test(f)) return f;
+    return mix(f.slice(0, 7), theme.group.stroke, Math.min(0.24, 0.08 * d)) + f.slice(7);
+  };
+  for (const g of [...model.groups].sort((a, b) => depth(a) - depth(b))) {
     const b = lay.groups.get(g.id);
     if (!b) continue;
+    const fill = groupFill(depth(g));
     const box = sk
       ? sketch.rect(
           b.x,
@@ -144,7 +155,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
           b.h,
           card.radius + 4,
           {
-            fill: theme.group.fill,
+            fill,
             fillStyle: 'solid',
             stroke: theme.group.stroke,
             strokeWidth: 1.75,
@@ -152,7 +163,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
           `g:${g.id}`,
           sk,
         )
-      : `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${card.radius + 4}" fill="${theme.group.fill}" stroke="${theme.group.stroke}" stroke-width="1.75"${theme.group.dashed ? ' stroke-dasharray="8 6"' : ''}/>`;
+      : `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${card.radius + 4}" fill="${fill}" stroke="${theme.group.stroke}" stroke-width="1.75"${theme.group.dashed ? ' stroke-dasharray="8 6"' : ''}/>`;
     out.push(
       `<g>${box}` +
         textPath(
@@ -167,47 +178,69 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     );
   }
 
+  // sequence diagrams: a dashed lifeline under each participant, behind the messages
+  for (const [i, l] of (lay.lifelines ?? []).entries()) {
+    const d = `M${l.x} ${l.y1}V${l.y2}`;
+    const dash = ` stroke-dasharray="7 6"`;
+    out.push(
+      sk
+        ? sketch.path(d, { stroke: theme.group.stroke, strokeWidth: 1.5 }, `l:${i}`, sk, dash)
+        : `<path d="${d}" fill="none" stroke="${theme.group.stroke}" stroke-width="1.5"${dash}/>`,
+    );
+  }
+
   for (const e of model.edges) {
     const route = lay.edges.get(e.id);
     if (!route || route.points.length < 2) continue;
     const pts = route.points.map((p) => ({ ...p }));
-    const tip = pts[pts.length - 1]!;
-    const prev = pts[pts.length - 2]!;
-    const dl = Math.hypot(tip.x - prev.x, tip.y - prev.y) || 1;
-    const ux = (tip.x - prev.x) / dl;
-    const uy = (tip.y - prev.y) / dl;
-    pts[pts.length - 1] = {
-      x: r2(tip.x - ux * (ARROW.len - 1)),
-      y: r2(tip.y - uy * (ARROW.len - 1)),
+    /** Arrowhead at pts[at], pointing away from its neighbour; the line stops at its base. */
+    const head = (at: number, from: number): [number, number][] => {
+      const tip = pts[at]!;
+      const prev = pts[from]!;
+      const dl = Math.hypot(tip.x - prev.x, tip.y - prev.y) || 1;
+      const ux = (tip.x - prev.x) / dl;
+      const uy = (tip.y - prev.y) / dl;
+      pts[at] = { x: r2(tip.x - ux * (ARROW.len - 1)), y: r2(tip.y - uy * (ARROW.len - 1)) };
+      const base = { x: tip.x - ux * ARROW.len, y: tip.y - uy * ARROW.len };
+      return [
+        [r2(tip.x), r2(tip.y)],
+        [r2(base.x - uy * ARROW.half), r2(base.y + ux * ARROW.half)],
+        [r2(base.x + uy * ARROW.half), r2(base.y - ux * ARROW.half)],
+      ];
     };
-    const base = { x: tip.x - ux * ARROW.len, y: tip.y - uy * ARROW.len };
-    const headPts: [number, number][] = [
-      [r2(tip.x), r2(tip.y)],
-      [r2(base.x - uy * ARROW.half), r2(base.y + ux * ARROW.half)],
-      [r2(base.x + uy * ARROW.half), r2(base.y - ux * ARROW.half)],
-    ];
+    const heads: [number, number][][] = [];
+    if (e.ends !== 'none') heads.push(head(pts.length - 1, pts.length - 2));
+    if (e.ends === 'both') heads.push(head(0, 1));
     const color = edgePaint(e).line;
-    const dash = e.dashed
-      ? ` stroke-dasharray="${r2(theme.edgeWidth * 3.5)} ${r2(theme.edgeWidth * 3)}"`
-      : '';
+    const width = r2(theme.edgeWidth * (e.thick ? 2 : 1));
+    const dash = e.dashed ? ` stroke-dasharray="${r2(width * 3.5)} ${r2(width * 3)}"` : '';
     if (sk) {
-      const ink = { stroke: color, strokeWidth: theme.edgeWidth };
+      const ink = { stroke: color, strokeWidth: width };
       out.push(
         `<g>${sketch.path(roundedPath(pts, 12), ink, `e:${e.id}`, sk, dash)}` +
-          sketch.polygon(
-            headPts,
-            { ...ink, fill: color, fillStyle: 'solid', strokeWidth: 1 },
-            `a:${e.id}`,
-            sk,
-          ) +
+          heads
+            .map((h, i) =>
+              sketch.polygon(
+                h,
+                { ...ink, fill: color, fillStyle: 'solid', strokeWidth: 1 },
+                i ? `a2:${e.id}` : `a:${e.id}`,
+                sk,
+              ),
+            )
+            .join('') +
           `</g>`,
       );
       continue;
     }
-    const head = headPts.map((p) => p.join(',')).join(' ');
     out.push(
-      `<g><path d="${roundedPath(pts, 12)}" fill="none" stroke="${color}" stroke-width="${theme.edgeWidth}" stroke-linecap="round" stroke-linejoin="round"${dash}/>` +
-        `<polygon points="${head}" fill="${color}" stroke="${color}" stroke-width="1" stroke-linejoin="round"/></g>`,
+      `<g><path d="${roundedPath(pts, 12)}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"${dash}/>` +
+        heads
+          .map(
+            (h) =>
+              `<polygon points="${h.map((p) => p.join(',')).join(' ')}" fill="${color}" stroke="${color}" stroke-width="1" stroke-linejoin="round"/>`,
+          )
+          .join('') +
+        `</g>`,
     );
   }
 

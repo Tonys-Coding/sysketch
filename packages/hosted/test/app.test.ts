@@ -45,7 +45,14 @@ describe('hosted MCP', () => {
     expect(Object.keys(render.inputSchema.properties ?? {})).toEqual(['spec', 'theme', 'preview']);
     expect(JSON.stringify(tools).length).toBeLessThan(2400);
     // read-only, and the server tells the host to use it instead of drawing an image
-    expect(render.annotations?.readOnlyHint).toBe(true);
+    for (const t of tools) {
+      expect(t.title).toBeTruthy();
+      expect(t.annotations).toMatchObject({
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+      });
+    }
     expect(client.getInstructions()).toContain('render_diagram');
   });
 
@@ -215,6 +222,22 @@ describe('http', () => {
       }),
     );
     expect(big.status).toBe(413);
+  });
+
+  it('serves directory verification files only when configured', async () => {
+    expect((await get('/.well-known/openai-apps-challenge')).status).toBe(404);
+    process.env.OPENAI_APPS_CHALLENGE = 'token-123';
+    try {
+      const res = await get('/.well-known/openai-apps-challenge');
+      expect(await res.text()).toBe('token-123');
+      // also through the Vercel rewrite
+      const via = await handle(
+        await fromRewrite(new Request(`${BASE}/api?route=.well-known/openai-apps-challenge`)),
+      );
+      expect(await via.text()).toBe('token-123');
+    } finally {
+      delete process.env.OPENAI_APPS_CHALLENGE;
+    }
   });
 
   it('rate-limits each IP', async () => {

@@ -1,0 +1,19 @@
+title: Sign-in Flow
+type: sequence
+nodes:
+  user: user | User
+  app: browser | Web App
+  api: api-gateway | API
+  auth: auth | Auth Service
+  db: database | User DB
+groups:
+  Backend: [api, auth, db]
+edges:
+  - user > app | click "Sign in"
+  - app > api | POST /login
+  - api > auth | verify password
+  - auth > db | find user
+  - db ..> auth | user row
+  - auth > auth | hash + compare
+  - auth ..> api | JWT
+  - api ..> app | 200 + session cookie
