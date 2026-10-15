@@ -50,7 +50,7 @@ Then ask for a diagram:
 
 > Use sysketch to draw a ride-sharing app: rider and driver apps, an API gateway, a matching service, a location service and a trip database.
 
-You get a preview in the chat, plus links to the full PNG and SVG that you can download or share. To change it, just ask ("add a payment service"). Nothing is stored on the server: each link contains the diagram's description, so anyone with the link can see that diagram. Official logos are only available in the local version below. Setup and the connector's limits are in the **[hosted server guide](packages/hosted/README.md)**.
+In Claude and ChatGPT the diagram opens right in the chat, with zoom, fullscreen and PNG/SVG download buttons. Other chats show a preview with links to the full PNG and SVG. To change it, just ask ("add a payment service"). Product names like `stripe`, `kafka` or `postgres` show the product's official logo (from [Simple Icons](https://simpleicons.org)). Nothing is stored on the server: each link contains the diagram's description, so anyone with the link can see that diagram. The AWS, Azure and Google Cloud icon packs and your own company's logos need the local version below. Setup and the connector's limits are in the **[hosted server guide](packages/hosted/README.md)**.
 
 ### In Claude Code, Cursor and other coding assistants
 

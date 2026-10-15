@@ -5,6 +5,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { fromRewrite, handle } from '../src/app.js';
 import { decodeSpec, encodeSpec, LIMITS } from '../src/diagram.js';
+import { REDIS_SVG } from './fixtures.js';
 
 const BASE = 'https://sysketch.example';
 const SPEC = 'title: URL Shortener\nedges:\n  - client > lb | POST /shorten\n  - lb > api > db';
@@ -36,13 +37,35 @@ const links = (r: CallToolResult) =>
   [...text(r).matchAll(/https:\/\/\S+/g)].map((m) => m[0].slice(BASE.length));
 
 describe('hosted MCP', () => {
-  it('lists two small tools without file or logo options', async () => {
+  it('lists two small tools without file options', async () => {
     const client = await connect();
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name)).toEqual(['render_diagram', 'list_icons']);
     const render = tools[0]!;
     expect(Object.keys(render.inputSchema.properties ?? {})).toEqual(['spec', 'theme', 'preview']);
-    expect(JSON.stringify(tools).length).toBeLessThan(2000);
+    expect(JSON.stringify(tools).length).toBeLessThan(2200);
+  });
+
+  it('offers an in-chat viewer to hosts that support MCP Apps', async () => {
+    const client = await connect();
+    const { tools } = await client.listTools();
+    const uri = (tools[0]!._meta as { ui: { resourceUri: string } }).ui.resourceUri;
+    expect(uri).toMatch(/^ui:\/\//);
+    const { contents } = await client.readResource({ uri });
+    const page = contents[0]!;
+    expect(page.mimeType).toBe('text/html;profile=mcp-app');
+    expect((page as { text: string }).text).toContain('<!doctype html>');
+    // the viewer may only load images from this server
+    expect(page._meta).toEqual({ ui: { csp: { resourceDomains: [BASE] }, prefersBorder: true } });
+
+    const r = (await client.callTool({
+      name: 'render_diagram',
+      arguments: { spec: SPEC, preview: false },
+    })) as CallToolResult;
+    const data = r.structuredContent as Record<string, unknown>;
+    expect(data).toMatchObject({ title: 'URL Shortener', width: expect.any(Number) });
+    expect(data.png).toBe(BASE + links(r)[0]);
+    expect(data.svg).toBe(BASE + links(r)[1]);
   });
 
   it('renders a spec to PNG/SVG links plus a preview image', async () => {
@@ -98,15 +121,37 @@ describe('hosted MCP', () => {
     expect(text(theme)).toContain('Unknown theme "neon"');
   });
 
-  it('never draws brand logos, even when the spec asks for a logo folder', async () => {
+  it('draws installed product logos unaltered and refuses logo folders in the spec', async () => {
     const client = await connect();
     const r = (await client.callTool({
       name: 'render_diagram',
-      arguments: { spec: `logos: /etc\n${SPEC}`, preview: false },
+      arguments: { spec: 'edges: ["api > redis"]', preview: false },
     })) as CallToolResult;
-    expect(r.isError).toBeFalsy();
     const svg = await (await get(links(r)[1]!)).text();
-    expect(svg).not.toContain('<image');
+    expect(svg).toContain(Buffer.from(REDIS_SVG).toString('base64'));
+
+    const folder = (await client.callTool({
+      name: 'render_diagram',
+      arguments: { spec: `logos: /etc\n${SPEC}` },
+    })) as CallToolResult;
+    expect(folder.isError).toBe(true);
+    expect(text(folder)).toContain('not available here');
+    expect(text(folder)).not.toContain('/etc');
+
+    const off = (await client.callTool({
+      name: 'render_diagram',
+      arguments: { spec: 'logos: false\nedges: ["api > redis"]', preview: false },
+    })) as CallToolResult;
+    expect(await (await get(links(off)[1]!)).text()).not.toContain('<image');
+  });
+
+  it('searches the available logos', async () => {
+    const client = await connect();
+    const r = (await client.callTool({
+      name: 'list_icons',
+      arguments: { logos: 'redis' },
+    })) as CallToolResult;
+    expect(text(r)).toContain('redis');
   });
 
   it('refuses diagrams over the size limits', async () => {

@@ -1,5 +1,16 @@
 # Changelog
 
+## sysketch 0.4.4, hosted server
+
+**Hosted server (sysketch.vercel.app)**
+
+- Diagrams open right in the chat in Claude, ChatGPT and other hosts that support [MCP Apps](https://github.com/modelcontextprotocol/ext-apps), with zoom, pan, fullscreen and PNG/SVG downloads. Other chats still get the preview and links.
+- Product names (`stripe`, `kafka`, `postgres`...) show the product's logo from Simple Icons, unaltered and only inside diagrams. Each deploy installs the latest Simple Icons release; `blocked-logos.txt` removes a logo on request. `list_icons` can search the logos.
+
+**sysketch 0.4.4**
+
+- New render option `logoFolders: false` refuses logo folders named in a spec (`logos: ./folder`) while still using installed logos. It's for services that render specs from anyone.
+
 ## sysketch 0.4.3
 
 Layout fixes from testing the hosted server in ChatGPT, Claude and Perplexity.

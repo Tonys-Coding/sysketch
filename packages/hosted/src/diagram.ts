@@ -1,5 +1,23 @@
+import { fileURLToPath } from 'node:url';
 import { deflateRawSync, inflateRawSync } from 'node:zlib';
-import { buildModel, renderWithModel, svgToPng, SysketchError, themes, type Model } from 'sysketch';
+import {
+  buildModel,
+  createLogoResolver,
+  renderWithModel,
+  svgToPng,
+  SysketchError,
+  themes,
+  type Model,
+} from 'sysketch';
+
+/**
+ * Brand logos installed at build time (`npm run logos`: Simple Icons minus blocked-logos.txt).
+ * They are drawn unaltered and only inside diagrams. Missing folder = no logos.
+ */
+export const LOGO_HOME =
+  process.env.SYSKETCH_HOSTED_LOGOS ?? fileURLToPath(new URL('../logos', import.meta.url));
+
+export const logoResolver = () => createLogoResolver({ home: LOGO_HOME });
 
 /**
  * Anyone on the internet can call the hosted server, so every render is bounded. The limits
@@ -47,7 +65,7 @@ export function checkTheme(theme: string | undefined): void {
   }
 }
 
-/** Render a spec with no brand logos (the hosted server never serves logos). */
+/** Render a spec with the installed logos; logo folders named in the spec are refused. */
 export async function renderSpec(
   spec: string,
   theme?: string,
@@ -63,7 +81,8 @@ export async function renderSpec(
     );
   }
   const { svg, model } = await renderWithModel(spec, {
-    logos: false,
+    logoHome: LOGO_HOME,
+    logoFolders: false,
     ...(theme ? { theme } : {}),
   });
   const [, w = '0', h = '0'] = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg) ?? [];

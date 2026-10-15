@@ -64,6 +64,17 @@ describe('brand logos', () => {
     expect(await render(spec, { logos: false, logoDirs: [dir] })).not.toContain('<image ');
   });
 
+  it('logoFolders: false refuses spec folders but keeps installed logos', async () => {
+    const home = tmp();
+    importLogos(brandFolder(), 'brand', { home });
+    const spec = 'edges: ["acme > db"]';
+    await expect(
+      render(`logos: ${brandFolder()}\n${spec}`, { logoHome: home, logoFolders: false }),
+    ).rejects.toThrow(/not available here/);
+    const svg = await render(spec, { logoHome: home, logoFolders: false });
+    expect(svg).toContain(b64(ACME));
+  });
+
   it('brand/icon falls back to the icon when no logo is installed', async () => {
     const { model, svg } = await renderWithModel('edges: ["client > cloudflare/cdn > api"]');
     const n = model.nodes.find((x) => x.id === 'cloudflare/cdn')!;

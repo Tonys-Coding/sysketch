@@ -21,6 +21,11 @@ export interface RenderInputOptions {
    * Use it when the spec comes from an untrusted source, such as an AI model.
    */
   logoRoot?: string;
+  /**
+   * false: refuse logo folders named in the spec (`logos: ./brand`), for services that render
+   * specs from anyone. Installed logos (`logoHome`) are still used.
+   */
+  logoFolders?: boolean;
 }
 
 const within = (root: string, p: string) => {
@@ -37,6 +42,11 @@ function logoOption(opts: RenderInputOptions): BuildOptions['logos'] {
     if (specValue === false) return undefined;
     const fromSpec =
       typeof specValue === 'string' ? [specValue] : Array.isArray(specValue) ? specValue : [];
+    if (fromSpec.length && opts.logoFolders === false) {
+      throw new SysketchError(
+        'Logo folders (logos: ./folder) are not available here. Remove the logos key: product names already draw installed logos.',
+      );
+    }
     const base = opts.baseDir ?? process.cwd();
     const specDirs = fromSpec.map((d) => (isAbsolute(d) ? d : resolve(base, d)));
     const root = opts.logoRoot;

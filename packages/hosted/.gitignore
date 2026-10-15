@@ -1,2 +1,4 @@
 public/brand/
 .vercel/
+logos/
+src/viewer.generated.ts

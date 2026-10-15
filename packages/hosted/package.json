@@ -9,12 +9,14 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "node scripts/build-viewer.mjs && tsup",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "start": "node dist/serve.js"
+    "start": "node dist/serve.js",
+    "logos": "node scripts/install-logos.mjs"
   },
   "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.7.5",
     "@modelcontextprotocol/sdk": "^1.32.1",
     "sysketch": "^0.4.2",
     "zod": "^4.6.5"

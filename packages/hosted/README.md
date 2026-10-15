@@ -7,13 +7,15 @@ The sysketch MCP server as a web service, for AI apps that can't run programs on
 - **MCP endpoint:** `POST /mcp` (Streamable HTTP, stateless, no sign-in).
 - **Tools:**
   - `render_diagram(spec, theme?, preview?)` returns PNG and SVG links plus a small preview image (about 1k tokens).
-  - `list_icons` lists the icon names.
+  - `list_icons` lists the icon names; `logos` searches the product logos.
+- **In-chat viewer ([MCP Apps](https://github.com/modelcontextprotocol/ext-apps)):** hosts that support it (Claude, ChatGPT, VS Code, Goose) show the diagram in the chat with zoom, pan, fullscreen and PNG/SVG downloads. The page is `ui://sysketch/viewer.html`, built from `viewer/` into one HTML file (`npm run build`). It gets the links through `structuredContent`, which stays out of the model's context, and may only load images from this server. Other hosts get the preview and links as before.
 - **Diagram links:** `/d/<code>.png`, `.svg` and `.yaml`, where `<code>` is the spec itself, compressed. Nothing is stored, so links keep working and can be shared, and the CDN caches each one.
 - **Limits:**
   - 20,000-character specs, 120 nodes, 300 edges, PNGs up to 4,000 px;
   - 60 requests per minute per IP on each server instance;
   - 30 s per request.
-- **No brand logos.** A server that hands out logos would be redistributing them, so it uses sysketch's own icons only. Official logos stay a feature of the local `sysketch-mcp`.
+- **Product logos from Simple Icons.** The build installs the latest Simple Icons release (`npm run logos`, checked the same way as `sysketch logos install`), so a logo a brand asked Simple Icons to remove disappears on the next deploy. Logos are drawn unaltered and only inside diagrams, under nominative fair use (naming the actual product in an architecture diagram). Specs can't name logo folders (`logos: ./folder`), and `logos: false` turns logos off. The AWS, Azure and Google Cloud packs and company logos stay features of the local `sysketch-mcp`.
+- **Removing a logo:** add its Simple Icons slug to [`blocked-logos.txt`](blocked-logos.txt) and push; the next deploy leaves it out.
 - **Landing page:** `/` explains how to connect and shows the server URL.
 
 A render takes about 0.1 to 0.4 s of CPU, so Vercel's free Hobby plan (4 CPU-hours a month) covers roughly 40,000 renders. Repeat views of a link come from the CDN.
@@ -43,6 +45,7 @@ The Hobby plan is for non-commercial use. If you start charging, move to Vercel 
 
 ```bash
 npm run build -w sysketch && npm run build -w sysketch-hosted
+npm run logos -w sysketch-hosted # optional: product logos (downloads Simple Icons)
 npm start -w sysketch-hosted     # http://localhost:3000, MCP at /mcp
 npm test -w sysketch-hosted
 ```

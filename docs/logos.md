@@ -8,7 +8,7 @@ sysketch can draw the **official logo** of a product (Apache Kafka, Stripe, Amaz
 
 ## Where logos come from
 
-sysketch doesn't include any company logos. You install them on your own computer from the official source, and sysketch keeps them in a `.sysketch/logos` folder in your home directory, outside your projects. There are three sources.
+The sysketch packages don't include any company logos. You install them on your own computer from the official source, and sysketch keeps them in a `.sysketch/logos` folder in your home directory, outside your projects. There are three sources.
 
 ### 1. Cloud icon packs (AWS, Azure, Google Cloud)
 
@@ -79,6 +79,10 @@ Logos belong to their owners. Before publishing a diagram that shows them:
 - Don't commit downloaded icon packs to a public repository; each person installs their own.
 
 The examples in this repository only use logos that are clearly fine to publish: the AWS and Azure icon packs (made for architecture diagrams), Simple Icons marks published under open licenses, and a made-up company logo.
+
+## On the hosted server
+
+The [AI chat connector](../README.md#in-your-ai-chat-nothing-to-install) (`https://sysketch.vercel.app/mcp`) includes the latest Simple Icons logos, drawn unaltered and only inside diagrams. It doesn't have the AWS, Azure or Google Cloud packs, and specs can't point it at logo folders; use the local version for those. Brand owners can ask for a logo to be removed by [opening an issue](https://github.com/Tonys-Coding/sysketch/issues).
 
 ## Commands
 

@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>sysketch diagram</title>
+    <style>
+      :root {
+        --bg: #fffdf7;
+        --bar: #ffffff;
+        --ink: #1f2430;
+        --muted: #5b6372;
+        --line: #e4ded0;
+        --hover: #f3efe5;
+        color-scheme: light;
+      }
+      :root[data-theme='dark'] {
+        --bg: #15181f;
+        --bar: #1d212a;
+        --ink: #eceae4;
+        --muted: #a3a9b5;
+        --line: #2e3440;
+        --hover: #252a35;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          13px/1.4 system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      #bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        background: var(--bar);
+        border-bottom: 1px solid var(--line);
+      }
+      #title {
+        flex: 1;
+        min-width: 0;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .group {
+        display: flex;
+        gap: 2px;
+      }
+      button {
+        font: inherit;
+        color: var(--ink);
+        background: transparent;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 3px 9px;
+        cursor: pointer;
+        min-width: 30px;
+      }
+      button:hover {
+        background: var(--hover);
+      }
+      button[hidden] {
+        display: none;
+      }
+      #zoom {
+        min-width: 46px;
+        color: var(--muted);
+      }
+      /* fullscreen: fill the window with CSS, so the reported size never feeds back */
+      :root.fullscreen,
+      :root.fullscreen body {
+        height: 100%;
+        overflow: hidden;
+      }
+      :root.fullscreen body {
+        display: flex;
+        flex-direction: column;
+      }
+      :root.fullscreen #stage {
+        flex: 1 1 auto;
+        height: auto !important;
+      }
+      #stage {
+        position: relative;
+        overflow: auto;
+        cursor: grab;
+        background: #fffdf7;
+        height: 320px;
+        touch-action: none;
+      }
+      #stage.dragging {
+        cursor: grabbing;
+      }
+      #img {
+        display: block;
+        margin: 0 auto;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+      #note {
+        padding: 24px 16px;
+        color: var(--muted);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar">
+      <div id="title">sysketch</div>
+      <div class="group">
+        <button id="out" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+        <button id="zoom" type="button" title="Fit to view">Fit</button>
+        <button id="in" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+      </div>
+      <button id="full" type="button" title="Fullscreen" hidden>⤢</button>
+      <div class="group">
+        <button id="png" type="button" title="Download PNG" disabled>PNG</button>
+        <button id="svg" type="button" title="Download SVG" disabled>SVG</button>
+      </div>
+    </div>
+    <div id="stage">
+      <div id="note">Drawing the diagram…</div>
+      <img id="img" alt="" hidden />
+    </div>
+    <!-- viewer script -->
+  </body>
+</html>
