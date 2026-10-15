@@ -1,5 +1,10 @@
 # Changelog
 
+## Hosted server update
+
+- The in-chat viewer pans by dragging at any zoom, including Fit, and zooms out to half the fitted size as well as in. Pinch or Ctrl/Cmd + scroll zooms around the cursor.
+- ChatGPT picks the tool more readily and stops drawing a second image: the tool now has a title, a clearer first line ("use for any system design, architecture, data-flow or infrastructure diagram"), read-only annotations, server instructions, and a result that says the diagram is already shown.
+
 ## sysketch 0.4.4, hosted server
 
 **Hosted server (sysketch.vercel.app)**

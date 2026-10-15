@@ -43,7 +43,10 @@ describe('hosted MCP', () => {
     expect(tools.map((t) => t.name)).toEqual(['render_diagram', 'list_icons']);
     const render = tools[0]!;
     expect(Object.keys(render.inputSchema.properties ?? {})).toEqual(['spec', 'theme', 'preview']);
-    expect(JSON.stringify(tools).length).toBeLessThan(2200);
+    expect(JSON.stringify(tools).length).toBeLessThan(2400);
+    // read-only, and the server tells the host to use it instead of drawing an image
+    expect(render.annotations?.readOnlyHint).toBe(true);
+    expect(client.getInstructions()).toContain('render_diagram');
   });
 
   it('offers an in-chat viewer to hosts that support MCP Apps', async () => {

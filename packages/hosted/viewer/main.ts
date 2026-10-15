@@ -31,6 +31,11 @@ const svgBtn = $<HTMLButtonElement>('svg');
 /** Tallest the inline view gets; zoom or fullscreen for more. */
 const INLINE_MAX_H = 560;
 const STEP = 1.25;
+/** Zoom range, as multiples of the fitted size: out to half of it, in to 3x the real size. */
+const MIN_ZOOM = 0.5;
+const maxZoom = () => Math.max(2, 3 / fit);
+/** While panning, keep at least this much of the diagram inside the view. */
+const KEEP = 80;
 
 const app = new App(
   { name: 'sysketch viewer', version: '1.0.0' },
@@ -40,65 +45,92 @@ const app = new App(
 let diagram: Diagram | undefined;
 let fit = 1; // scale that fits the whole diagram
 let zoom = 1; // multiple of fit
+let x = 0; // diagram's top-left corner inside the view
+let y = 0;
 let mode: string = 'inline';
 
 const maxHeight = () => (mode === 'fullscreen' ? Math.max(200, stage.clientHeight) : INLINE_MAX_H);
+const size = () => ({ w: diagram!.width * fit * zoom, h: diagram!.height * fit * zoom });
 
-function layout(keep?: { x: number; y: number }) {
+/** Draw the diagram at the current zoom and position (kept partly in view). */
+function place() {
+  if (!diagram) return;
+  const { w, h } = size();
+  x = Math.min(stage.clientWidth - KEEP, Math.max(KEEP - w, x));
+  y = Math.min(stage.clientHeight - KEEP, Math.max(KEEP - h, y));
+  img.style.width = `${w}px`;
+  img.style.height = `${h}px`;
+  img.style.transform = `translate(${x}px, ${y}px)`;
+  zoomLabel.textContent = zoom === 1 ? 'Fit' : `${Math.round(fit * zoom * 100)}%`;
+  zoomLabel.title = zoom === 1 ? 'Fitted to the view' : 'Fit to view';
+}
+
+/** Size the view to the diagram (inline) and recompute the fitted scale. */
+function measure() {
   if (!diagram) return;
   const width = stage.clientWidth || document.body.clientWidth;
   fit = Math.min(1, (width - 2) / diagram.width, maxHeight() / diagram.height);
   if (mode !== 'fullscreen') stage.style.height = `${Math.ceil(diagram.height * fit)}px`;
-  const before = { w: img.offsetWidth || 1, h: img.offsetHeight || 1 };
-  img.style.width = `${diagram.width * fit * zoom}px`;
-  img.style.height = `${diagram.height * fit * zoom}px`;
-  // keep the point under the cursor (or the centre) where it was
-  const at = keep ?? { x: stage.clientWidth / 2, y: stage.clientHeight / 2 };
-  const fx = (stage.scrollLeft + at.x) / before.w;
-  const fy = (stage.scrollTop + at.y) / before.h;
-  stage.scrollLeft = fx * img.offsetWidth - at.x;
-  stage.scrollTop = fy * img.offsetHeight - at.y;
-  zoomLabel.textContent = zoom === 1 ? 'Fit' : `${Math.round(fit * zoom * 100)}%`;
 }
 
-function setZoom(z: number, at?: { x: number; y: number }) {
-  const max = Math.max(2, 3 / fit); // up to 3x the diagram's own size
-  zoom = Math.min(max, Math.max(1, z));
-  layout(at);
+function fitView() {
+  if (!diagram) return;
+  zoom = 1;
+  measure();
+  const { w, h } = size();
+  x = (stage.clientWidth - w) / 2;
+  y = (stage.clientHeight - h) / 2;
+  place();
 }
 
-$('in').onclick = () => setZoom(zoom * STEP);
-$('out').onclick = () => setZoom(zoom / STEP);
-zoomLabel.onclick = () => setZoom(1);
-stage.ondblclick = (e) => setZoom(zoom === 1 ? 1 / fit : 1, { x: e.offsetX, y: e.offsetY });
+/** Zoom around a point of the view (the centre by default), keeping it under the cursor. */
+function zoomTo(z: number, at = { x: stage.clientWidth / 2, y: stage.clientHeight / 2 }) {
+  const next = Math.min(maxZoom(), Math.max(MIN_ZOOM, z));
+  const k = next / zoom;
+  x = at.x - (at.x - x) * k;
+  y = at.y - (at.y - y) * k;
+  zoom = next;
+  place();
+}
+
+const point = (e: MouseEvent) => {
+  const r = stage.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+};
+
+$('in').onclick = () => zoomTo(zoom * STEP);
+$('out').onclick = () => zoomTo(zoom / STEP);
+zoomLabel.onclick = () => fitView();
+stage.ondblclick = (e) => (zoom === 1 ? zoomTo(1 / fit, point(e)) : fitView());
 stage.addEventListener(
   'wheel',
   (e) => {
+    // pinch on a trackpad, or Ctrl/Cmd + wheel; a plain wheel still scrolls the chat
     if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
-    const r = stage.getBoundingClientRect();
-    setZoom(zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1), { x: e.clientX - r.left, y: e.clientY - r.top });
+    zoomTo(zoom * Math.exp(-e.deltaY / 300), point(e));
   },
   { passive: false },
 );
 
-// drag to pan
+// drag to pan, at any zoom
 let drag: { x: number; y: number; left: number; top: number } | undefined;
 stage.onpointerdown = (e) => {
-  drag = { x: e.clientX, y: e.clientY, left: stage.scrollLeft, top: stage.scrollTop };
+  drag = { x: e.clientX, y: e.clientY, left: x, top: y };
   stage.setPointerCapture(e.pointerId);
   stage.classList.add('dragging');
 };
 stage.onpointermove = (e) => {
   if (!drag) return;
-  stage.scrollLeft = drag.left - (e.clientX - drag.x);
-  stage.scrollTop = drag.top - (e.clientY - drag.y);
+  x = drag.left + e.clientX - drag.x;
+  y = drag.top + e.clientY - drag.y;
+  place();
 };
 stage.onpointerup = stage.onpointercancel = () => {
   drag = undefined;
   stage.classList.remove('dragging');
 };
-window.addEventListener('resize', () => layout());
+window.addEventListener('resize', () => (zoom === 1 ? fitView() : (measure(), place())));
 
 const slug = () =>
   (diagram?.title ?? 'diagram')
@@ -134,7 +166,7 @@ function setMode(m: string) {
   document.documentElement.classList.toggle('fullscreen', mode === 'fullscreen');
   fullBtn.textContent = mode === 'fullscreen' ? '⤡' : '⤢';
   fullBtn.title = mode === 'fullscreen' ? 'Exit fullscreen' : 'Fullscreen';
-  layout();
+  fitView();
 }
 
 function applyContext(ctx: McpUiHostContext | undefined) {
@@ -168,8 +200,7 @@ app.ontoolresult = (result) => {
   if (!preview) img.src = diagram.svg;
   note.hidden = true;
   img.hidden = false;
-  zoom = 1;
-  layout();
+  fitView();
 };
 
 app.onhostcontextchanged = (ctx) => applyContext(ctx);
