@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>sysketch: system design diagrams from a few lines</title>
+    <meta
+      name="description"
+      content="Describe your system in a few lines and get a clean, hand-sketched architecture, sequence or cloud diagram. Works in Claude, ChatGPT, Perplexity, Claude Code, Cursor and the command line."
+    />
+    <link rel="canonical" href="https://tonys-coding.github.io/sysketch/" />
+    <meta name="theme-color" content="#fffdf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#16171b" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="sysketch: describe your system, get the diagram" />
+    <meta
+      property="og:description"
+      content="Clean, hand-sketched system design diagrams from a few lines of text, right in your AI chat."
+    />
+    <meta property="og:url" content="https://tonys-coding.github.io/sysketch/" />
+    <meta
+      property="og:image"
+      content="https://tonys-coding.github.io/sysketch/brand/social-preview.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="brand/sysketch-icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="brand/sysketch-icon-512.png" />
+    <link
+      rel="preload"
+      href="fonts/shantell-sans-latin-800-normal.woff"
+      as="font"
+      type="font/woff"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="fonts/atkinson-hyperlegible-next-latin-400-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="top">
+      <div class="top-inner">
+        <a class="brand" href="./" aria-label="sysketch home">
+          <img
+            class="brand-light"
+            src="brand/sysketch-wordmark.svg"
+            alt=""
+            width="150"
+            height="57"
+          />
+          <img
+            class="brand-dark"
+            src="brand/sysketch-wordmark-dark.svg"
+            alt=""
+            width="150"
+            height="57"
+          />
+        </a>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+          <span class="sr-only">Menu</span>
+        </button>
+        <nav id="site-nav" class="nav" aria-label="Main">
+          <a href="#try">Try it</a>
+          <a href="#why">Why</a>
+          <a href="#examples">Examples</a>
+          <a href="#language">The spec</a>
+          <a href="#install">Install</a>
+          <a class="nav-gh" href="https://github.com/Tonys-Coding/sysketch">
+            <svg aria-hidden="true" viewBox="0 0 16 16" width="18" height="18">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+              />
+            </svg>
+            GitHub
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <h1 id="hero-title">Describe your system. <span class="mark">Get the diagram.</span></h1>
+          <p class="lede">
+            Your AI writes a few lines describing your system. sysketch draws a clean, hand-sketched
+            architecture, sequence or cloud diagram you can drop into docs, slides or a pull
+            request.
+          </p>
+        </div>
+
+        <div class="get" id="get">
+          <div class="tabs" role="tablist" aria-label="Where you use AI">
+            <button role="tab" id="tab-chat" aria-controls="get-chat" aria-selected="true">
+              In an AI chat
+            </button>
+            <button
+              role="tab"
+              id="tab-cc"
+              aria-controls="get-cc"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              Claude Code
+            </button>
+            <button
+              role="tab"
+              id="tab-other"
+              aria-controls="get-other"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              Cursor &amp; others
+            </button>
+          </div>
+          <div class="tab-panel" role="tabpanel" id="get-chat" aria-labelledby="tab-chat">
+            <p>
+              Add a custom connector in Claude, ChatGPT or Perplexity with this URL. No account
+              needed.
+            </p>
+            <div class="copy-row">
+              <code>https://sysketch.vercel.app/mcp</code>
+              <button class="copy" type="button" data-copy="https://sysketch.vercel.app/mcp">
+                Copy URL
+              </button>
+            </div>
+          </div>
+          <div class="tab-panel" role="tabpanel" id="get-cc" aria-labelledby="tab-cc" hidden>
+            <p>Run this once in your terminal. Diagrams are saved in your project.</p>
+            <div class="copy-row">
+              <code>claude mcp add sysketch -- npx -y sysketch-mcp</code>
+              <button
+                class="copy"
+                type="button"
+                data-copy="claude mcp add sysketch -- npx -y sysketch-mcp"
+              >
+                Copy command
+              </button>
+            </div>
+          </div>
+          <div class="tab-panel" role="tabpanel" id="get-other" aria-labelledby="tab-other" hidden>
+            <p>
+              Add this to your assistant's MCP settings and restart it. Needs Node.js 20 or newer.
+            </p>
+            <div class="copy-row">
+              <code>{ "sysketch": { "command": "npx", "args": ["-y", "sysketch-mcp"] } }</code>
+              <button
+                class="copy"
+                type="button"
+                data-copy='{ "mcpServers": { "sysketch": { "command": "npx", "args": ["-y", "sysketch-mcp"] } } }'
+              >
+                Copy config
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="try" id="try" aria-labelledby="try-title">
+        <h2 id="try-title" class="sr-only">Try it</h2>
+        <div class="desk">
+          <div class="card" id="editor">
+            <div class="card-head">
+              <label for="spec">Edit the description</label>
+              <div class="presets" role="group" aria-label="Start from an example">
+                <button type="button" data-preset="rate-limited-api" aria-pressed="true">
+                  API
+                </button>
+                <button type="button" data-preset="login-sequence" aria-pressed="false">
+                  Sequence
+                </button>
+                <button type="button" data-preset="aws-network" aria-pressed="false">AWS</button>
+                <button type="button" data-preset="event-analytics" aria-pressed="false">
+                  Events
+                </button>
+              </div>
+            </div>
+            <textarea
+              id="spec"
+              spellcheck="false"
+              autocapitalize="off"
+              autocomplete="off"
+              rows="16"
+              aria-describedby="spec-hint"
+            ></textarea>
+            <p class="hint" id="spec-hint">
+              Change a line and the drawing updates. Try adding <code>- api &gt; search</code>.
+            </p>
+          </div>
+
+          <figure class="sheet" aria-labelledby="sheet-caption">
+            <div class="sheet-bar">
+              <label class="theme-pick">
+                <span>Theme</span>
+                <select id="theme">
+                  <option value="">sketch</option>
+                  <option value="graphite">graphite</option>
+                  <option value="blueprint">blueprint</option>
+                  <option value="midnight">midnight</option>
+                  <option value="classic">classic</option>
+                </select>
+              </label>
+              <span class="status" id="status" role="status" aria-live="polite"></span>
+              <a class="open" id="open-png" href="#" target="_blank" rel="noopener">Open PNG</a>
+            </div>
+            <div class="sheet-paper">
+              <img
+                id="diagram"
+                src="examples/rate-limited-api.svg"
+                alt="Diagram: Rate-Limited API Platform"
+              />
+              <p class="error" id="error" hidden></p>
+            </div>
+            <figcaption id="sheet-caption" class="sr-only">
+              The diagram drawn from the description
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="why" id="why" aria-labelledby="why-title">
+        <div class="why-copy">
+          <h2 id="why-title">Your AI shouldn't hand-draw every box</h2>
+          <p>
+            Ask an AI for a diagram and it writes every line, box and coordinate of an image by
+            hand: slow, expensive, and different every time. With sysketch it writes the short
+            description above, and sysketch does the drawing.
+          </p>
+          <div
+            class="bars"
+            role="img"
+            aria-label="Output tokens for five diagrams: 77,518 when the AI draws the SVG itself, 4,352 with sysketch."
+          >
+            <div class="bar-row">
+              <span class="bar-label">AI draws the SVG</span>
+              <span class="track"
+                ><span class="fill" style="--w: 78%"></span><span class="val">77,518</span></span
+              >
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">AI uses sysketch</span>
+              <span class="track"
+                ><span class="fill fill-us" style="--w: 4.4%"></span
+                ><span class="val">4,352</span></span
+              >
+            </div>
+          </div>
+          <p class="fine">
+            Output tokens to create five system design diagrams with Claude Code (Sonnet): about 18x
+            fewer with sysketch, and about 9x faster.
+            <a href="https://github.com/Tonys-Coding/sysketch/blob/main/docs/benchmark.md"
+              >How we measured</a
+            >
+          </p>
+        </div>
+        <div class="compare">
+          <figure>
+            <img
+              src="benchmark/ride-sharing-raw.png"
+              alt="Ride-sharing diagram drawn by the AI writing SVG by hand: dense and unevenly spaced"
+              loading="lazy"
+              width="900"
+              height="489"
+            />
+            <figcaption>The AI drawing it by hand</figcaption>
+          </figure>
+          <figure>
+            <img
+              src="benchmark/ride-sharing-sysketch.png"
+              alt="The same ride-sharing system drawn by sysketch: tidy, hand-sketched, numbered steps"
+              loading="lazy"
+              width="900"
+              height="402"
+            />
+            <figcaption>The AI using sysketch</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="examples" id="examples" aria-labelledby="examples-title">
+        <h2 id="examples-title">One short description, every kind of system diagram</h2>
+        <div class="tabs tabs-wide" role="tablist" aria-label="Diagram kinds">
+          <button
+            role="tab"
+            id="ex-arch"
+            aria-controls="ex-panel"
+            aria-selected="true"
+            data-example="web-scale"
+          >
+            Architecture
+          </button>
+          <button
+            role="tab"
+            id="ex-seq"
+            aria-controls="ex-panel"
+            aria-selected="false"
+            tabindex="-1"
+            data-example="login-sequence"
+          >
+            Sequence
+          </button>
+          <button
+            role="tab"
+            id="ex-cloud"
+            aria-controls="ex-panel"
+            aria-selected="false"
+            tabindex="-1"
+            data-example="aws-network"
+          >
+            Cloud network
+          </button>
+          <button
+            role="tab"
+            id="ex-flow"
+            aria-controls="ex-panel"
+            aria-selected="false"
+            tabindex="-1"
+            data-example="event-analytics"
+          >
+            Long flows
+          </button>
+          <button
+            role="tab"
+            id="ex-logos"
+            aria-controls="ex-panel"
+            aria-selected="false"
+            tabindex="-1"
+            data-example="logos"
+          >
+            Product logos
+          </button>
+        </div>
+        <div class="example" role="tabpanel" id="ex-panel" aria-labelledby="ex-arch">
+          <p class="example-note" id="ex-note"></p>
+          <div class="example-body">
+            <img
+              id="ex-img"
+              src="examples/web-scale.svg"
+              alt="Scaling a web app: load balancer, API servers, cache, database, queue and worker"
+              loading="lazy"
+            />
+            <details class="example-spec">
+              <summary>Show the description</summary>
+              <pre><code id="ex-spec"></code></pre>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="themes" aria-labelledby="themes-title">
+        <div class="themes-copy">
+          <h2 id="themes-title">Five looks, one description</h2>
+          <p>
+            Ask for “the blueprint theme” and the same diagram redraws itself. No restyling by hand.
+          </p>
+          <div class="swatches" role="radiogroup" aria-label="Theme">
+            <button role="radio" aria-checked="true" data-theme="sketch">
+              <span class="sw sw-sketch"></span>Sketch
+            </button>
+            <button role="radio" aria-checked="false" tabindex="-1" data-theme="graphite">
+              <span class="sw sw-graphite"></span>Graphite
+            </button>
+            <button role="radio" aria-checked="false" tabindex="-1" data-theme="blueprint">
+              <span class="sw sw-blueprint"></span>Blueprint
+            </button>
+            <button role="radio" aria-checked="false" tabindex="-1" data-theme="midnight">
+              <span class="sw sw-midnight"></span>Midnight
+            </button>
+            <button role="radio" aria-checked="false" tabindex="-1" data-theme="classic">
+              <span class="sw sw-classic"></span>Classic
+            </button>
+          </div>
+        </div>
+        <img
+          class="themes-img"
+          id="theme-img"
+          src="themes/sketch.svg"
+          alt="A URL shortener diagram in the sketch theme"
+          loading="lazy"
+        />
+      </section>
+
+      <section class="language" id="language" aria-labelledby="language-title">
+        <div class="language-copy">
+          <h2 id="language-title">The whole language fits on an index card</h2>
+          <p>
+            Arrows, optional parts and groups. Common names like <code>redis</code>,
+            <code>kafka</code> or <code>stripe</code> pick the right icon by themselves, and
+            mistakes come back as fixes: <q>unknown node “databse”. Did you mean: database?</q>
+          </p>
+          <p>
+            <a href="https://github.com/Tonys-Coding/sysketch/blob/main/docs/spec.md"
+              >Read the full spec guide</a
+            >
+          </p>
+        </div>
+        <div class="index-card">
+          <pre><code><span class="k">title:</span> Checkout
+<span class="k">type:</span> sequence        <span class="c"># optional: a timeline</span>
+<span class="k">nodes:</span>
+  api: server | Orders API | 3 replicas
+<span class="k">groups:</span>
+  VPC: [Public, Private]  <span class="c"># groups nest</span>
+  Private: [api, db]
+<span class="k">edges:</span>
+  - client &gt; lb &gt; api | POST /checkout
+  - api ..&gt; client       <span class="c"># dashed reply</span>
+  - api &lt;&gt; cache         <span class="c"># two-way</span>
+  - lb =&gt; api            <span class="c"># hot path</span>
+  - api -- db            <span class="c"># plain line</span>
+  - api &gt; stripe [green]</code></pre>
+        </div>
+      </section>
+
+      <section class="where" aria-labelledby="where-title">
+        <h2 id="where-title">Works where you already ask</h2>
+        <div class="where-cols">
+          <div>
+            <h3>AI chats</h3>
+            <p>
+              Claude, ChatGPT and Perplexity, through one connector URL. In Claude and ChatGPT the
+              diagram opens right in the chat, with zoom and downloads.
+            </p>
+          </div>
+          <div>
+            <h3>Coding assistants</h3>
+            <p>
+              Claude Code, Cursor, VS Code, Windsurf, Gemini CLI and any app that runs MCP servers.
+              Diagrams are saved next to your code, with their description, so changes are a
+              one-line edit.
+            </p>
+          </div>
+          <div>
+            <h3>Command line and code</h3>
+            <p>
+              <code>npx sysketch render diagram.yaml</code> writes an SVG or PNG. In Node,
+              <code>render(spec)</code> returns the SVG.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="install" id="install" aria-labelledby="install-title">
+        <h2 id="install-title">Set it up in a minute</h2>
+        <ul class="options">
+          <li>
+            <h3>Claude <span class="dim">(web, desktop and mobile)</span></h3>
+            <p>
+              Settings → Connectors → Add custom connector. Paste
+              <code>https://sysketch.vercel.app/mcp</code>.
+            </p>
+          </li>
+          <li>
+            <h3>ChatGPT</h3>
+            <p>
+              Turn on Developer mode under Settings → Apps &amp; Connectors → Advanced, then create
+              a connector with the same URL and no authentication.
+            </p>
+          </li>
+          <li>
+            <h3>Claude Code</h3>
+            <p>
+              Run <code>claude mcp add sysketch -- npx -y sysketch-mcp</code> once in your terminal.
+            </p>
+          </li>
+        </ul>
+        <div class="ask">
+          <h3>Then just ask</h3>
+          <p>
+            “Use sysketch to draw a ride-sharing app with rider and driver apps, an API gateway, a
+            matching service and a trip database.”
+          </p>
+        </div>
+        <p class="more">
+          Official AWS, Azure and Google Cloud icons, your company's logos and every option are in
+          the <a href="https://github.com/Tonys-Coding/sysketch#readme">README</a>.
+        </p>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="foot-inner">
+        <img class="brand-light" src="brand/sysketch-icon.svg" alt="" width="36" height="36" />
+        <p>
+          sysketch is free and open source (MIT).
+          <a href="https://github.com/Tonys-Coding/sysketch">GitHub</a> ·
+          <a href="https://www.npmjs.com/package/sysketch">npm</a> ·
+          <a href="https://sysketch.vercel.app/privacy.html">Privacy</a> ·
+          <a href="https://sysketch.vercel.app/terms.html">Terms</a>
+        </p>
+        <p class="dim">
+          Product names and logos are trademarks of their owners; sysketch isn't affiliated with
+          them.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

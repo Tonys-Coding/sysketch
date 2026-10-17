@@ -11,6 +11,10 @@
 </p>
 
 <p align="center">
+  <a href="https://tonys-coding.github.io/sysketch/"><b>Try it live in your browser →</b></a>
+</p>
+
+<p align="center">
   <a href="https://www.npmjs.com/package/sysketch"><img alt="npm: sysketch" src="https://img.shields.io/npm/v/sysketch?label=sysketch"></a>
   <a href="https://www.npmjs.com/package/sysketch-mcp"><img alt="npm: sysketch-mcp" src="https://img.shields.io/npm/v/sysketch-mcp?label=sysketch-mcp"></a>
   <a href="https://github.com/Tonys-Coding/sysketch/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Tonys-Coding/sysketch/actions/workflows/ci.yml/badge.svg"></a>
