@@ -3,6 +3,7 @@
 import { createHash } from 'node:crypto';
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { render } from 'sysketch';
 
 const OUT = '_site';
 rmSync(OUT, { recursive: true, force: true });
@@ -11,7 +12,15 @@ const copy = (from, to = from) => {
   cpSync(from, `${OUT}/${to}`);
 };
 
+// Diagrams are drawn fresh with their nodes and edges tagged (annotate), so app.js can send
+// packets along the arrows. Without product logos they match the committed example images.
+const draw = (file) => render(readFileSync(file, 'utf8'), { logos: false, annotate: true });
+const size = (svg) => /viewBox="0 0 (\d+) (\d+)"/.exec(svg).slice(1);
+
 for (const f of ['styles.css', 'app.js']) copy(`site/${f}`, f);
+const hero = await draw('site/hero.yaml');
+writeFileSync(`${OUT}/hero.svg`, hero);
+const [heroW, heroH] = size(hero);
 // cache-busting: browsers and the Pages CDN keep old CSS/JS for a while after a deploy
 const hash = (f) =>
   createHash('sha256')
@@ -22,7 +31,9 @@ writeFileSync(
   `${OUT}/index.html`,
   readFileSync('site/index.html', 'utf8')
     .replace('href="styles.css"', `href="styles.css?v=${hash('styles.css')}"`)
-    .replace('src="app.js"', `src="app.js?v=${hash('app.js')}"`),
+    .replace('src="app.js"', `src="app.js?v=${hash('app.js')}"`)
+    .replaceAll('HERO_W', heroW)
+    .replaceAll('HERO_H', heroH),
 );
 writeFileSync(`${OUT}/.nojekyll`, '');
 
@@ -75,8 +86,9 @@ const EXAMPLES = {
   },
 };
 const presets = {};
+mkdirSync(`${OUT}/examples`, { recursive: true });
 for (const [name, meta] of Object.entries(EXAMPLES)) {
-  copy(`examples/${name}.svg`, `examples/${name}.svg`);
+  writeFileSync(`${OUT}/examples/${name}.svg`, await draw(`examples/${name}.yaml`));
   presets[name] = {
     ...meta,
     spec: readFileSync(`examples/${name}.yaml`, 'utf8'),

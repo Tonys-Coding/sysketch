@@ -76,6 +76,12 @@ function logoMarkup(logo: Logo, cx: number, top: number, theme: Theme, key: stri
 export interface RenderOptions {
   theme?: Theme;
   direction?: 'right' | 'down';
+  /**
+   * Tag nodes and edges for scripts that animate or step through the diagram: node groups get
+   * class="sk-node" data-node, edge groups class="sk-edge" data-from/data-to plus an invisible
+   * path.sk-route along the route's centre line. Off by default (plain output stays smaller).
+   */
+  annotate?: boolean;
 }
 
 export async function renderModel(model: Model, opts: RenderOptions = {}): Promise<string> {
@@ -189,6 +195,10 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     );
   }
 
+  const edgeTag = (e: EdgeModel) =>
+    opts.annotate ? ` class="sk-edge" data-from="${esc(e.from)}" data-to="${esc(e.to)}"` : '';
+  const routeTag = (pts: Pt[]) =>
+    opts.annotate ? `<path class="sk-route" d="${roundedPath(pts, 12)}" fill="none"/>` : '';
   for (const e of model.edges) {
     const route = lay.edges.get(e.id);
     if (!route || route.points.length < 2) continue;
@@ -217,7 +227,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     if (sk) {
       const ink = { stroke: color, strokeWidth: width };
       out.push(
-        `<g>${sketch.path(roundedPath(pts, 12), ink, `e:${e.id}`, sk, dash)}` +
+        `<g${edgeTag(e)}>${routeTag(route.points)}${sketch.path(roundedPath(pts, 12), ink, `e:${e.id}`, sk, dash)}` +
           heads
             .map((h, i) =>
               sketch.polygon(
@@ -233,7 +243,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
       continue;
     }
     out.push(
-      `<g><path d="${roundedPath(pts, 12)}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"${dash}/>` +
+      `<g${edgeTag(e)}>${routeTag(route.points)}<path d="${roundedPath(pts, 12)}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"${dash}/>` +
         heads
           .map(
             (h) =>
@@ -309,7 +319,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
       shell = `<rect ${rect} fill="${card.fill ?? hue.card}" stroke="${hue.a}" stroke-width="${card.stroke}"${shadowAttr}/>`;
     }
     out.push(
-      `<g><title>${esc(n.label)}</title>` +
+      `<g${opts.annotate ? ` class="sk-node" data-node="${esc(n.id)}"` : ''}><title>${esc(n.label)}</title>` +
         shell +
         (n.logo
           ? logoMarkup(n.logo, b.x + b.w / 2, iy, theme, `l:${n.id}`)
@@ -378,7 +388,7 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
   if (legend) out.push(legend.render(36, legendY, glyphs));
   const title = model.title ?? 'System design diagram';
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(title)}">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(title)}"${opts.annotate && model.type ? ` data-type="${model.type}"` : ''}>` +
     `<title>${esc(title)}</title><desc>${esc(desc)}</desc>` +
     `<defs>${defs.join('')}${glyphs.defs()}</defs>` +
     `<rect width="${W}" height="${H}" fill="${theme.bg}"/>` +

@@ -17,6 +17,7 @@ export default tseslint.config(
         [
           'document', 'window', 'navigator', 'fetch', 'setTimeout', 'clearTimeout', 'URL',
           'Image', 'Blob', 'Response', 'TextEncoder', 'CompressionStream', 'btoa',
+          'matchMedia', 'localStorage', 'IntersectionObserver', 'DOMParser',
         ].map((g) => [g, 'readonly']),
       ),
     },

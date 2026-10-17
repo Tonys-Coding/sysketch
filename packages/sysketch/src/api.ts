@@ -26,6 +26,8 @@ export interface RenderInputOptions {
    * specs from anyone. Installed logos (`logoHome`) are still used.
    */
   logoFolders?: boolean;
+  /** Tag nodes and edges in the SVG for scripts (see RenderOptions.annotate). */
+  annotate?: boolean;
 }
 
 const within = (root: string, p: string) => {
@@ -78,7 +80,7 @@ export async function renderWithModel(
     model.direction = opts.direction;
     delete model.autoDirection;
   }
-  const ro: RenderOptions = {};
+  const ro: RenderOptions = opts.annotate ? { annotate: true } : {};
   const name = opts.theme ?? model.theme;
   if (name) {
     const t = themes[name];

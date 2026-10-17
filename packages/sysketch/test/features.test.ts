@@ -141,3 +141,24 @@ edges:
     expect(await render(spec, classic)).toContain('stroke-dasharray="7 6"');
   });
 });
+
+describe('annotate', () => {
+  const spec = 'edges: ["client > api > db"]';
+
+  it('tags nodes and edges with a route for scripts, in both renderers', async () => {
+    for (const theme of ['sketch', 'classic']) {
+      const svg = await render(spec, { theme, annotate: true });
+      expect(svg.match(/class="sk-node"/g)).toHaveLength(3);
+      expect(svg).toContain('class="sk-edge" data-from="client" data-to="api"');
+      expect(svg.match(/<path class="sk-route" d="M[^"]+" fill="none"\/>/g)).toHaveLength(2);
+    }
+    expect(await render(`type: sequence\n${spec}`, { annotate: true })).toContain(
+      'data-type="sequence"',
+    );
+  });
+
+  it('leaves default output untouched', async () => {
+    const svg = await render(spec);
+    expect(svg).not.toMatch(/sk-(node|edge|route)|data-type/);
+  });
+});

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **`annotate` render option:** tags nodes and arrows in the SVG (`sk-node`, `sk-edge` with `data-from`/`data-to`, and an invisible `sk-route` path per arrow) so web pages can animate or step through a diagram. Off by default; normal output is unchanged.
+- **Showcase site:** uses the full screen width with full-width sections, a large live diagram in the hero, and example diagrams side by side with their descriptions. Request packets travel each arrow in flow order (sequence diagrams play their messages in turn); a button pauses the motion, and it starts paused for people who turn on "reduce motion".
+- GitHub Actions updated to the Node 24 versions (checkout v7, setup-node v7, configure-pages v6, upload-pages-artifact v5, deploy-pages v5).
+
 ## 0.5.0
 
 **sysketch 0.5.0**

@@ -163,6 +163,24 @@
             </div>
           </div>
         </div>
+
+        <figure class="hero-sheet">
+          <div class="live-art" data-art="hero.svg">
+            <img
+              src="hero.svg"
+              width="HERO_W"
+              height="HERO_H"
+              alt="A ride-sharing platform drawn by sysketch: rider and driver apps send requests through an API gateway to matching and trip services, live locations, a trips database, trip events, payments and push notifications"
+            />
+          </div>
+          <figcaption>
+            <span
+              >Drawn by sysketch from a 23-line description. The dots follow requests through the
+              system.</span
+            >
+            <button class="motion" type="button" hidden>Pause animation</button>
+          </figcaption>
+        </figure>
       </section>
 
       <section class="try" id="try" aria-labelledby="try-title">
@@ -227,7 +245,7 @@
         </div>
       </section>
 
-      <section class="why" id="why" aria-labelledby="why-title">
+      <section class="why band" id="why" aria-labelledby="why-title">
         <div class="why-copy">
           <h2 id="why-title">Your AI shouldn't hand-draw every box</h2>
           <p>
@@ -340,15 +358,17 @@
           </button>
         </div>
         <div class="example" role="tabpanel" id="ex-panel" aria-labelledby="ex-arch">
-          <p class="example-note" id="ex-note"></p>
-          <div class="example-body">
+          <div class="live-art" id="ex-art">
             <img
               id="ex-img"
               src="examples/web-scale.svg"
               alt="Scaling a web app: load balancer, API servers, cache, database, queue and worker"
               loading="lazy"
             />
-            <details class="example-spec">
+          </div>
+          <div class="example-side">
+            <p class="example-note" id="ex-note"></p>
+            <details class="example-spec" id="ex-details">
               <summary>Show the description</summary>
               <pre><code id="ex-spec"></code></pre>
             </details>
@@ -356,7 +376,7 @@
         </div>
       </section>
 
-      <section class="themes" aria-labelledby="themes-title">
+      <section class="themes band" aria-labelledby="themes-title">
         <div class="themes-copy">
           <h2 id="themes-title">Five looks, one description</h2>
           <p>
@@ -421,7 +441,7 @@
         </div>
       </section>
 
-      <section class="where" aria-labelledby="where-title">
+      <section class="where band" aria-labelledby="where-title">
         <h2 id="where-title">Works where you already ask</h2>
         <div class="where-cols">
           <div>

@@ -46,6 +46,8 @@ await renderToFile(specText, 'diagram.png', { theme: 'blueprint' });
 
 The same spec always produces the same file.
 
+To animate or step through a diagram in a web page, pass `{ annotate: true }`: nodes get `class="sk-node" data-node="<id>"`, arrows get `class="sk-edge" data-from data-to` and an invisible `path.sk-route` along the arrow, and sequence diagrams get `data-type="sequence"`. The [showcase site](https://tonys-coding.github.io/sysketch/) uses it to send packets along each arrow.
+
 ## Features
 
 - **Five themes:** hand-drawn `sketch` (default), `graphite`, `blueprint`, `midnight` and `classic`.

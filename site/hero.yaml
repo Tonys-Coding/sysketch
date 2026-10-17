@@ -1,0 +1,23 @@
+title: Ride-Sharing Platform
+nodes:
+  rider: mobile | Rider App
+  driver: mobile | Driver App
+  gw: gateway | API Gateway
+  match: service | Matching | nearest driver
+  trips: service | Trips
+  loc: redis | Live Locations
+  db: postgres | Trips DB
+  events: kafka | Trip Events
+  pay: payment | Payments
+  push: notification | Push
+groups:
+  Services: [match, trips]
+  Data: [loc, db]
+edges:
+  - rider > gw | request ride
+  - driver > gw | GPS
+  - gw > match > loc
+  - gw > trips > db
+  - trips > events
+  - events > pay
+  - events > push

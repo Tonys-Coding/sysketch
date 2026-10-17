@@ -72,6 +72,214 @@ for (const btn of $$('[data-copy]')) {
 
 tabs($('#get .tabs'));
 
+/* ---------- moving diagrams: a packet travels each arrow, in the order requests flow ---------- */
+// The site's own diagrams are drawn with their nodes and edges tagged (render option
+// `annotate`), so each arrow's route is known. Packets leave the nodes nothing points at, and
+// every other node passes one on when one arrives; sequence diagrams play their messages in
+// order. Motion starts off for people who ask their system to reduce it, and a button pauses it.
+const NS = 'http://www.w3.org/2000/svg';
+const SPEED = 300; // diagram units per second
+const COLORS = ['#f783ac', '#ffc93c', '#4cc3fc'];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+const motionBtn = $('.motion');
+const live = new Set();
+const onScreen = new WeakSet();
+let chosen = null;
+try {
+  chosen = localStorage.getItem('sysketch-motion');
+} catch {
+  // storage blocked: the choice lasts for this visit
+}
+let motion = chosen ? chosen === 'on' : !reduce.matches;
+
+const play = (svg) =>
+  motion && onScreen.has(svg) ? svg.unpauseAnimations() : svg.pauseAnimations();
+function setMotion(on) {
+  motion = on;
+  document.documentElement.dataset.motion = on ? 'on' : 'off';
+  motionBtn.textContent = on ? 'Pause animation' : 'Play animation';
+  for (const svg of live) play(svg);
+}
+setMotion(motion);
+motionBtn.addEventListener('click', () => {
+  setMotion(!motion);
+  try {
+    localStorage.setItem('sysketch-motion', motion ? 'on' : 'off');
+  } catch {
+    // not remembered
+  }
+});
+reduce.addEventListener('change', () => chosen || setMotion(!reduce.matches));
+
+// animations only run while their diagram is on screen
+const watch = new IntersectionObserver((entries) => {
+  for (const { target, isIntersecting } of entries) {
+    if (isIntersecting) onScreen.add(target);
+    else onScreen.delete(target);
+    play(target);
+  }
+});
+const near = (el) =>
+  new Promise((ok) => {
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((x) => x.isIntersecting)) {
+          io.disconnect();
+          ok();
+        }
+      },
+      { rootMargin: '400px' },
+    );
+    io.observe(el);
+  });
+
+const el = (name, attrs) => {
+  const node = document.createElementNS(NS, name);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, String(v));
+  return node;
+};
+
+function addPackets(svg, prefix) {
+  const edges = $$('.sk-edge', svg)
+    .map((g, i) => {
+      const route = $('.sk-route', g);
+      return { g, i, route, from: g.dataset.from, to: g.dataset.to, len: route?.getTotalLength() };
+    })
+    .filter((e) => e.len > 1);
+  if (!edges.length) return false;
+  const dur = (e) => Math.max(0.6, e.len / SPEED);
+  const start = new Map();
+  if (svg.dataset.type === 'sequence') {
+    let t = 0;
+    for (const e of edges) {
+      start.set(e, t);
+      t += dur(e) + 0.25;
+    }
+  } else {
+    const arrive = new Map();
+    const fed = new Set(edges.map((e) => e.to));
+    for (const e of edges) if (!fed.has(e.from)) arrive.set(e.from, 0);
+    if (!arrive.size) arrive.set(edges[0].from, 0);
+    for (let changed = true; changed;) {
+      changed = false;
+      for (const e of edges) {
+        const t = arrive.get(e.from) + dur(e);
+        if (Number.isNaN(t) || arrive.get(e.to) <= t) continue;
+        arrive.set(e.to, t);
+        changed = true;
+      }
+    }
+    for (const e of edges) start.set(e, arrive.get(e.from) ?? 0);
+  }
+
+  const lead = 0.3;
+  const cycle = Math.max(...edges.map((e) => start.get(e) + dur(e))) + lead + 1.5;
+  const fade = 0.08 / cycle;
+  const keys = (...xs) => xs.map((x) => +x.toFixed(4)).join(';');
+  const loop = { dur: `${cycle}s`, repeatCount: 'indefinite' };
+  const r = Math.max(6, svg.viewBox.baseVal.width / 210);
+  for (const e of edges) {
+    const color = COLORS[e.i % COLORS.length];
+    const t0 = (lead + start.get(e)) / cycle;
+    const t1 = (lead + start.get(e) + dur(e)) / cycle;
+    const id = `${prefix}route-${e.i}`;
+    e.route.id = id;
+
+    // the wire lights up behind the packet, then fades
+    const trail = el('path', {
+      class: 'sk-pkt',
+      d: e.route.getAttribute('d'),
+      fill: 'none',
+      stroke: color,
+      'stroke-width': r * 1.5,
+      'stroke-linecap': 'round',
+      'stroke-dasharray': `${e.len} ${e.len}`,
+      'stroke-dashoffset': e.len,
+      opacity: 0,
+    });
+    trail.append(
+      el('animate', {
+        attributeName: 'stroke-dashoffset',
+        values: keys(e.len, e.len, 0, 0),
+        keyTimes: keys(0, t0, t1, 1),
+        ...loop,
+      }),
+      el('animate', {
+        attributeName: 'opacity',
+        values: '0;0;0.45;0.45;0;0',
+        keyTimes: keys(0, t0, t0 + fade, t1, t1 + 0.6 / cycle, 1),
+        ...loop,
+      }),
+    );
+    e.g.prepend(trail);
+
+    const dot = el('circle', {
+      class: 'sk-pkt',
+      r,
+      fill: color,
+      stroke: '#1f2328',
+      'stroke-width': r / 3,
+      opacity: 0,
+    });
+    const path = el('mpath', { href: `#${id}` });
+    path.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#${id}`);
+    const move = el('animateMotion', {
+      keyPoints: '0;0;1;1',
+      keyTimes: keys(0, t0, t1, 1),
+      calcMode: 'linear',
+      ...loop,
+    });
+    move.append(path);
+    dot.append(
+      move,
+      el('animate', {
+        attributeName: 'opacity',
+        values: '0;0;1;1;0;0',
+        keyTimes: keys(0, t0, t0 + fade, t1, t1 + fade, 1),
+        ...loop,
+      }),
+    );
+    e.g.append(dot);
+  }
+  return true;
+}
+
+// Swap a diagram's <img> for the same SVG inline, with packets. Our own build output only.
+let artCount = 0;
+const artText = new Map();
+async function liveArt(box, url) {
+  box.dataset.art = url;
+  await near(box);
+  try {
+    if (!artText.has(url)) {
+      const res = await fetch(url);
+      if (!res.ok) return;
+      artText.set(url, await res.text());
+    }
+  } catch {
+    return; // the image stays
+  }
+  if (box.dataset.art !== url) return; // another diagram was picked meanwhile
+  // ids are prefixed so two inline diagrams can't borrow each other's glyphs or clips
+  const prefix = `a${++artCount}-`;
+  const text = artText.get(url).replace(/\bid="|href="#|url\(#/g, `$&${prefix}`);
+  const svg = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
+  if (svg.nodeName !== 'svg' || !svg.querySelector('.sk-edge')) return;
+  const img = $('img', box);
+  svg.removeAttribute('width');
+  svg.removeAttribute('height');
+  if (img?.alt) svg.setAttribute('aria-label', img.alt);
+  const node = document.importNode(svg, true);
+  box.replaceChildren(node);
+  if (!addPackets(node, prefix)) return;
+  for (const old of live) if (!old.isConnected) live.delete(old);
+  live.add(node);
+  watch.observe(node);
+  play(node);
+  motionBtn.hidden = false;
+}
+liveArt($('.hero .live-art'), 'hero.svg');
+
 /* ---------- data: example descriptions and their pre-drawn diagrams ---------- */
 const presets = await fetch('presets.json').then((r) => r.json());
 const titleOf = (spec) => /^title:\s*(.+)$/m.exec(spec)?.[1]?.replace(/^["']|["']$/g, '') ?? '';
@@ -198,15 +406,17 @@ for (const b of $$('[data-preset]'))
 loadPreset('rate-limited-api');
 
 /* ---------- examples ---------- */
-const exImg = $('#ex-img');
+const exArt = $('#ex-art');
 const exSpec = $('#ex-spec');
 const exNote = $('#ex-note');
 const exPanel = $('#ex-panel');
+// side by side on wide screens, so the description is shown there from the start
+if (matchMedia('(min-width: 1101px)').matches) $('#ex-details').open = true;
 function showExample(tab) {
   const p = presets[tab.dataset.example];
   if (!p) return;
-  exImg.src = p.svg;
-  exImg.alt = p.alt;
+  exArt.replaceChildren(Object.assign(document.createElement('img'), { src: p.svg, alt: p.alt }));
+  liveArt(exArt, p.svg);
   exSpec.textContent = p.spec;
   exNote.textContent = p.note;
   exPanel.setAttribute('aria-labelledby', tab.id);
