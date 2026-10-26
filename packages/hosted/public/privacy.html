@@ -55,7 +55,7 @@
     <main>
       <p><a href="/">← sysketch</a></p>
       <h1>Privacy policy</h1>
-      <p>Last updated: October 15, 2026</p>
+      <p>Last updated: October 26, 2026</p>
       <p>
         This policy covers the hosted sysketch server at <code>sysketch.vercel.app</code>, which AI
         chat apps such as Claude and ChatGPT use to draw diagrams. sysketch is an open-source
@@ -87,18 +87,33 @@
           views load quickly.
         </li>
         <li>
+          <strong>Anonymous usage counts.</strong> To see how much sysketch is used, we count per
+          day how many diagrams are drawn or fail, their type (such as architecture or sequence),
+          which AI app sent them (the first word of its user agent, like <code>claude-user</code>),
+          and which apps connect. We also estimate how many different users there are each day: a
+          one-way hash of your AI app's anonymous user ID if it sends one, otherwise of the IP
+          address and user agent, mixed with a random value that changes daily and is deleted after
+          two days. Only an approximate total is kept from these hashes, not the hashes themselves.
+          We never store diagram descriptions, IP addresses or user IDs, and the counts are deleted
+          after 400 days.
+        </li>
+        <li>
           <strong>Rate limiting.</strong> To prevent abuse, the server counts requests per IP
           address in memory for one minute. These counts are not stored.
         </li>
       </ul>
       <p>
-        We don't use cookies, analytics, advertising or tracking, and we don't sell or share data.
+        We don't use cookies, advertising or tracking, and we don't sell or share data. The usage
+        counts above are our only analytics.
       </p>
 
       <h2>Third parties</h2>
       <p>
         Vercel hosts the server (<a href="https://vercel.com/legal/privacy-policy"
           >Vercel's privacy policy</a
+        >). Upstash stores the anonymous usage counts (<a
+          href="https://upstash.com/trust/privacy.pdf"
+          >Upstash's privacy policy</a
         >). Your AI app sends requests to sysketch on your behalf, and its own privacy policy covers
         your conversation.
       </p>

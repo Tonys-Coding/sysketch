@@ -17,6 +17,7 @@ The sysketch MCP server as a web service, for AI apps that can't run programs on
 - **Product logos from Simple Icons.** The build installs the latest Simple Icons release (`npm run logos`, checked the same way as `sysketch logos install`), so a logo a brand asked Simple Icons to remove disappears on the next deploy. Logos are drawn unaltered and only inside diagrams, under nominative fair use (naming the actual product in an architecture diagram). Specs can't name logo folders (`logos: ./folder`), and `logos: false` turns logos off. The AWS, Azure and Google Cloud packs and company logos stay features of the local `sysketch-mcp`.
 - **Removing a logo:** add its Simple Icons slug to [`blocked-logos.txt`](blocked-logos.txt) and push; the next deploy leaves it out.
 - **Landing page:** `/` explains how to connect and shows the server URL. [`/privacy.html`](public/privacy.html) and [`/terms.html`](public/terms.html) are the legal pages app directories ask for.
+- **Anonymous usage counts (optional):** with an Upstash Redis database connected, the server counts diagrams drawn and failed per day, diagram types, the app that sent each one, the MCP clients that connect, and an estimate of distinct users per day (a hash salted with a daily random value that is deleted after two days, kept only inside a HyperLogLog). No specs, IP addresses or user ids are stored; counts expire after 400 days. You see them at `/stats` (see [Usage counts](#usage-counts)). See [`src/usage.ts`](src/usage.ts).
 - **Directory verification:** set `OPENAI_APPS_CHALLENGE` (ChatGPT) or `GLAMA_JSON` (Glama) in Vercel's environment variables and redeploy; the server returns them at `/.well-known/openai-apps-challenge` and `/.well-known/glama.json`.
 
 A render takes about 0.1 to 0.4 s of CPU, so Vercel's free Hobby plan (4 CPU-hours a month) covers roughly 40,000 renders. Repeat views of a link come from the CDN.
@@ -36,6 +37,17 @@ Optional:
 - **Rate limiting:** add a rule under **Firewall** for stronger, cross-instance limits.
 
 The Hobby plan is for non-commercial use. If you start charging, move to Vercel Pro, or run `npm start` on any host that runs Node (Render, Fly.io, Google Cloud Run).
+
+## Usage counts
+
+1. In your Vercel project, open **Storage → Create Database**, pick **Upstash for Redis** (Marketplace), choose the **Free** plan and connect it to this project. Vercel adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` for you. (A database made on upstash.com works too: set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.)
+2. Under **Settings → Environment Variables**, add `STATS_KEY` with a long random password (for example from `openssl rand -base64 24`).
+3. **Deployments → Redeploy**. `/health` now shows `"counting": true`.
+4. Open `https://<your-project>.vercel.app/stats`. The browser asks for a name and password: any name, and your `STATS_KEY`. `/stats.json` returns the same data as JSON.
+
+Each diagram costs about 12 Redis commands, so the free tier covers far more than the Hobby plan's render budget. Without these variables nothing is counted and `/stats` doesn't exist.
+
+How to read it: **Drawn** is the number to watch; every one is a person asking an AI chat for a diagram. **Sources** estimates distinct people per day; it's closest for ChatGPT, which sends an anonymous id (possibly one per conversation, so it can overcount people who start many chats), while requests through Claude come from Anthropic's servers, so there it undercounts. Your own tests count too.
 
 ## Connect
 

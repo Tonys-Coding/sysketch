@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { ICONS, SysketchError, themes } from 'sysketch';
 import pkg from '../package.json' with { type: 'json' };
 import { encodeSpec, logoResolver, renderSpec, toPng, LIMITS } from './diagram.js';
+import { countRender, type Origin } from './usage.js';
 import { VIEWER_HTML } from './viewer.generated.js';
 
 // Loaded into the model's context every session: keep it short.
@@ -32,8 +33,11 @@ const fail = (text: string): CallToolResult => ({
   content: [{ type: 'text', text }],
 });
 
-/** The MCP server for one request. `base` is the public URL that diagram links point to. */
-export function createHostedServer(base: string): McpServer {
+/**
+ * The MCP server for one request. `base` is the public URL that diagram links point to;
+ * `origin` (when given) lets render_diagram add to the anonymous usage counts.
+ */
+export function createHostedServer(base: string, origin?: Origin): McpServer {
   const server = new McpServer(
     { name: 'sysketch', version: pkg.version },
     { instructions: INSTRUCTIONS },
@@ -61,9 +65,18 @@ export function createHostedServer(base: string): McpServer {
       },
       _meta: { ui: { resourceUri: VIEWER_URI } },
     },
-    async ({ spec, theme, preview }): Promise<CallToolResult> => {
+    async ({ spec, theme, preview }, extra): Promise<CallToolResult> => {
+      const subject = extra._meta?.['openai/subject'];
+      const count = (ok: boolean, type?: string) =>
+        origin
+          ? countRender(
+              { ...origin, ...(typeof subject === 'string' ? { subject } : {}) },
+              { ok, ...(type ? { type } : {}) },
+            )
+          : undefined;
       try {
         const { svg, model, width, height } = await renderSpec(spec, theme);
+        await count(true, model.type ?? 'architecture');
         const link = (ext: string) =>
           `${base}/d/${encodeSpec(spec)}.${ext}${theme ? `?theme=${theme}` : ''}`;
         const name = model.title ? `"${model.title}"` : 'diagram';
@@ -88,6 +101,7 @@ export function createHostedServer(base: string): McpServer {
         };
         return { content, structuredContent };
       } catch (e) {
+        await count(false);
         if (e instanceof SysketchError) return fail(e.message);
         return fail(`sysketch failed: ${(e as Error).message}`);
       }

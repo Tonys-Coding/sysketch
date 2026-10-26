@@ -4,6 +4,7 @@
 
 - **`annotate` render option:** tags nodes and arrows in the SVG (`sk-node`, `sk-edge` with `data-from`/`data-to`, and an invisible `sk-route` path per arrow) so web pages can animate or step through a diagram. Off by default; normal output is unchanged.
 - **Showcase site:** uses the full screen width with full-width sections, a large live diagram in the hero, and example diagrams side by side with their descriptions. Request packets travel each arrow in flow order (sequence diagrams play their messages in turn); a button pauses the motion, and it starts paused for people who turn on "reduce motion".
+- **Hosted server, anonymous usage counts (optional):** with an Upstash Redis database connected, it counts per day the diagrams drawn and failed, diagram types, the sending app, connecting MCP clients, and an estimate of distinct users (daily-salted hashes kept only in a HyperLogLog). No specs, IPs or user ids are stored; counts expire after 400 days. The owner reads them at `/stats` (password `STATS_KEY`) or `/stats.json`; `/health` reports whether counting is on. Privacy policy updated.
 - GitHub Actions updated to the Node 24 versions (checkout v7, setup-node v7, configure-pages v6, upload-pages-artifact v5, deploy-pages v5).
 
 ## 0.5.0

@@ -3,6 +3,8 @@ import { SysketchError } from 'sysketch';
 import pkg from '../package.json' with { type: 'json' };
 import { decodeSpec, renderSpec, toPng, type Format } from './diagram.js';
 import { createHostedServer } from './mcp.js';
+import { statsPage } from './stats.js';
+import { counting, countConnect, originOf, readStats, statsAllowed } from './usage.js';
 
 /**
  * One handler for every route, using web-standard Request/Response so the same code runs on
@@ -12,9 +14,10 @@ import { createHostedServer } from './mcp.js';
  *   GET  /d/<code>.png|svg  a diagram drawn from the spec encoded in the link (?theme=)
  *   GET  /d/<code>.yaml     the spec itself
  *   GET  /health
+ *   GET  /stats             anonymous usage counts (password: STATS_KEY), /stats.json as JSON
  *
- * Nothing is stored: diagram links carry their own spec, so they work forever and the server
- * keeps no data. Specs are never logged.
+ * Diagrams are never stored: links carry their own spec, so they work forever. Specs are never
+ * logged. Optional anonymous usage counts (no specs, IPs or ids) are described in usage.ts.
  */
 
 const MAX_BODY = 256 * 1024;
@@ -76,8 +79,19 @@ async function mcp(req: Request): Promise<Response> {
   if (Number(req.headers.get('content-length') ?? 0) > MAX_BODY) {
     return text(413, 'Request too large.');
   }
+  // Count connections by client name ("claude-ai", "openai-mcp"...), read from `initialize`.
+  if (counting()) {
+    const body: unknown = await req
+      .clone()
+      .json()
+      .catch(() => undefined);
+    for (const msg of Array.isArray(body) ? body : [body]) {
+      const m = msg as { method?: string; params?: { clientInfo?: { name?: unknown } } } | null;
+      if (m?.method === 'initialize') await countConnect(m.params?.clientInfo?.name);
+    }
+  }
   // Stateless (no session ids): a fresh server per request, so any instance can answer.
-  const server = createHostedServer(publicBase(req));
+  const server = createHostedServer(publicBase(req), originOf(req));
   const transport = new WebStandardStreamableHTTPServerTransport({
     enableJsonResponse: true,
     maxRequestBodySize: MAX_BODY,
@@ -126,6 +140,25 @@ async function diagram(req: Request, path: string): Promise<Response> {
   }
 }
 
+/** Usage counts for the owner, behind Basic auth (any user name, password STATS_KEY). */
+async function stats(req: Request, path: string): Promise<Response> {
+  if (!process.env.STATS_KEY) return text(404, 'Not found.');
+  if (limited(req)) return text(429, 'Too many requests. Try again in a minute.');
+  const noStore = { 'cache-control': 'no-store' };
+  if (!statsAllowed(req)) {
+    return new Response('Password required.', {
+      status: 401,
+      headers: { 'www-authenticate': 'Basic realm="sysketch stats"', ...noStore },
+    });
+  }
+  const data = await readStats(30);
+  if (!data) return text(503, 'Usage counting is off or Redis is unreachable.', noStore);
+  if (path === '/stats.json') return Response.json(data, { headers: noStore });
+  return new Response(statsPage(data), {
+    headers: { 'content-type': 'text/html; charset=utf-8', ...noStore },
+  });
+}
+
 /**
  * vercel.json rewrites /mcp, /health and /d/<file> to /api?route=...&file=... . If the
  * function sees that rewritten URL instead of the original, rebuild the original path.
@@ -154,8 +187,12 @@ export async function handle(req: Request): Promise<Response> {
       : text(404, 'Not found.');
   }
   if (path === '/health') {
-    return Response.json({ ok: true, version: pkg.version }, { headers: CORS });
+    return Response.json(
+      { ok: true, version: pkg.version, counting: counting() },
+      { headers: CORS },
+    );
   }
+  if (path === '/stats' || path === '/stats.json') return stats(req, path);
   if (path !== '/mcp' && !path.startsWith('/d/')) return text(404, 'Not found.');
   if (limited(req)) return text(429, 'Too many requests. Try again in a minute.');
   return path === '/mcp' ? mcp(req) : diagram(req, path);
