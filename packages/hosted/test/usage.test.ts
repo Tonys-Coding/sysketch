@@ -2,6 +2,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { createServer, type AddressInfo, type Server } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { handle } from '../src/app.js';
 import { label, type Stats } from '../src/usage.js';
@@ -60,7 +61,51 @@ function fakeRedis() {
     sent.push(...commands);
     return Response.json(commands.map((c) => ({ result: run(c) })));
   });
-  return { data, sent, fetch };
+  return { data, sent, fetch, run };
+}
+
+/** A Redis server speaking the real wire protocol (RESP2), backed by the fake above. */
+function respServer(redis: ReturnType<typeof fakeRedis>): Promise<Server> {
+  const encode = (v: unknown): string => {
+    if (v === null || v === undefined) return '$-1\r\n';
+    if (typeof v === 'number') return `:${v}\r\n`;
+    if (Array.isArray(v)) return `*${v.length}\r\n${v.map(encode).join('')}`;
+    const s = String(v);
+    return `$${Buffer.byteLength(s)}\r\n${s}\r\n`;
+  };
+  const server = createServer((socket) => {
+    let buf = '';
+    socket.on('data', (chunk) => {
+      buf += chunk.toString('utf8');
+      // parse complete *N arrays of $len bulk strings
+      for (;;) {
+        const m = /^\*(\d+)\r\n/.exec(buf);
+        if (!m) return;
+        let at = m[0].length;
+        const args: string[] = [];
+        for (let i = 0; i < Number(m[1]); i++) {
+          const b = /^\$(\d+)\r\n/.exec(buf.slice(at));
+          if (!b) return;
+          const start = at + b[0].length;
+          if (buf.length < start + Number(b[1]) + 2) return;
+          args.push(buf.slice(start, start + Number(b[1])));
+          at = start + Number(b[1]) + 2;
+        }
+        buf = buf.slice(at);
+        const cmd = args[0]!.toUpperCase();
+        // handshake commands (AUTH, CLIENT SETINFO, SELECT...) just succeed
+        if (
+          !['INCR', 'SET', 'GET', 'HINCRBY', 'HGETALL', 'PFADD', 'PFCOUNT', 'EXPIRE'].includes(cmd)
+        ) {
+          socket.write('+OK\r\n');
+          continue;
+        }
+        redis.sent.push([cmd, ...args.slice(1)]);
+        socket.write(encode(redis.run([cmd, ...args.slice(1)])));
+      }
+    });
+  });
+  return new Promise((ok) => server.listen(0, '127.0.0.1', () => ok(server)));
 }
 
 let ip = 100;
@@ -77,7 +122,9 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.unstubAllGlobals();
-  for (const k of ['KV_REST_API_URL', 'KV_REST_API_TOKEN', 'STATS_KEY']) delete process.env[k];
+  for (const k of ['KV_REST_API_URL', 'KV_REST_API_TOKEN', 'REDIS_URL', 'STATS_KEY']) {
+    delete process.env[k];
+  }
 });
 
 async function connect(name = 'claude-ai'): Promise<Client> {
@@ -199,6 +246,39 @@ describe('usage counts', () => {
 
     delete process.env.STATS_KEY;
     expect((await get('/stats', auth('open sesame'))).status).toBe(404);
+  });
+
+  it('also counts through a plain Redis connection (REDIS_URL)', async () => {
+    const server = await respServer(redis);
+    try {
+      delete process.env.KV_REST_API_URL;
+      delete process.env.KV_REST_API_TOKEN;
+      process.env.REDIS_URL = `redis://default:pw@127.0.0.1:${(server.address() as AddressInfo).port}`;
+      const client = await connect();
+      await draw(client);
+      await draw(client, 'type: sequence\nedges: ["user > app"]');
+      expect(count('renders')).toBe('2');
+      expect(Object.fromEntries(count('clients') as Map<string, number>)).toEqual({
+        'claude-ai': 1,
+      });
+      expect((count('sources') as Set<string>).size).toBe(1);
+      expect(redis.fetch).not.toHaveBeenCalled();
+
+      const res = await handle(
+        new Request(`${BASE}/stats.json`, { headers: { ...headers, ...auth('open sesame') } }),
+      );
+      const json = (await res.json()) as Stats;
+      expect(json.total.renders).toBe(2);
+      expect(json.days[0]).toMatchObject({
+        renders: 2,
+        sources: 1,
+        types: { architecture: 1, sequence: 1 },
+        apps: { 'claude-user': 2 },
+      });
+    } finally {
+      delete process.env.REDIS_URL;
+      server.close();
+    }
   });
 
   it('labels apps by the first word of a name', () => {

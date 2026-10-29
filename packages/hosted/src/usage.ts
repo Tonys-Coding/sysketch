@@ -1,15 +1,17 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createClient } from 'redis';
 
 /**
- * Anonymous usage counts, kept in Upstash Redis when its env vars are set (Vercel's Upstash
- * integration adds KV_REST_API_URL/KV_REST_API_TOKEN; plain Upstash uses UPSTASH_REDIS_REST_*).
+ * Anonymous usage counts, kept in Redis when one is connected: Upstash over HTTP
+ * (KV_REST_API_URL/KV_REST_API_TOKEN from Vercel's Upstash integration, or UPSTASH_REDIS_REST_*),
+ * or any Redis over its normal connection (REDIS_URL, from Vercel's Redis integration).
  * Without them nothing is counted.
  *
  * Per UTC day, kept 400 days: diagrams drawn and failed, diagram types, the app that sent each
  * request (the first word of its user agent), the MCP client names that connect, and an
  * approximate number of distinct sources. A source is a one-way hash of the app's anonymous user
- * id when it sends one (ChatGPT's `openai/subject`, possibly one per conversation), otherwise of IP address + user agent. The
- * hash is salted with a random value that is deleted after two days and only feeds a
+ * id when it sends one (ChatGPT's `openai/subject`, possibly one per conversation), otherwise of
+ * IP address + user agent. The hash is salted with a random value that is deleted after two days and only feeds a
  * HyperLogLog, which keeps no hashes at all. Specs, IP addresses and ids are never stored.
  *
  * Counting never blocks or breaks a request: failures are ignored and calls time out quickly.
@@ -21,20 +23,64 @@ const TIMEOUT = 1500;
 
 type Command = (string | number)[];
 
-function store(): { url: string; token: string } | undefined {
+type Store = { rest: string; token: string } | { tcp: string };
+
+function store(): Store | undefined {
   const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
-  return url && token ? { url: url.replace(/\/+$/, ''), token } : undefined;
+  if (url && token) return { rest: url.replace(/\/+$/, ''), token };
+  return process.env.REDIS_URL ? { tcp: process.env.REDIS_URL } : undefined;
 }
 
 export const counting = () => store() !== undefined;
+
+const timeout = <T>(p: Promise<T>) =>
+  Promise.race([
+    p,
+    new Promise<never>((_, no) => setTimeout(() => no(new Error('timeout')), TIMEOUT).unref()),
+  ]);
+
+/** One connection per server instance, reused while it stays open. */
+let client: ReturnType<typeof createClient> | undefined;
+
+function drop() {
+  try {
+    client?.destroy();
+  } catch {
+    // never connected
+  }
+  client = undefined;
+}
+
+async function overTcp(url: string, commands: Command[]): Promise<unknown[] | undefined> {
+  try {
+    if (!client?.isReady) {
+      drop();
+      client = createClient({
+        url,
+        // RESP2 replies (hashes as flat arrays) match what Upstash's HTTP API returns
+        RESP: 2,
+        socket: { connectTimeout: TIMEOUT, reconnectStrategy: false },
+      });
+      client.on('error', () => {}); // a dropped connection is replaced on the next count
+      await timeout(client.connect());
+    }
+    const c = client;
+    // sent back to back without waiting, so they travel as one pipeline
+    return await timeout(Promise.all(commands.map((cmd) => c.sendCommand(cmd.map(String)))));
+  } catch {
+    drop();
+    return undefined;
+  }
+}
 
 /** Runs commands in one round trip; undefined when Redis is off or unreachable. */
 async function redis(commands: Command[]): Promise<unknown[] | undefined> {
   const s = store();
   if (!s || !commands.length) return undefined;
+  if ('tcp' in s) return overTcp(s.tcp, commands);
   try {
-    const res = await fetch(`${s.url}/pipeline`, {
+    const res = await fetch(`${s.rest}/pipeline`, {
       method: 'POST',
       headers: { authorization: `Bearer ${s.token}`, 'content-type': 'application/json' },
       body: JSON.stringify(commands),

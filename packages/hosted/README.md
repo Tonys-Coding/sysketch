@@ -40,7 +40,7 @@ The Hobby plan is for non-commercial use. If you start charging, move to Vercel 
 
 ## Usage counts
 
-1. In your Vercel project, open **Storage → Create Database**, pick **Upstash for Redis** (Marketplace), choose the **Free** plan and connect it to this project. Vercel adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` for you. (A database made on upstash.com works too: set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.)
+1. In your Vercel project, open **Storage → Create Database**, pick **Upstash for Redis** (Marketplace), choose the **Free** plan and connect it to this project. Vercel adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` for you. (Vercel's **Redis** integration works too: it adds `REDIS_URL`. So does a database made on upstash.com: set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.)
 2. Under **Settings → Environment Variables**, add `STATS_KEY` with a long random password (for example from `openssl rand -base64 24`).
 3. **Deployments → Redeploy**. `/health` now shows `"counting": true`.
 4. Open `https://<your-project>.vercel.app/stats`. The browser asks for a name and password: any name, and your `STATS_KEY`. `/stats.json` returns the same data as JSON.
