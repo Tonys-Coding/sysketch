@@ -56,6 +56,27 @@ describe('brand logos', () => {
     expect(model.nodes.find((n) => n.id === 'acme')?.label).toBe('acme');
   });
 
+  it('a generic icon on a node named after a product draws its logo', async () => {
+    const dir = brandFolder();
+    writeFileSync(join(dir, 'stripe.svg'), ACME);
+    writeFileSync(join(dir, 'kafka.svg'), ACME);
+    const { model } = await renderWithModel(
+      `logos: ${dir}
+nodes:
+  pay: payment | Stripe
+  kafka: queue | Event Bus
+  db: database | Database
+  orders: server | Orders
+edges: ["pay > kafka > db > orders"]`,
+    );
+    const logo = (id: string) => model.nodes.find((n) => n.id === id)?.logo?.name;
+    expect(logo('pay')).toBe('stripe'); // product in the label
+    expect(logo('kafka')).toBe('kafka'); // product as the id
+    expect(model.nodes.find((n) => n.id === 'kafka')?.label).toBe('Event Bus');
+    expect(logo('db')).toBeUndefined(); // generic label: database.svg is never used
+    expect(logo('orders')).toBeUndefined();
+  });
+
   it('logos: false and the logos option turn logos off', async () => {
     const dir = brandFolder();
     const spec = `nodes:\n  a: acme/cdn\nedges: ["client > a"]`;

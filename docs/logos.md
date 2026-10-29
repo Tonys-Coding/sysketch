@@ -63,8 +63,9 @@ npx sysketch logos lock ./brand
 | `database`, `queue`, `api`, `cdn`   | sysketch icon             | sysketch icon                   |
 | `s3`, `redis`, `stripe`, `sendgrid` | the official logo         | a fitting sysketch icon         |
 | `acme/queue`                        | Acme's logo, if installed | the `queue` icon labeled "Acme" |
+| `db: database \| DynamoDB`          | the product's logo        | the `database` icon             |
 
-Generic names always keep the sysketch icon. Because every product name has a fallback, the same diagram works on any computer.
+A node that picks a generic icon but is named after a product, by its label (`db: database | DynamoDB`) or by an id sysketch knows as a product (`cognito: server | Auth`), still gets the product's logo. Generic names always keep the sysketch icon. Because every product name has a fallback, the same diagram works on any computer.
 
 ## Logos stay original
 

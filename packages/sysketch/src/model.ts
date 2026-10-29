@@ -349,14 +349,26 @@ function parseNodeValue(
         ` Run "sysketch icons" for the full list, or write brand/icon (e.g. cloudflare/cdn).`,
     );
   }
-  const label = (typeof v === 'string' ? labelPart?.trim() : v.label) || hit.label;
+  const written = typeof v === 'string' ? labelPart?.trim() : v.label;
+  const label = written || hit.label;
   const sub = (typeof v === 'string' ? subParts.join('|').trim() : v.sub) || undefined;
+  // A generic icon on a node named after a product ("db: database | DynamoDB") still draws
+  // that product's logo when one is installed: writers often pick the generic icon.
+  // The id counts only when sysketch knows it as a product (apigw, cognito); ids are often
+  // arbitrary. A label counts unless it's a generic name ("API Gateway", "Cache").
+  let logo = hit.logo;
+  if (!logo && logoOf && known(key)?.generic) {
+    const kind = (name: string) => known(name) ?? known(name.toLowerCase().replace(/\s+/g, '-'));
+    const product = known(id);
+    if (product && !product.generic) logo = logoOf(id);
+    if (!logo && written && !kind(written)?.generic) logo = logoOf(written);
+  }
   return {
     id,
     label,
     icon: hit.icon,
     ...(sub ? { sub } : {}),
-    ...(hit.logo ? { logo: hit.logo } : {}),
+    ...(logo ? { logo } : {}),
     ...(hit.map ? { map: { ...WORLD } } : {}),
   };
 }
