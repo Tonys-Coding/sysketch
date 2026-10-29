@@ -44,6 +44,20 @@ Optional:
 
 The Hobby plan is for non-commercial use. If you start charging, move to Vercel Pro, or run `npm start` on any host that runs Node (Render, Fly.io, Google Cloud Run).
 
+## Adding a logo pack
+
+Only add logos whose owner publishes them for this kind of use (an official icon or brand page that allows it, like the AWS, Azure, Google Cloud and OpenAI pages), and follow its rules. Files are always downloaded from the owner's official link at build time and never committed.
+
+1. Find the official download link (a `.zip` or a single `.svg`/`.png`) and check its terms.
+2. Get its checksum:
+   ```bash
+   curl -sL -o pack.zip "<official link>" && shasum -a 256 pack.zip
+   ```
+3. Add an entry to [`logo-packs.json`](logo-packs.json) with `url`, `sha256` and `page` (the terms page). For a brand kit with several variants, add `files` to pick one file and name it, as the `openai` entry does: `"files": { "Brand.svg": "<path inside the zip>" }`. The file name becomes the name to write in diagrams (`brand`) and its title.
+4. Check it locally with `npm run logos -w sysketch-hosted`, then push. After the deploy, `/health` lists the new source.
+
+When a brand asks for its logo to be removed, delete its entry (or, for Simple Icons, add its slug to `blocked-logos.txt`) and push.
+
 ## Usage counts
 
 1. In your Vercel project, open **Storage → Create Database**, pick **Upstash for Redis** (Marketplace), choose the **Free** plan and connect it to this project. Vercel adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` for you. (Vercel's **Redis** integration works too: it adds `REDIS_URL`. So does a database made on upstash.com: set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.)
