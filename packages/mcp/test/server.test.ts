@@ -73,6 +73,12 @@ describe('sysketch-mcp', () => {
     expect(text(await call('list_icons'))).toMatch(/^user: client/);
   });
 
+  it('lists the world-map card and its pin places, which are not in the icon catalog', async () => {
+    const out = text(await call('list_icons'));
+    expect(out).toContain('world-map');
+    expect(out).toContain('Pin places:');
+  });
+
   it('resolves logos: ./folder next to the spec file and searches logos', async () => {
     mkdirSync(join(dir, 'brand'));
     writeFileSync(

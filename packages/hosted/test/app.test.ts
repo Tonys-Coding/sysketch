@@ -155,6 +155,14 @@ describe('hosted MCP', () => {
     expect(await (await get(links(off)[1]!)).text()).not.toContain('<image');
   });
 
+  it('lists the world-map card and its pin places, which are not in the icon catalog', async () => {
+    const client = await connect();
+    const r = (await client.callTool({ name: 'list_icons', arguments: {} })) as CallToolResult;
+    expect(text(r)).toMatch(/world-map/);
+    expect(text(r)).toMatch(/pins: \[us-east/);
+    expect(text(r)).toContain('Pin places:');
+  });
+
   it('searches the available logos', async () => {
     const client = await connect();
     const r = (await client.callTool({

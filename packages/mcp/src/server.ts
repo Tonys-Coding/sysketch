@@ -5,7 +5,15 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import pkg from '../package.json' with { type: 'json' };
-import { ICONS, SysketchError, createLogoResolver, renderToFile, svgToPng, themes } from 'sysketch';
+import {
+  ICONS,
+  MAP_HELP,
+  SysketchError,
+  createLogoResolver,
+  renderToFile,
+  svgToPng,
+  themes,
+} from 'sysketch';
 
 // Loaded into the model's context every session: keep it short.
 const GUIDE = `Render a system design diagram from a tiny YAML spec. Writes an .svg/.png file and returns its path. Never write SVG yourself.
@@ -164,7 +172,7 @@ export function createServer(cwd: string = process.cwd(), opts: ServerOptions = 
       }
       const icons = ICONS.map((i) => `${i.name}: ${Object.keys(i.aliases).join(', ')}`).join('\n');
       const note = count ? `\n${count} brand logos installed (search with logos=).` : '';
-      return { content: [{ type: 'text', text: icons + note }] };
+      return { content: [{ type: 'text', text: `${icons + note}\n\n${MAP_HELP}` }] };
     },
   );
 

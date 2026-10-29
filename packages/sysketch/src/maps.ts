@@ -431,7 +431,9 @@ export function mapPath(
     .map(
       (ring) =>
         'M' +
-        ring.map(([lon, lat]) => `${r(ox + (lon + 180) * k)} ${r(oy + (m.top - lat) * k)}`).join('L') +
+        ring
+          .map(([lon, lat]) => `${r(ox + (lon + 180) * k)} ${r(oy + (m.top - lat) * k)}`)
+          .join('L') +
         'Z',
     )
     .join('');
@@ -444,3 +446,10 @@ export function mapPath(
     at: (lon, lat) => [r(ox + (lon + 180) * k), r(oy + (m.top - lat) * k)],
   };
 }
+
+/** Shown by list_icons: the map card is not in the icon catalog, so clients would otherwise never see it. */
+export const MAP_HELP =
+  'world-map (alias: map): a big map card, not a small icon. Use it as a node icon and put pins under maps, e.g. ' +
+  'nodes: {world: "world-map | Our regions"} and maps: {world: {pins: [us-east, eu-west, tokyo, "HQ @ -0.1 51.5"]}}. ' +
+  'A map can also sit behind a group: maps: {Group Label: world}.\n' +
+  `Pin places: ${PIN_NAMES.join(', ')}.`;

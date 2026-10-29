@@ -6,7 +6,7 @@ import {
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { ICONS, SysketchError, themes } from 'sysketch';
+import { ICONS, MAP_HELP, SysketchError, themes } from 'sysketch';
 import pkg from '../package.json' with { type: 'json' };
 import { encodeSpec, logoResolver, renderSpec, toPng, LIMITS } from './diagram.js';
 import { countRender, type Origin } from './usage.js';
@@ -144,7 +144,7 @@ export function createHostedServer(base: string, origin?: Origin): McpServer {
         };
       }
       const icons = ICONS.map((i) => `${i.name}: ${Object.keys(i.aliases).join(', ')}`).join('\n');
-      return { content: [{ type: 'text', text: icons }] };
+      return { content: [{ type: 'text', text: `${icons}\n\n${MAP_HELP}` }] };
     },
   );
 

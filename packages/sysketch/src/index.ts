@@ -6,6 +6,7 @@ export { themes, defaultTheme, iconPaint, mix, type Theme, type Hue } from './th
 export { renderModel, type RenderOptions } from './render.js';
 export { render, renderWithModel, type RenderInputOptions } from './api.js';
 export { svgToPng } from './png.js';
+export { MAP_HELP, PIN_NAMES } from './maps.js';
 export { renderToFile, type RenderFileOptions } from './files.js';
 
 /** The installed sysketch version (read from package.json at build time). */
