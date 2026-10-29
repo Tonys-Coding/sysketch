@@ -85,7 +85,7 @@ The examples in this repository only use logos that are clearly fine to publish:
 
 ## On the hosted server
 
-The [AI chat connector](../README.md#in-your-ai-chat-nothing-to-install) (`https://sysketch.vercel.app/mcp`) includes the latest Simple Icons logos, the official AWS, Azure and Google Cloud architecture icons (Google's core and legacy packs) and OpenAI's Blossom mark from [OpenAI's brand page](https://openai.com/brand/) for `openai` and `chatgpt`, all drawn unaltered and only inside diagrams. Specs can't point it at logo folders; use the local version for your company's logos. Brand owners can ask for a logo to be removed by [opening an issue](https://github.com/Tonys-Coding/sysketch/issues).
+The [AI chat connector](../README.md#in-your-ai-chat-nothing-to-install) (`https://sysketch.vercel.app/mcp`) includes the latest Simple Icons logos, the official AWS, Azure and Google Cloud architecture icons (Google's core and legacy packs), Microsoft's Power Platform and Dynamics 365 icons (`power-apps`, `dataverse`, `copilot-studio`, `dynamics-365-sales`, `d365`) and OpenAI's Blossom mark from [OpenAI's brand page](https://openai.com/brand/) for `openai` and `chatgpt`, all drawn unaltered and only inside diagrams. Specs can't point it at logo folders; use the local version for your company's logos. Brand owners can ask for a logo to be removed by [opening an issue](https://github.com/Tonys-Coding/sysketch/issues).
 
 ## Commands
 

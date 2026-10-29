@@ -412,6 +412,41 @@ describe('cloud packs and plain words', () => {
     expect(logo.names()).toContain('azuremonitor');
     expect(logo.names()).not.toContain('monitor');
   });
+
+  it('everyday names reach logos filed under longer names', () => {
+    const home = tmp();
+    const folder = (files: string[]) => {
+      const dir = tmp();
+      for (const f of files) writeFileSync(join(dir, f), ACME);
+      return dir;
+    };
+    importLogos(
+      folder(['googlegemini.svg', 'vuedotjs.svg', 'apachecouchdb.svg', 'traefikproxy.svg']),
+      'simple-icons',
+      { home },
+    );
+    importLogos(folder(['Power Apps.svg', 'Dynamics 365.svg', 'Dynamics 365 Sales.svg']), 'msft', {
+      home,
+    });
+    const zip = join(tmp(), 'Azure_Public_Service_Icons_V24.zip');
+    writeFileSync(
+      zip,
+      zipSync({ 'Icons/databases/10130-icon-service-SQL-Server.svg': new Uint8Array(ACME) }),
+    );
+    importLogos(zip, undefined, { home });
+    const logo = createLogoResolver({ home });
+    const title = (name: string) => logo(name)?.title;
+    expect(title('gemini')).toBe('googlegemini');
+    expect(title('vue')).toBe('vuedotjs');
+    expect(title('couchdb')).toBe('apachecouchdb');
+    expect(title('traefik')).toBe('traefikproxy');
+    expect(title('sqlserver')).toBe('SQL Server');
+    expect(title('power-apps')).toBe('Power Apps');
+    expect(title('d365')).toBe('Dynamics 365');
+    expect(title('dynamics-365-sales')).toBe('Dynamics 365 Sales');
+    // plain words stay free
+    expect(logo('sales')).toBeUndefined();
+  });
 });
 
 describe('product names', () => {

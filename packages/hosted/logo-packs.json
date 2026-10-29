@@ -26,5 +26,43 @@
     "files": {
       "OpenAI.svg": "OpenAI-logos/SVGs/OAI_OpenAI-Blossom_Black.svg"
     }
+  },
+  "power-platform": {
+    "url": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Power-Platform-icons-scalable.zip",
+    "sha256": "d5abafebbce553690caf7b42dd14b8335bf2c0dfc09f46bd9ac8041187da2c3a",
+    "page": "https://learn.microsoft.com/en-us/power-platform/guidance/icons",
+    "files": {
+      "Power Platform.svg": "Power Platform/PowerPlatform_scalable.svg",
+      "Power Apps.svg": "Power Platform/PowerApps_scalable.svg",
+      "Power Automate.svg": "Power Platform/PowerAutomate_scalable.svg",
+      "Power Pages.svg": "Power Platform/PowerPages_scalable.svg",
+      "Dataverse.svg": "Power Platform/Dataverse_scalable.svg",
+      "AI Builder.svg": "Power Platform/AIBuilder_scalable.svg",
+      "Copilot Studio.svg": "CopilotStudio_scalable.svg",
+      "Agent 365.svg": "Agent365_scalable.svg"
+    }
+  },
+  "dynamics-365": {
+    "url": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Dynamics-365-icons-scalable.zip",
+    "sha256": "f5f4d96aaa637b71e47136cc74e9a4a69b8a81f7e43c1c5756f00b5cea9ffe02",
+    "page": "https://learn.microsoft.com/en-us/dynamics365/get-started/icons",
+    "files": {
+      "Dynamics 365.svg": "Dynamics 365 Product Family Icons/Dynamics365_scalable.svg",
+      "Dynamics 365 Business Central.svg": "Dynamics 365 App Icons/BusinessCentral_scalable.svg",
+      "Dynamics 365 Commerce.svg": "Dynamics 365 App Icons/Commerce_scalable.svg",
+      "Dynamics 365 Contact Center.svg": "Dynamics 365 App Icons/ContactCenter_scalable.svg",
+      "Dynamics 365 Customer Insights.svg": "Dynamics 365 App Icons/CustomerInsights_scalable.svg",
+      "Dynamics 365 Customer Service.svg": "Dynamics 365 App Icons/CustomerServices_scalable.svg",
+      "Dynamics 365 Customer Voice.svg": "Dynamics 365 App Icons/CustomerVoice_scalable.svg",
+      "Dynamics 365 Field Service.svg": "Dynamics 365 App Icons/FieldService_scalable.svg",
+      "Dynamics 365 Finance and Operations.svg": "Dynamics 365 App Icons/FinanceOperations_scalable.svg",
+      "Dynamics 365 Finance.svg": "Dynamics 365 App Icons/Finance_scalable.svg",
+      "Dynamics 365 Human Resources.svg": "Dynamics 365 App Icons/HumanResources_scalable.svg",
+      "Dynamics 365 Intelligent Order Management.svg": "Dynamics 365 App Icons/IntelligentOrderManagement_scalable.svg",
+      "Dynamics 365 Project Operations.svg": "Dynamics 365 App Icons/ProjectOperations_scalable.svg",
+      "Dynamics 365 Sales Insights.svg": "Dynamics 365 App Icons/SalesInsights_scalable.svg",
+      "Dynamics 365 Sales.svg": "Dynamics 365 App Icons/Sales_scalable.svg",
+      "Dynamics 365 Supply Chain Management.svg": "Dynamics 365 App Icons/SupplyChainManagement_scalable.svg"
+    }
   }
 }

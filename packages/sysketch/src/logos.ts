@@ -112,6 +112,23 @@ const BRAND_ALIASES: Record<string, string[]> = {
   huggingface: ['huggingface'],
   chatgpt: ['openai'],
   githubactions: ['githubactions'],
+  gemini: ['googlegemini'],
+  mistral: ['mistralai'],
+  chrome: ['googlechrome'],
+  golang: ['go'],
+  vue: ['vuedotjs'],
+  vuejs: ['vuedotjs'],
+  rails: ['rubyonrails'],
+  apollo: ['apollographql'],
+  cockroachdb: ['cockroachlabs'],
+  couchdb: ['apachecouchdb'],
+  druid: ['apachedruid'],
+  superset: ['apachesuperset'],
+  nats: ['natsdotio'],
+  argocd: ['argo'],
+  fluxcd: ['flux'],
+  envoy: ['envoyproxy'],
+  traefik: ['traefikproxy'],
   // AWS Architecture Icons
   s3: ['amazonsimplestorageservice'],
   glacier: ['amazonsimplestorageserviceglacier'],
@@ -163,12 +180,19 @@ const BRAND_ALIASES: Record<string, string[]> = {
   synapse: ['azuresynapseanalytics'],
   databricks: ['azuredatabricks', 'databricks'],
   aisearch: ['cognitivesearch'],
+  sqlserver: ['azuresqlserver'],
+  mssql: ['azuresqlserver'],
+  powershell: ['azurepowershell'],
   // Google Cloud icons
   gcs: ['cloudstorage', 'googlecloudstorage'],
   cloudstorage: ['cloudstorage', 'googlecloudstorage'],
   gce: ['computeengine'],
   vertex: ['vertexai'],
   bigquery: ['bigquery', 'googlebigquery'],
+  // Power Platform and Dynamics 365 icons
+  dynamics: ['dynamics365'],
+  d365: ['dynamics365'],
+  businesscentral: ['dynamics365businesscentral'],
 };
 const ALIAS_TO_NAMES = new Map<string, string[]>();
 for (const [alias, names] of Object.entries(BRAND_ALIASES))
