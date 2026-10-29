@@ -333,6 +333,49 @@ describe('vendor icon packs', () => {
   });
 });
 
+describe('cloud packs and plain words', () => {
+  it('claim product names, not plain words or other companies', () => {
+    const home = tmp();
+    const svg = new Uint8Array(ACME);
+    const pack = (name: string, files: string[]) => {
+      const zip = join(tmp(), name);
+      writeFileSync(zip, zipSync(Object.fromEntries(files.map((f) => [f, svg]))));
+      return zip;
+    };
+    importLogos(
+      pack('Azure_Public_Service_Icons_V24.zip', [
+        'Icons/databases/10121-icon-service-Azure-Cosmos-DB.svg',
+        'Icons/ai/10001-icon-service-Azure-OpenAI.svg',
+        'Icons/monitor/00001-icon-service-Monitor.svg',
+        'Icons/containers/10023-icon-service-Kubernetes-Services.svg',
+        'Icons/analytics/00039-icon-service-Event-Hubs.svg',
+      ]),
+      undefined,
+      { home },
+    );
+    importLogos(
+      pack('Icon-package.zip', [
+        'Architecture-Service-Icons/Arch_Storage/64/Arch_AWS-Backup_64.svg',
+        'Architecture-Service-Icons/Arch_Compute/64/Arch_AWS-Lambda_64.svg',
+      ]),
+      undefined,
+      { home },
+    );
+    const logo = createLogoResolver({ home });
+    const source = (name: string) => logo(name)?.source;
+    // product names and everyday aliases
+    for (const n of ['cosmosdb', 'aks', 'eventhubs', 'azure-monitor', 'azure-openai'])
+      expect(source(n), n).toBe('azure');
+    for (const n of ['lambda', 'aws-backup']) expect(source(n), n).toBe('aws');
+    // plain words and other companies keep sysketch icons
+    for (const n of ['monitor', 'backup', 'openai', 'kubernetes-services'])
+      expect(source(n), n).toBeUndefined();
+    // suggestions name what works
+    expect(logo.names()).toContain('azuremonitor');
+    expect(logo.names()).not.toContain('monitor');
+  });
+});
+
 describe('product names', () => {
   it('every product maps to a real icon', () => {
     const names = new Set(ICONS.map((i) => i.name));

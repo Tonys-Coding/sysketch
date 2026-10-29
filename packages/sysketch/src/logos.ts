@@ -176,6 +176,52 @@ for (const [alias, names] of Object.entries(BRAND_ALIASES))
 /** Vendor prefixes dropped to make extra aliases in icon packs (Amazon-EC2 -> ec2). */
 const VENDOR_PREFIXES = ['amazon', 'aws', 'azure', 'microsoft', 'googlecloud', 'google', 'cloud'];
 
+/** Cloud icon packs, imported under these names by `importLogos`. */
+const VENDOR_PACKS = new Set(['aws', 'azure', 'gcp']);
+
+/**
+ * Plain words and other companies' names that a cloud pack must not claim on its own, so
+ * `backup`, `policy` or `openai` keep their sysketch icon in any diagram. The vendor-prefixed
+ * name still works: `aws-backup`, `azure-policy`, `azure-openai`.
+ */
+const PLAIN_WORDS = new Set([
+  // AWS names once "Amazon"/"AWS" is dropped
+  'activate',
+  'artifact',
+  'autoscaling',
+  'backup',
+  'batch',
+  'budgets',
+  'chatbot',
+  'config',
+  'connect',
+  'detective',
+  'forecast',
+  'inspector',
+  'quick',
+  'repost',
+  'shield',
+  'signer',
+  'support',
+  'transform',
+  'translate',
+  // Azure names once "Azure"/"Microsoft" is dropped
+  'arc',
+  'devops',
+  'discovery',
+  'enclaves',
+  'linux',
+  'local',
+  'migrate',
+  'openai',
+  'quotas',
+  'sphere',
+  'workbooks',
+]);
+
+/** Azure titles most of its pack with plain words ("Monitor", "Load Balancers"). */
+const brandedTitle = (title: string) => /^(azure|microsoft)\b/i.test(title);
+
 const sha256 = (buf: Buffer) => createHash('sha256').update(buf).digest('hex');
 
 function readIndex(dir: string): LogoIndex | undefined {
@@ -202,12 +248,18 @@ interface Source {
 
 function sourceFrom(label: string, dir: string, index: LogoIndex, verified: boolean): Source {
   const keys = new Map<string, string>();
+  const vendor = VENDOR_PACKS.has(label);
   const add = (k: string, name: string) => {
     const n = normName(k);
-    if (n && !keys.has(n)) keys.set(n, name);
+    if (!n || keys.has(n) || (vendor && PLAIN_WORDS.has(n))) return;
+    keys.set(n, name);
   };
-  for (const name of Object.keys(index.logos)) add(name, name);
+  // An Azure icon with a plain title answers only to azure-<title> (azure-monitor), so a
+  // `monitor` or `load-balancers` node in any other diagram keeps its sysketch icon.
+  const plain = (e: LogoIndex['logos'][string]) => label === 'azure' && !brandedTitle(e.title);
+  for (const [name, e] of Object.entries(index.logos)) add(plain(e) ? `azure${name}` : name, name);
   for (const [name, e] of Object.entries(index.logos)) {
+    if (plain(e)) continue;
     add(e.title, name);
     for (const a of e.aliases ?? []) add(a, name);
   }
@@ -410,11 +462,13 @@ export function createLogoResolver(
     const k = normName(key);
     if (!k) return undefined;
     if (cache.has(k)) return cache.get(k);
-    const wanted = [k, ...(ALIAS_TO_NAMES.get(k) ?? [])];
+    const everyday = ALIAS_TO_NAMES.get(k) ?? [];
+    const wanted = [k, ...everyday];
     let found: Logo | undefined;
     outer: for (const s of sources) {
       for (const w of wanted) {
-        const name = s.keys.get(w);
+        // everyday aliases (aks, keyvault...) name the pack's own entries directly
+        const name = s.keys.get(w) ?? (everyday.includes(w) && s.index.logos[w] ? w : undefined);
         if (!name) continue;
         const e = s.index.logos[name]!;
         const path = join(s.dir, e.file);
@@ -445,7 +499,19 @@ export function createLogoResolver(
     return found;
   };
   return Object.assign(resolver, {
-    names: () => [...new Set(sources.flatMap((s) => Object.keys(s.index.logos)))],
+    /** One name to write per logo (the shortest that works), for suggestions. */
+    names: () => [
+      ...new Set(
+        sources.flatMap((s) => {
+          const best = new Map<string, string>();
+          for (const [k, name] of s.keys) {
+            const b = best.get(name);
+            if (!b || k.length < b.length) best.set(name, k);
+          }
+          return [...best.values()];
+        }),
+      ),
+    ],
     /** Logos whose name, alias or title contains `text`; `key` is the shortest name to write. */
     search: (text: string, limit = 20): LogoMatch[] => {
       const q = normName(text);
@@ -455,7 +521,9 @@ export function createLogoResolver(
         const keysByName = new Map<string, string[]>();
         for (const [k, name] of s.keys) keysByName.set(name, [...(keysByName.get(name) ?? []), k]);
         for (const [a, targets] of everyday) {
-          const name = targets.map((t) => s.keys.get(t)).find(Boolean);
+          const name = targets
+            .map((t) => s.keys.get(t) ?? (s.index.logos[t] ? t : undefined))
+            .find(Boolean);
           if (name) keysByName.set(name, [...(keysByName.get(name) ?? []), a]);
         }
         for (const [name, keys] of keysByName) {

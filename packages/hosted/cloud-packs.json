@@ -1,0 +1,12 @@
+{
+  "aws": {
+    "url": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sha256": "d2d166c453526471749d520e0db022c459abef759d2946cf2dd1d1c992dc6526",
+    "page": "https://aws.amazon.com/architecture/icons/"
+  },
+  "azure": {
+    "url": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sha256": "921594ccd1bf3d9c0a1bd7b6d924e050551a59342f2b353bb74bdcf761c35141",
+    "page": "https://learn.microsoft.com/en-us/azure/architecture/icons/"
+  }
+}

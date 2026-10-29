@@ -10,6 +10,8 @@ process.env.SYSKETCH_HOME = mkdtempSync(join(tmpdir(), 'sysketch-home-'));
 // The hosted logo home: one stand-in "redis" mark, as the build would install from Simple Icons.
 const brand = mkdtempSync(join(tmpdir(), 'sysketch-brand-'));
 writeFileSync(join(brand, 'redis.svg'), REDIS_SVG);
+// a name sysketch doesn't know as a product: only the logo makes it a valid node
+writeFileSync(join(brand, 'zephyrdb.svg'), REDIS_SVG);
 const home = mkdtempSync(join(tmpdir(), 'sysketch-hosted-logos-'));
 importLogos(brand, 'simple-icons', { home });
 process.env.SYSKETCH_HOSTED_LOGOS = home;

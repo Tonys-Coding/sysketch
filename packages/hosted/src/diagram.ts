@@ -3,6 +3,7 @@ import { deflateRawSync, inflateRawSync } from 'node:zlib';
 import {
   buildModel,
   createLogoResolver,
+  listLogoSources,
   renderWithModel,
   svgToPng,
   SysketchError,
@@ -11,13 +12,23 @@ import {
 } from 'sysketch';
 
 /**
- * Brand logos installed at build time (`npm run logos`: Simple Icons minus blocked-logos.txt).
- * They are drawn unaltered and only inside diagrams. Missing folder = no logos.
+ * Logos installed at build time (`npm run logos`: Simple Icons minus blocked-logos.txt, plus
+ * the official AWS and Azure icon packs). They are drawn unaltered and only inside diagrams.
+ * Missing folder = no logos.
  */
 export const LOGO_HOME =
   process.env.SYSKETCH_HOSTED_LOGOS ?? fileURLToPath(new URL('../logos', import.meta.url));
 
 export const logoResolver = () => createLogoResolver({ home: LOGO_HOME });
+
+/** Installed logo sources and their sizes, for /health ({"simple-icons": 3461, "aws": 719}). */
+export function logoSources(): Record<string, number> {
+  try {
+    return Object.fromEntries(listLogoSources(LOGO_HOME).map((s) => [s.source, s.count]));
+  } catch {
+    return {};
+  }
+}
 
 /**
  * Anyone on the internet can call the hosted server, so every render is bounded. The limits
@@ -74,7 +85,8 @@ export async function renderSpec(
     throw new SysketchError(`Spec is too long (max ${LIMITS.specChars} characters).`);
   }
   checkTheme(theme);
-  const size = buildModel(spec);
+  // counted with the same logos as the render, so logo-only names (frontdoor) aren't unknown
+  const size = buildModel(spec, { logos: (v) => (v === false ? undefined : logoResolver()) });
   if (size.nodes.length > LIMITS.nodes || size.edges.length > LIMITS.edges) {
     throw new SysketchError(
       `Diagram is too big (max ${LIMITS.nodes} nodes and ${LIMITS.edges} edges). Split it into several diagrams.`,

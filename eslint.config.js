@@ -7,7 +7,11 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     files: ['scripts/**', 'bench/**', 'packages/*/scripts/**', 'docs/**/generators/**'],
-    languageOptions: { globals: { process: 'readonly', console: 'readonly', URL: 'readonly' } },
+    languageOptions: {
+      globals: Object.fromEntries(
+        ['process', 'console', 'URL', 'fetch', 'AbortSignal', 'Buffer'].map((g) => [g, 'readonly']),
+      ),
+    },
   },
   {
     // the showcase site's script runs in the browser

@@ -14,7 +14,12 @@ The sysketch MCP server as a web service, for AI apps that can't run programs on
   - 20,000-character specs, 120 nodes, 300 edges, PNGs up to 4,000 px;
   - 60 requests per minute per IP on each server instance;
   - 30 s per request.
-- **Product logos from Simple Icons.** The build installs the latest Simple Icons release (`npm run logos`, checked the same way as `sysketch logos install`), so a logo a brand asked Simple Icons to remove disappears on the next deploy. Logos are drawn unaltered and only inside diagrams, under nominative fair use (naming the actual product in an architecture diagram). Specs can't name logo folders (`logos: ./folder`), and `logos: false` turns logos off. The AWS, Azure and Google Cloud packs and company logos stay features of the local `sysketch-mcp`.
+- **Product logos and cloud icons.** The build (`npm run logos`) installs:
+  - the latest Simple Icons release, checked the same way as `sysketch logos install`, so a logo a brand asked Simple Icons to remove disappears on the next deploy;
+  - the official AWS and Azure architecture icon packs, which AWS and Microsoft publish for architecture diagrams: the exact files pinned in [`cloud-packs.json`](cloud-packs.json), checked against their sha256 and imported unaltered. A pack that can't be downloaded or doesn't match is skipped with a warning in the build log; `/health` lists the sources that made it. When a provider publishes a new pack, put its URL and sha256 in `cloud-packs.json`.
+
+  Logos are drawn unaltered and only inside diagrams. Specs can't name logo folders (`logos: ./folder`), and `logos: false` turns logos off. The Google Cloud pack and company logos stay features of the local `sysketch-mcp`.
+
 - **Removing a logo:** add its Simple Icons slug to [`blocked-logos.txt`](blocked-logos.txt) and push; the next deploy leaves it out.
 - **Landing page:** `/` explains how to connect and shows the server URL. [`/privacy.html`](public/privacy.html) and [`/terms.html`](public/terms.html) are the legal pages app directories ask for.
 - **Anonymous usage counts (optional):** with an Upstash Redis database connected, the server counts diagrams drawn and failed per day, diagram types, the app that sent each one, the MCP clients that connect, and an estimate of distinct users per day (a hash salted with a daily random value that is deleted after two days, kept only inside a HyperLogLog). No specs, IP addresses or user ids are stored; counts expire after 400 days. You see them at `/stats` (see [Usage counts](#usage-counts)). See [`src/usage.ts`](src/usage.ts).
@@ -58,7 +63,7 @@ How to read it: **Drawn** is the number to watch; every one is a person asking a
 
 ```bash
 npm run build -w sysketch && npm run build -w sysketch-hosted
-npm run logos -w sysketch-hosted # optional: product logos (downloads Simple Icons)
+npm run logos -w sysketch-hosted # optional: Simple Icons + AWS and Azure packs
 npm start -w sysketch-hosted     # http://localhost:3000, MCP at /mcp
 npm test -w sysketch-hosted
 ```

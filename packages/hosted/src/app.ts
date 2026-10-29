@@ -1,7 +1,7 @@
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { SysketchError } from 'sysketch';
 import pkg from '../package.json' with { type: 'json' };
-import { decodeSpec, renderSpec, toPng, type Format } from './diagram.js';
+import { decodeSpec, logoSources, renderSpec, toPng, type Format } from './diagram.js';
 import { createHostedServer } from './mcp.js';
 import { statsPage } from './stats.js';
 import { counting, countConnect, originOf, readStats, statsAllowed } from './usage.js';
@@ -188,7 +188,7 @@ export async function handle(req: Request): Promise<Response> {
   }
   if (path === '/health') {
     return Response.json(
-      { ok: true, version: pkg.version, counting: counting() },
+      { ok: true, version: pkg.version, counting: counting(), logos: logoSources() },
       { headers: CORS },
     );
   }

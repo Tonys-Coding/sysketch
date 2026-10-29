@@ -153,6 +153,13 @@ describe('hosted MCP', () => {
       arguments: { spec: 'logos: false\nedges: ["api > redis"]', preview: false },
     })) as CallToolResult;
     expect(await (await get(links(off)[1]!)).text()).not.toContain('<image');
+
+    // names known only as a logo pass the size check too
+    const only = (await client.callTool({
+      name: 'render_diagram',
+      arguments: { spec: 'edges: ["api > zephyrdb"]', preview: false },
+    })) as CallToolResult;
+    expect(only.isError, text(only)).toBeFalsy();
   });
 
   it('lists the world-map card and its pin places, which are not in the icon catalog', async () => {
@@ -214,7 +221,8 @@ describe('diagram links', () => {
 describe('http', () => {
   it('answers health checks and CORS preflights', async () => {
     const health = await get('/health');
-    expect(await health.json()).toMatchObject({ ok: true });
+    // which logo sources the build installed (here the test's stand-in Simple Icons)
+    expect(await health.json()).toMatchObject({ ok: true, logos: { 'simple-icons': 2 } });
     const pre = await handle(new Request(`${BASE}/mcp`, { method: 'OPTIONS' }));
     expect(pre.status).toBe(204);
     expect(pre.headers.get('access-control-allow-origin')).toBe('*');
