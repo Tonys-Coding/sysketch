@@ -1,8 +1,9 @@
-import { layout, NODE, PILL, SUB, type Pt } from './layout.js';
+import { layout, MAP_NODE, NODE, PILL, SUB, type Pt } from './layout.js';
 import { legendBlock } from './legend.js';
 import type { Logo } from './logos.js';
-import type { EdgeModel, GroupModel, Model } from './model.js';
+import type { EdgeModel, GroupModel, MapSpec, Model } from './model.js';
 import { defaultTheme, iconPaint, mix, type Theme } from './themes.js';
+import { mapPath } from './maps.js';
 import { sketch, sketchIcon } from './sketch.js';
 import { GlyphSheet, type Anchor, type FontRef } from './text.js';
 
@@ -139,6 +140,67 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     );
   }
 
+  // A map with its pins in the box, used behind groups and in map nodes. `base` is the surface
+  // color the land is mixed from.
+  const mapMarkup = (
+    map: MapSpec,
+    box: { x: number; y: number; w: number; h: number },
+    base: string,
+    key: string,
+  ): string => {
+    if (box.w < 80 || box.h < 40) return '';
+    const m = mapPath(map.name, box.x, box.y, box.w, box.h);
+    const hex = /^#[0-9a-f]{6}/i.test(base);
+    // dark surfaces need more of the line color for the land to show
+    const dark = hex && [1, 3, 5].reduce((n, i) => n + parseInt(base.slice(i, i + 2), 16), 0) < 300;
+    const land = hex
+      ? mix(base.slice(0, 7), theme.group.stroke, dark ? 0.55 : 0.3)
+      : theme.group.stroke;
+    const shape = sk
+      ? sketch.path(
+          m.d,
+          { fill: land, fillStyle: 'solid', stroke: theme.group.stroke, strokeWidth: 1.25 },
+          `m:${key}`,
+          sk,
+        )
+      : `<path d="${m.d}" fill="${land}"${hex ? '' : ' fill-opacity="0.16"'} stroke="${theme.group.stroke}" stroke-width="1.25" stroke-linejoin="round"/>`;
+    const pinColor = (theme.hues.red ?? theme.hues.orange ?? theme.hues.slate!).a;
+    const pins = map.pins
+      .map((p, i) => {
+        const [x, y] = m.at(p.lon, p.lat);
+        // teardrop pin whose tip is the place
+        const d =
+          `M${x} ${y}C${r2(x - 2)} ${r2(y - 4)} ${r2(x - 5.5)} ${r2(y - 7)} ${r2(x - 5.5)} ${r2(y - 11)}` +
+          `C${r2(x - 5.5)} ${r2(y - 14.2)} ${r2(x - 3)} ${r2(y - 16.5)} ${x} ${r2(y - 16.5)}` +
+          `C${r2(x + 3)} ${r2(y - 16.5)} ${r2(x + 5.5)} ${r2(y - 14.2)} ${r2(x + 5.5)} ${r2(y - 11)}` +
+          `C${r2(x + 5.5)} ${r2(y - 7)} ${r2(x + 2)} ${r2(y - 4)} ${x} ${y}Z`;
+        const body = sk
+          ? sketch.path(
+              d,
+              { fill: pinColor, fillStyle: 'solid', stroke: pinColor, strokeWidth: 1.25 },
+              `p:${key}:${i}`,
+              sk,
+            )
+          : `<path d="${d}" fill="${pinColor}" stroke="${pinColor}" stroke-width="1" stroke-linejoin="round"/>`;
+        const right = x > box.x + box.w - 90;
+        return (
+          `<g data-pin="${esc(p.label)}">${body}<circle cx="${x}" cy="${r2(y - 11)}" r="2" fill="#FFFFFF"/>` +
+          textPath(
+            p.label,
+            right ? x - 9 : x + 9,
+            r2(y - 7),
+            12,
+            theme.fonts.edge,
+            theme.text,
+            right ? 'end' : 'start',
+          ) +
+          `</g>`
+        );
+      })
+      .join('');
+    return `<g data-map="${map.name}">${shape}${pins}</g>`;
+  };
+
   // Outer groups first; nested ones get a slightly deeper fill so the levels read apart.
   const depth = (g: GroupModel): number => {
     const parent = g.parent && model.groups.find((p) => p.id === g.parent);
@@ -170,8 +232,12 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
           sk,
         )
       : `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${card.radius + 4}" fill="${fill}" stroke="${theme.group.stroke}" stroke-width="1.75"${theme.group.dashed ? ' stroke-dasharray="8 6"' : ''}/>`;
+    // simplified map backdrop (maps: {Group: world}), under the label and the nodes
+    const mapSvg = g.map
+      ? mapMarkup(g.map, { x: b.x + 16, y: b.y + 44, w: b.w - 32, h: b.h - 60 }, fill, `g:${g.id}`)
+      : '';
     out.push(
-      `<g>${box}` +
+      `<g>${box}${mapSvg}` +
         textPath(
           theme.group.uppercase ? g.label.toUpperCase() : g.label,
           b.x + 20,
@@ -258,12 +324,13 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     const b = lay.nodes.get(n.id)!;
     const hue = theme.hues[n.icon.hue] ?? theme.hues.slate!;
     const iconSize = NODE.icon;
+    const iconH = n.map ? MAP_NODE.mapH : iconSize;
     const ix = r2(b.x + b.w / 2 - iconSize / 2);
     const iy = r2(b.y + 14);
     const paint = iconPaint(theme, hue);
     const body = n.icon.body.replace(/\{[AMLS]\}/g, (k) => paint[k as keyof typeof paint]);
     const iconMarkup = sk ? sketchIcon(body, `i:${n.id}`, sk, [paint['{L}'], hue.a]) : body;
-    const labelY0 = b.y + 14 + iconSize + NODE.labelGap + 12;
+    const labelY0 = b.y + 14 + iconH + NODE.labelGap + 12;
     const labels = b.lines
       .map((line, i) =>
         textPath(
@@ -321,9 +388,16 @@ export async function renderModel(model: Model, opts: RenderOptions = {}): Promi
     out.push(
       `<g${opts.annotate ? ` class="sk-node" data-node="${esc(n.id)}"` : ''}><title>${esc(n.label)}</title>` +
         shell +
-        (n.logo
-          ? logoMarkup(n.logo, b.x + b.w / 2, iy, theme, `l:${n.id}`)
-          : `<g transform="translate(${ix} ${iy}) scale(${r2(iconSize / 48)})">${iconMarkup}</g>`) +
+        (n.map
+          ? mapMarkup(
+              n.map,
+              { x: b.x + 14, y: b.y + 14, w: b.w - 28, h: MAP_NODE.mapH },
+              card.fill ?? hue.card,
+              `n:${n.id}`,
+            )
+          : n.logo
+            ? logoMarkup(n.logo, b.x + b.w / 2, iy, theme, `l:${n.id}`)
+            : `<g transform="translate(${ix} ${iy}) scale(${r2(iconSize / 48)})">${iconMarkup}</g>`) +
         labels +
         subs +
         `</g>`,

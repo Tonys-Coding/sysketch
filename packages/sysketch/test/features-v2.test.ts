@@ -1,5 +1,7 @@
+import { parse as parseYaml } from 'yaml';
 import { describe, expect, it } from 'vitest';
-import { layout } from '../src/layout.js';
+import { layout, nodeBox } from '../src/layout.js';
+import { parsePin } from '../src/maps.js';
 import { buildModel, defaultTheme, render, SysketchError } from '../src/index.js';
 
 describe('0.2.0 spec features', () => {
@@ -115,5 +117,101 @@ describe('0.2.0 rendering', () => {
     expect(buildModel({ edges: ['a/server > b/db | 2xx retries'] }).edges[0]!.label).toBe(
       '2xx retries',
     );
+  });
+});
+
+describe('map backdrop', () => {
+  const spec = `
+nodes:
+  us: cluster | US East
+  eu: cluster | EU West
+groups:
+  Regions: [us, eu]
+maps:
+  Regions: world
+edges:
+  - us > eu
+`;
+
+  it('draws a simplified map behind the group', async () => {
+    expect(await render(spec)).toContain('data-map="world"');
+    expect(await render(spec.replace('maps:\n  Regions: world\n', ''))).not.toContain('data-map');
+  });
+
+  it('draws in every theme, including the hand-drawn one', async () => {
+    for (const theme of ['classic', 'graphite', 'blueprint', 'midnight', 'sketch']) {
+      expect(await render(spec, { theme })).toContain('data-map="world"');
+    }
+  });
+
+  it('names the group when the map targets one that does not exist', () => {
+    expect(() =>
+      buildModel(parseYaml(spec.replace('  Regions: world', '  Regoins: world'))),
+    ).toThrow(/maps\.Regoins: no group or map node with that name/);
+  });
+
+  it('rejects unknown map names', () => {
+    expect(() => buildModel(parseYaml(spec.replace('world', 'mars')))).toThrow();
+  });
+
+  it('draws pins at named places and at custom coordinates', async () => {
+    const svg = await render(
+      spec.replace('  Regions: world', '  Regions:\n    pins: [us-east, tokyo, HQ @ -0.12 51.5]'),
+    );
+    expect(svg).toContain('data-pin="us-east"');
+    expect(svg).toContain('data-pin="tokyo"');
+    expect(svg).toContain('data-pin="HQ"');
+  });
+
+  it('suggests a place for a misspelled pin', () => {
+    expect(() =>
+      buildModel(parseYaml(spec.replace('  Regions: world', '  Regions:\n    pins: [us-eest]'))),
+    ).toThrow(/unknown pin "us-eest".*Did you mean: us-east/);
+  });
+});
+
+describe('map node', () => {
+  const spec = `
+nodes:
+  world: world-map | Our regions
+  db: database
+maps:
+  world:
+    pins: [eu-west, sydney]
+edges:
+  - world > db
+`;
+
+  it('draws a big map card with pins in place of an icon', async () => {
+    const svg = await render(spec);
+    expect(svg).toContain('data-map="world"');
+    expect(svg).toContain('data-pin="sydney"');
+    for (const theme of ['classic', 'midnight', 'sketch']) {
+      expect(await render(spec, { theme })).toContain('data-map="world"');
+    }
+  });
+
+  it('is wider and taller than a normal node', () => {
+    const normal = buildModel({ edges: ['api > db'] }).nodes[0]!;
+    const big = buildModel(parseYaml(spec)).nodes[0]!;
+    expect(big.map).toBeDefined();
+    expect(nodeBox(big, defaultTheme).w).toBeGreaterThan(nodeBox(normal, defaultTheme).w * 2);
+    expect(nodeBox(big, defaultTheme).h).toBeGreaterThan(nodeBox(normal, defaultTheme).h + 50);
+  });
+
+  it('refuses a map entry for a node that is not a map node', () => {
+    expect(() =>
+      buildModel(parseYaml('nodes:\n  api: server\nmaps:\n  api: world\nedges:\n  - api > db')),
+    ).toThrow(/is a node without a map/);
+  });
+});
+
+describe('parsePin', () => {
+  it('reads place names and coordinates', () => {
+    expect(parsePin('us-east')).toMatchObject({ label: 'us-east', lon: -77.4 });
+    expect(parsePin('HQ @ -0.12, 51.5')).toEqual({ label: 'HQ', lon: -0.12, lat: 51.5 });
+    expect(parsePin('Lab @ 10 -20')).toEqual({ label: 'Lab', lon: 10, lat: -20 });
+    expect(parsePin('nowhere')).toBeUndefined();
+    expect(parsePin('Far @ 200 10')).toBeUndefined();
   });
 });

@@ -1,0 +1,12 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M29.6 42.6L31.4 41.7L31.4 17.7L29.6 18.6Z" fill="#FFFF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M14.4 11L29.6 18.6L31.4 17.7L16.2 10.1Z" fill="#FF0000" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M14.4 35L29.6 42.6L29.6 18.6L14.4 11Z" fill="#00FF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M16.8 16.7L27.2 21.9M16.8 20.2L28 25.8M16.8 23.7L25.6 28.1M16.8 27.2L28 32.8M16.8 30.7L24.4 34.5" stroke="#0000FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M27.2 41L30.4 42.6L30.4 44.2Z" fill="#00FF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M30.4 42.6L33.6 41L30.4 44.2Z" fill="#FFFF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M27.2 41L30.4 42.6L30.4 29.2L27.2 27.6Z" fill="#00FF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M30.4 42.6L33.6 41L33.6 27.6L30.4 29.2Z" fill="#FFFF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M27.2 27.6L30.4 29.2L33.6 27.6L30.4 26Z" fill="#FF0000" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M27.2 30L30.4 31.6L33.6 30" stroke="#0000FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

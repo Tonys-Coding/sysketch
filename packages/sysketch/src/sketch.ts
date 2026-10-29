@@ -8,6 +8,12 @@ export interface SketchStyle {
   /** roughness used inside icons, which are small */
   iconRoughness: number;
   hachureGap: number;
+  /** icons only: draw each outline once instead of the doubled hand-drawn pass */
+  iconSingleStroke?: boolean;
+  /** icons only: bowing (how much straight lines curve); defaults to `bowing` */
+  iconBowing?: number;
+  /** icons only: multiplier for outline width, so dense icons do not clot */
+  iconWidth?: number;
 }
 
 export interface Ink {
@@ -29,16 +35,24 @@ function seed(key: string): number {
 
 const trim = (d: string) => d.replace(/(\d+\.\d)\d+/g, '$1');
 
-function options(ink: Ink, key: string, s: SketchStyle, roughness = s.roughness): Options {
+function options(
+  ink: Ink,
+  key: string,
+  s: SketchStyle,
+  roughness = s.roughness,
+  icon = false,
+): Options {
+  const width = (ink.strokeWidth ?? 2) * (icon ? (s.iconWidth ?? 1) : 1);
   const o: Options = {
     seed: seed(key),
     roughness,
-    bowing: s.bowing,
+    bowing: icon ? (s.iconBowing ?? s.bowing) : s.bowing,
+    ...(icon && s.iconSingleStroke ? { disableMultiStroke: true } : {}),
     stroke: ink.stroke ?? 'none',
-    strokeWidth: ink.strokeWidth ?? 2,
+    strokeWidth: width,
     hachureGap: s.hachureGap,
     hachureAngle: -41,
-    fillWeight: Math.max(1, (ink.strokeWidth ?? 2) * 0.45),
+    fillWeight: Math.max(1, width * 0.45),
     preserveVertices: true,
   };
   if (ink.fill && ink.fill !== 'none') {
@@ -150,7 +164,7 @@ export function sketchIcon(
       // highlights and solid ink details stay flat so they read clearly
       fillStyle: solid.includes(fill) ? 'solid' : 'hachure',
     };
-    const opts = options(ink, `${key}:${i++}`, s, s.iconRoughness);
+    const opts = options(ink, `${key}:${i++}`, s, s.iconRoughness, true);
     let shape: string;
     switch (tag) {
       case 'rect': {

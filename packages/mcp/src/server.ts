@@ -10,7 +10,7 @@ import { ICONS, SysketchError, createLogoResolver, renderToFile, svgToPng, theme
 // Loaded into the model's context every session: keep it short.
 const GUIDE = `Render a system design diagram from a tiny YAML spec. Writes an .svg/.png file and returns its path. Never write SVG yourself.
 Spec keys: title, type (sequence: message timeline), theme (${Object.keys(themes).join('|')}), direction (omit: auto-fit; right|down only if asked), steps (false hides numbers), legend (true lists steps),
-nodes {id: "icon | Label | subtitle"}, groups {Label: [ids or group labels to nest]}, edges ["a > b > c | label", "a ..> b" dashed, "a <> b" two-way, "a => b" thick, "a -- b" line, "a > b [red]" color].
+nodes {id: "icon | Label | subtitle"}, groups {Label: [ids or group labels to nest]}, maps {Group Label or world-map node id: world | {pins: [us-east, eu-west, \"HQ @ -0.1 51.5\"]}} (map backdrop, or a big map card when a node uses the icon world-map), edges ["a > b > c | label", "a ..> b" dashed, "a <> b" two-way, "a => b" thick, "a -- b" line, "a > b [red]" color].
 Ids that are icon names/aliases (client, lb, api, db, cache, redis, kafka, s3, cdn...) need no nodes entry.
 Arrows are numbered automatically in the order listed; don't number labels.
 Product names (stripe, s3, sendgrid, aks...) draw official logos if installed, else a fitting icon; brand/icon (acme/queue) for others.

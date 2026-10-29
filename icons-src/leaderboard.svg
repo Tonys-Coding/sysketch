@@ -1,0 +1,20 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M6 32L14 36L14 28L6 24Z" fill="#00FF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M14 36L26 30L26 22L14 28Z" fill="#FFFF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M6 24L14 28L26 22L18 18Z" fill="#FF0000" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M14 36L22 40L22 27.4L14 23.4Z" fill="#00FF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M22 40L34 34L34 21.4L22 27.4Z" fill="#FFFF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M14 23.4L22 27.4L34 21.4L26 17.4Z" fill="#FF0000" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M22 40L30 44L30 39L22 35Z" fill="#00FF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M30 44L42 38L42 33L30 39Z" fill="#FFFF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M22 35L30 39L42 33L34 29Z" fill="#FF0000" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M23.4 8.7L21.7 12.1L23.3 11.3L25 7.9Z" fill="#FF0000" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M21.7 12.1L17.1 10.1L18.7 9.3L23.3 11.3Z" fill="#FF0000" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M20.6 14.8L19.5 18.7L21.1 17.9L22.2 14Z" fill="#FF0000" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M19.5 18.7L23.4 18.2L25 17.4L21.1 17.9Z" fill="#FFFF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M27.3 22.6L26.2 17.6L27.8 16.8L28.9 21.8Z" fill="#FF0000" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M26.2 17.6L29.7 16.4L31.3 15.6L27.8 16.8Z" fill="#FFFF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M29.7 16.4L25.1 13.8L26.7 13L31.3 15.6Z" fill="#FF0000" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M25.1 13.8L23.4 8.7L25 7.9L26.7 13Z" fill="#FF0000" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+<path d="M23.4 8.7L21.7 12.1L17.1 10.1L20.6 14.8L19.5 18.7L23.4 18.2L27.3 22.6L26.2 17.6L29.7 16.4L25.1 13.8Z" fill="#00FF00" stroke="#0000FF" stroke-width="2" stroke-linejoin="round"/>
+</svg>

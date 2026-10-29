@@ -47,6 +47,8 @@ export const NODE = {
   labelGap: 10,
   maxLabelW: 150,
 } as const;
+/** A map node is a wide card with a big map where the icon would be. */
+export const MAP_NODE = { minW: 340, mapH: 130 } as const;
 export const PILL = { h: 28, badge: 26, labelSize: 13 } as const;
 export const SUB = { size: 12, line: 16, maxW: 170 } as const;
 /** Extra room reserved on each side of a pill so the arrow stays visible around it. */
@@ -71,9 +73,12 @@ export function nodeBox(n: Model['nodes'][number], theme: Theme): NodeBox {
     ...lines.map((l) => measure(l, NODE.labelSize, theme.fonts.label)),
     ...subLines.map((l) => measure(l, SUB.size, theme.fonts.edge)),
   );
-  const w = Math.max(NODE.minW, Math.ceil(textW + 36));
+  const w = Math.max(n.map ? MAP_NODE.minW : NODE.minW, Math.ceil(textW + 36));
   const h =
-    NODE.h + (lines.length - 1) * 19 + (subLines.length ? subLines.length * SUB.line + 2 : 0);
+    NODE.h +
+    (n.map ? MAP_NODE.mapH - NODE.icon : 0) +
+    (lines.length - 1) * 19 +
+    (subLines.length ? subLines.length * SUB.line + 2 : 0);
   return { x: 0, y: 0, w, h, lines, subLines };
 }
 

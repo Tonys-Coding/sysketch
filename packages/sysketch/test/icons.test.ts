@@ -63,7 +63,7 @@ describe('convertIconSvg', () => {
 
 describe('catalog', () => {
   it('has every checklist icon, each with art and only placeholder colors', () => {
-    expect(ICONS).toHaveLength(61);
+    expect(ICONS).toHaveLength(81);
     for (const icon of ICONS) {
       expect(icon.body, icon.name).not.toBe('');
       const colors = [...icon.body.matchAll(/(?:fill|stroke)="([^"]+)"/g)].map((m) => m[1]);

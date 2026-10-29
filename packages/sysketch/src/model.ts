@@ -1,5 +1,6 @@
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
+import { parsePin, PIN_NAMES, type MapName, type Pin } from './maps.js';
 import { SysketchError } from './errors.js';
 import { findIcon, iconKeys, type IconDef } from './icons.js';
 import type { Logo, LogoResolver } from './logos.js';
@@ -31,6 +32,11 @@ const edgeValue = z.union([
   z.record(z.string(), z.string()),
 ]);
 
+const mapValue = z.union([
+  z.enum(['world']),
+  z.object({ map: z.enum(['world']).optional(), pins: z.array(z.string()).optional() }).strict(),
+]);
+
 export const specSchema = z
   .object({
     title: z.string().optional(),
@@ -42,12 +48,18 @@ export const specSchema = z
     logos: z.union([z.boolean(), z.string(), z.array(z.string())]).optional(),
     nodes: z.record(z.string(), nodeValue).optional(),
     groups: z.record(z.string(), z.array(z.string())).optional(),
+    maps: z.record(z.string(), mapValue).optional(),
     edges: z.array(edgeValue).min(1),
   })
   .strict();
 
 export type Spec = z.infer<typeof specSchema>;
 
+/** A map to draw (behind a group, or as a big map node) and the pins on it. */
+export interface MapSpec {
+  name: MapName;
+  pins: Pin[];
+}
 export interface NodeModel {
   id: string;
   label: string;
@@ -56,6 +68,8 @@ export interface NodeModel {
   icon: IconDef;
   /** official brand logo, drawn unaltered in place of the icon */
   logo?: Logo;
+  /** a big map card in place of the icon (icon name `world-map`) */
+  map?: MapSpec;
 }
 export interface GroupModel {
   id: string;
@@ -66,6 +80,8 @@ export interface GroupModel {
   groups: string[];
   /** id of the group this one sits in */
   parent?: string;
+  /** simplified map drawn behind the group's contents */
+  map?: MapSpec;
 }
 export interface EdgeModel {
   id: string;
@@ -266,6 +282,10 @@ export interface BuildOptions {
 
 const GENERIC = findIcon('service')!.icon;
 
+/** Icon names that draw a big map card instead of an icon. */
+const MAP_ICON_KEYS = new Set(['world-map', 'map']);
+const WORLD: MapSpec = { name: 'world', pins: [] };
+
 const titleCase = (s: string) =>
   s.replace(/[-_]+/g, ' ').replace(/\b[a-z]/g, (c) => c.toUpperCase());
 
@@ -287,7 +307,9 @@ function known(key: string): { icon: IconDef; label: string; generic: boolean } 
 function lookup(
   key: string,
   logoOf: LogoLookup | undefined,
-): { icon: IconDef; label: string; logo?: Logo } | undefined {
+): { icon: IconDef; label: string; logo?: Logo; map?: true } | undefined {
+  if (MAP_ICON_KEYS.has(key.toLowerCase()))
+    return { icon: findIcon('location')!.icon, label: 'World Map', map: true };
   const slash = key.indexOf('/');
   if (slash > 0) {
     const brand = key.slice(0, slash).trim();
@@ -335,6 +357,7 @@ function parseNodeValue(
     icon: hit.icon,
     ...(sub ? { sub } : {}),
     ...(hit.logo ? { logo: hit.logo } : {}),
+    ...(hit.map ? { map: { ...WORLD } } : {}),
   };
 }
 
@@ -349,7 +372,7 @@ export function buildModel(input: string | object, opts: BuildOptions = {}): Mod
       .map((i) => `${i.path.join('.') || 'spec'}: ${i.message}`)
       .join('; ');
     throw new SysketchError(
-      `Invalid spec. ${msg}. Expected keys: title, type, theme, direction, steps, legend, logos, nodes, groups, edges.`,
+      `Invalid spec. ${msg}. Expected keys: title, type, theme, direction, steps, legend, logos, nodes, groups, maps, edges.`,
     );
   }
   const spec = parsed.data;
@@ -379,6 +402,7 @@ export function buildModel(input: string | object, opts: BuildOptions = {}): Mod
         label: hit.label,
         icon: hit.icon,
         ...(hit.logo ? { logo: hit.logo } : {}),
+        ...(hit.map ? { map: { ...WORLD } } : {}),
       });
       return id;
     }
@@ -436,6 +460,42 @@ export function buildModel(input: string | object, opts: BuildOptions = {}): Mod
   });
   const byId = new Map(groups.map((g) => [g.id, g]));
   for (const g of groups) for (const c of g.groups) byId.get(c)!.parent = g.id;
+  // maps: {Group or map node: world | {pins: [...]}} draws a map behind a group or in a map node
+  for (const [key, val] of Object.entries(spec.maps ?? {})) {
+    const conf = typeof val === 'string' ? { map: val } : val;
+    const pins = (conf.pins ?? []).map((text) => {
+      const pin = parsePin(text);
+      if (pin) return pin;
+      const tip = suggest(text, PIN_NAMES);
+      throw new SysketchError(
+        `maps.${key}: unknown pin "${text}".` +
+          (tip.length ? ` Did you mean: ${tip.join(', ')}?` : '') +
+          ' Use a place like us-east or tokyo, or write Label @ lon lat (HQ @ -0.12 51.5).',
+      );
+    });
+    const map: MapSpec = { name: conf.map ?? 'world', pins };
+    const g = groups.find((m) => m.label === key);
+    const n = nodes.get(key);
+    if (g) g.map = map;
+    else if (n?.map) n.map = map;
+    else if (n)
+      throw new SysketchError(
+        `maps.${key}: "${key}" is a node without a map. Give it the icon world-map, or use a group name.`,
+      );
+    else {
+      const names = [
+        ...specGroups.map(([l]) => l),
+        ...[...nodes.values()].filter((m) => m.map).map((m) => m.id),
+      ];
+      const tip = suggest(key, names);
+      throw new SysketchError(
+        `maps.${key}: no group or map node with that name.` +
+          (tip.length
+            ? ` Did you mean: ${tip.join(', ')}?`
+            : ' Add it under groups, or as a world-map node.'),
+      );
+    }
+  }
   for (const g of groups) {
     // walking up must end at a top-level group, or the nesting loops
     const path = new Set<string>();

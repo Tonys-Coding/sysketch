@@ -128,6 +128,6 @@ Figma's automatic frame clip path (`clip-path` + `<defs><clipPath>`) is removed 
 - [x] `iot`: chip / sensor
 - [x] `desktop`: monitor app
 
-**Progress:** 61 of 61 drawn (updated by `npm run icons`).
+**Progress:** 81 of 81 drawn (updated by `npm run icons`).
 
 Not icons (handled by containers/groups instead): region, availability zone, VPC, data center. Replicas and shards are expressed as duplicate nodes or labels.

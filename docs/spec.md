@@ -67,6 +67,36 @@ groups:
 
 ![A web app inside nested AWS region, VPC and subnet groups](../examples/aws-network.svg)
 
+## Maps and pins (`maps`)
+
+Draw a simplified world map, either behind a group or as a big map node, and drop pins on it.
+
+**Behind a group.** Name the group, then give it a map:
+
+```yaml
+nodes:
+  us: cluster | US East
+  eu: cluster | EU West
+groups:
+  Regions: [us, eu]
+maps:
+  Regions: world
+```
+
+**As a big map node.** Use the icon `world-map` (or `map`). The node becomes a wide card with the map where the icon would be, so arrows connect to it like any other part:
+
+```yaml
+nodes:
+  world: world-map | Our regions
+maps:
+  world:
+    pins: [us-east, eu-west, ap-southeast, Sydney @ 151.2 -33.9]
+```
+
+**Pins.** Each pin is a place name (`us-east`, `us-west`, `eu-west`, `eu-central`, `ap-southeast`, `ap-northeast`, `sa-east`, `af-south`, `tokyo`, `sydney`, `london`... `sysketch` lists them in the error for a misspelling) or `Label @ longitude latitude`, e.g. `HQ @ -0.12 51.5`. A pin's label is drawn next to it.
+
+The map uses the group's or node's colors and is drawn under the label and the parts, so a map node (with nothing on top of it) shows pins best. Only `world` exists so far.
+
 ## Sequence diagrams
 
 Add `type: sequence` to show the same arrows as a timeline: the parts across the top, a dashed lifeline under each, and one row per message, top to bottom in the order you write them. Use `..>` for replies, and `a > a` for a step a part does by itself. Groups draw a box around their parts.

@@ -136,7 +136,7 @@ Draw these icons:
 - worker: a thick gear lying flat on its footprint
 ```
 
-### Icon briefs (all 61)
+### Icon briefs (all 81)
 
 **Clients & edge**
 
@@ -227,6 +227,31 @@ Draw these icons:
 | `llm`              | Cube with a four-point sparkle on the top face                |
 | `etl`              | Funnel feeding into a box                                     |
 | `stream-processor` | Gear sitting on a short conveyor                              |
+
+**Product building blocks**
+
+| Icon           | Isometric brief                                                                              |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| `cart`         | Open wire basket on short legs and wheels, handle bar sticking out the back                  |
+| `booking`      | Upright ticket with semicircle notches top and bottom and a dashed tear line                 |
+| `ride`         | Boxy toy car: body slab, smaller cabin with side windows and windshield, 2 wheels            |
+| `inventory`    | Two boxes on a pallet with a third taped box on top                                          |
+| `shipping`     | Delivery truck: tall cargo box with an arrow on the side, lower cab, 3 wheels                |
+| `link`         | Two long, thick chain links standing upright and hooked at their ends, lit rim behind        |
+| `doc`          | Complete upright portrait page (about 1:1.4) with text lines, pencil standing beside         |
+| `calendar`     | Upright desk calendar: dark header band, two binder rings, a 4 x 3 grid of ink dots          |
+| `upload`       | Flat tray with a thick upward arrow standing on it                                           |
+| `sms`          | Small upright phone with a compact bright speech bubble (two text lines) in front            |
+| `leaderboard`  | Three-step podium (second, first, third) with a star above the winner's step                 |
+| `id-generator` | Tall dispenser box with a hash sign on its face and a ticket lying in front                  |
+| `counter`      | Upright display slab showing "+1"                                                            |
+| `social-graph` | Three small people spread well apart, joined by lines between their bodies                   |
+| `websocket`    | Browser window floating above a server slab, joined by a standing two-way arrow              |
+| `shard`        | One banded database fanning out to three smaller partitions on a tree line                   |
+| `gpu`          | Flat graphics card: one slab, two round fans on top, an end bracket (kept simple for sketch) |
+| `workflow`     | Three flat step tiles in a row joined by stroked arrows                                      |
+| `backup`       | Database with an open circular arrow around it, arrowhead pointing up                        |
+| `region`       | Map slab with two landmasses on its top face and a pin standing on it                        |
 
 **Infrastructure & dev**
 

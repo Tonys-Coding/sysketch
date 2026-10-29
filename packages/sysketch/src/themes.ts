@@ -264,7 +264,14 @@ export const sketchTheme: Theme = {
   group: { fill: '#f5f1e6', stroke: '#8a8577', dashed: false, label: '#5c574b', uppercase: false },
   card: { radius: 12, stroke: 2.25, style: 'outline', fill: '#ffffff' },
   iconLight: '#ffffff',
-  sketch: { roughness: 1.2, bowing: 1, iconRoughness: 0.8, hachureGap: 1.9 },
+  sketch: {
+    roughness: 1.2,
+    bowing: 1,
+    iconRoughness: 0.45,
+    hachureGap: 1.9,
+    iconSingleStroke: true,
+    iconBowing: 0.3,
+  },
   hues: withSurfaces(
     {
       blue: { a: INK, m: '#4cc3fc', card: '#ffffff' },
