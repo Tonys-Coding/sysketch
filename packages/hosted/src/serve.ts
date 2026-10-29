@@ -30,8 +30,12 @@ createServer(async (req, res) => {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(file(path.slice(1)));
       return;
     }
-    if (req.method === 'GET' && /^\/brand\/[\w-]+\.svg$/.test(path)) {
-      res.writeHead(200, { 'content-type': 'image/svg+xml' }).end(file(path.slice(1)));
+    const image = /^\/(?:brand\/[\w-]+\.(svg|png)|(favicon\.ico)|apple-touch-icon\.(png))$/.exec(
+      path,
+    );
+    if (req.method === 'GET' && image) {
+      const type = image[1] === 'svg' ? 'image/svg+xml' : image[2] ? 'image/x-icon' : 'image/png';
+      res.writeHead(200, { 'content-type': type }).end(file(path.slice(1)));
       return;
     }
     const hasBody = req.method !== 'GET' && req.method !== 'HEAD' && chunks.length > 0;
