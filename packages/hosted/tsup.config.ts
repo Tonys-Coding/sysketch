@@ -8,7 +8,12 @@ export default defineConfig({
   target: 'node20',
   // The landing page uses the logo from docs/brand (copied, not committed twice).
   onSuccess: async () => {
-    for (const f of ['sysketch-logo.svg', 'sysketch-logo-dark.svg', 'sysketch-icon.svg']) {
+    for (const f of [
+      'sysketch-logo.svg',
+      'sysketch-logo-dark.svg',
+      'sysketch-icon.svg',
+      'sysketch-icon-512.png',
+    ]) {
       cpSync(`../../docs/brand/${f}`, `public/brand/${f}`);
     }
   },
