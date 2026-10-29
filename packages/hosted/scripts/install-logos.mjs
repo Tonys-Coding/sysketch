@@ -2,17 +2,19 @@
 // - Simple Icons: same checked install as `sysketch logos install simple-icons` (npm registry
 //   only, sha512 integrity). Always the latest release, so logos that brands asked Simple Icons
 //   to remove go away on the next deploy. Logos listed in blocked-logos.txt are removed.
-// - The official AWS, Azure and Google Cloud architecture icon packs (Google's core and legacy
-//   packs), published by the providers for architecture diagrams: the exact files in cloud-packs.json, checked against their sha256,
-//   imported unaltered (same as `sysketch logos import <pack>.zip`). Never committed. A pack
-//   that can't be downloaded or doesn't match is skipped with a warning; /health lists the
-//   sources that made it.
+// - Official logo packs listed in logo-packs.json: the AWS, Azure and Google Cloud (core and
+//   legacy) architecture icons, which the providers publish for architecture diagrams, and
+//   OpenAI's Blossom mark from its brand page. The exact files, checked against their sha256,
+//   imported unaltered (same as `sysketch logos import <pack>.zip`); `files` picks single files
+//   out of a pack and names them. Never committed. A pack that can't be downloaded or doesn't
+//   match is skipped with a warning; /health lists the sources that made it.
 // usage: npm run build -w sysketch && node scripts/install-logos.mjs
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { unzipSync } from 'fflate';
 import { importLogos, installSimpleIcons } from 'sysketch';
 
 const home = fileURLToPath(new URL('../logos', import.meta.url));
@@ -38,7 +40,7 @@ console.log(
     (removed.length ? ` (blocked: ${removed.join(', ')})` : ''),
 );
 
-const packs = JSON.parse(readFileSync(new URL('../cloud-packs.json', import.meta.url), 'utf8'));
+const packs = JSON.parse(readFileSync(new URL('../logo-packs.json', import.meta.url), 'utf8'));
 const tmp = mkdtempSync(join(tmpdir(), 'sysketch-packs-'));
 for (const [name, pack] of Object.entries(packs)) {
   try {
@@ -46,14 +48,26 @@ for (const [name, pack] of Object.entries(packs)) {
     if (!res.ok) throw new Error(`download failed (${res.status})`);
     const buf = Buffer.from(await res.arrayBuffer());
     const sha = createHash('sha256').update(buf).digest('hex');
-    if (sha !== pack.sha256) throw new Error(`checksum ${sha} doesn't match cloud-packs.json`);
-    const zip = join(tmp, `${name}.zip`);
-    writeFileSync(zip, buf);
-    const r = importLogos(zip, name, { home });
-    console.log(`${name}: ${r.count} icons`);
+    if (sha !== pack.sha256) throw new Error(`checksum ${sha} doesn't match logo-packs.json`);
+    let from = join(tmp, `${name}.zip`);
+    writeFileSync(from, buf);
+    if (pack.files) {
+      // only the listed files, under the listed names (OpenAI.svg -> openai, title "OpenAI")
+      const entries = unzipSync(new Uint8Array(buf), {
+        filter: (f) => Object.values(pack.files).includes(f.name),
+      });
+      from = join(tmp, name);
+      mkdirSync(from);
+      for (const [file, path] of Object.entries(pack.files)) {
+        if (!entries[path]) throw new Error(`${path} is not in the pack`);
+        writeFileSync(join(from, file), entries[path]);
+      }
+    }
+    const r = importLogos(from, name, { home });
+    console.log(`${name}: ${r.count} logos`);
   } catch (e) {
     console.warn(
-      `WARNING: ${name} icons skipped: ${e.message}. Check ${pack.page} for a new pack.`,
+      `WARNING: ${name} logos skipped: ${e.message}. Check ${pack.page} for a new pack.`,
     );
   }
 }

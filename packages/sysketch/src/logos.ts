@@ -110,6 +110,7 @@ const BRAND_ALIASES: Record<string, string[]> = {
   hashicorpvault: ['vault'],
   newrelic: ['newrelic'],
   huggingface: ['huggingface'],
+  chatgpt: ['openai'],
   githubactions: ['githubactions'],
   // AWS Architecture Icons
   s3: ['amazonsimplestorageservice'],

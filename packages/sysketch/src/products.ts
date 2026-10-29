@@ -194,6 +194,7 @@ export const PRODUCTS: Record<string, [icon: string, label: string]> = {
   mixpanel: ['analytics', 'Mixpanel'],
   amplitude: ['analytics', 'Amplitude'],
   openai: ['llm', 'OpenAI'],
+  chatgpt: ['llm', 'ChatGPT'],
   'azure-openai': ['llm', 'Azure OpenAI'],
   anthropic: ['llm', 'Anthropic'],
   claude: ['llm', 'Claude'],

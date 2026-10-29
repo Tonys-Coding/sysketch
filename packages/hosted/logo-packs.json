@@ -18,5 +18,13 @@
     "url": "https://services.google.com/fh/files/misc/google-cloud-legacy-icons.zip",
     "sha256": "a6d9d7921758042538b462f03cf64614c2cebd96743b3ed63580a769fc7de3e9",
     "page": "https://cloud.google.com/icons"
+  },
+  "openai": {
+    "url": "https://cdn.openai.com/brand/openai-logos.zip",
+    "sha256": "c54e85ab5884228f89f0230dd8effa8d588cad78166fe954135f4afa553222db",
+    "page": "https://openai.com/brand/",
+    "files": {
+      "OpenAI.svg": "OpenAI-logos/SVGs/OAI_OpenAI-Blossom_Black.svg"
+    }
   }
 }
