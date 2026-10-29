@@ -361,14 +361,31 @@ describe('cloud packs and plain words', () => {
       undefined,
       { home },
     );
+    importLogos(
+      pack('google-cloud-legacy-icons.zip', [
+        'cloud_functions/cloud_functions.svg',
+        'pubsub/pubsub.svg',
+        'dataflow/dataflow.svg',
+      ]),
+      'gcp-legacy',
+      { home },
+    );
     const logo = createLogoResolver({ home });
     const source = (name: string) => logo(name)?.source;
+    // Google's lowercase file names read as names
+    expect(logo('cloud-functions')?.title).toBe('Cloud Functions');
+    expect(logo('gcp-pubsub')?.title).toBe('Pub/Sub');
+    expect(source('dataflow')).toBe('gcp-legacy');
+    // vendor + name always works
+    expect(source('gcp-functions')).toBe('gcp-legacy');
+    expect(source('aws-lambda')).toBe('aws');
+    expect(source('azure-cosmosdb')).toBe('azure');
     // product names and everyday aliases
     for (const n of ['cosmosdb', 'aks', 'eventhubs', 'azure-monitor', 'azure-openai'])
       expect(source(n), n).toBe('azure');
     for (const n of ['lambda', 'aws-backup']) expect(source(n), n).toBe('aws');
     // plain words and other companies keep sysketch icons
-    for (const n of ['monitor', 'backup', 'openai', 'kubernetes-services'])
+    for (const n of ['monitor', 'backup', 'openai', 'kubernetes-services', 'functions'])
       expect(source(n), n).toBeUndefined();
     // suggestions name what works
     expect(logo.names()).toContain('azuremonitor');

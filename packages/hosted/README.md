@@ -16,9 +16,9 @@ The sysketch MCP server as a web service, for AI apps that can't run programs on
   - 30 s per request.
 - **Product logos and cloud icons.** The build (`npm run logos`) installs:
   - the latest Simple Icons release, checked the same way as `sysketch logos install`, so a logo a brand asked Simple Icons to remove disappears on the next deploy;
-  - the official AWS and Azure architecture icon packs, which AWS and Microsoft publish for architecture diagrams: the exact files pinned in [`cloud-packs.json`](cloud-packs.json), checked against their sha256 and imported unaltered. A pack that can't be downloaded or doesn't match is skipped with a warning in the build log; `/health` lists the sources that made it. When a provider publishes a new pack, put its URL and sha256 in `cloud-packs.json`.
+  - the official AWS, Azure and Google Cloud (core and legacy) architecture icon packs, which the providers publish for architecture diagrams: the exact files pinned in [`cloud-packs.json`](cloud-packs.json), checked against their sha256 and imported unaltered. A pack that can't be downloaded or doesn't match is skipped with a warning in the build log; `/health` lists the sources that made it. When a provider publishes a new pack, put its URL and sha256 in `cloud-packs.json`.
 
-  Logos are drawn unaltered and only inside diagrams. Specs can't name logo folders (`logos: ./folder`), and `logos: false` turns logos off. The Google Cloud pack and company logos stay features of the local `sysketch-mcp`.
+  Logos are drawn unaltered and only inside diagrams. Specs can't name logo folders (`logos: ./folder`), and `logos: false` turns logos off. Company logos stay a feature of the local `sysketch-mcp`. Google's download links don't change between releases, so when Google updates a pack the checksum stops matching and the build skips it with a warning until `cloud-packs.json` is updated.
 
 - **Removing a logo:** add its Simple Icons slug to [`blocked-logos.txt`](blocked-logos.txt) and push; the next deploy leaves it out.
 - **Landing page:** `/` explains how to connect and shows the server URL. [`/privacy.html`](public/privacy.html) and [`/terms.html`](public/terms.html) are the legal pages app directories ask for.
@@ -63,7 +63,7 @@ How to read it: **Drawn** is the number to watch; every one is a person asking a
 
 ```bash
 npm run build -w sysketch && npm run build -w sysketch-hosted
-npm run logos -w sysketch-hosted # optional: Simple Icons + AWS and Azure packs
+npm run logos -w sysketch-hosted # optional: Simple Icons + AWS, Azure and Google Cloud packs
 npm start -w sysketch-hosted     # http://localhost:3000, MCP at /mcp
 npm test -w sysketch-hosted
 ```

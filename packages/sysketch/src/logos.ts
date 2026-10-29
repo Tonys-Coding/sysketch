@@ -176,13 +176,13 @@ for (const [alias, names] of Object.entries(BRAND_ALIASES))
 /** Vendor prefixes dropped to make extra aliases in icon packs (Amazon-EC2 -> ec2). */
 const VENDOR_PREFIXES = ['amazon', 'aws', 'azure', 'microsoft', 'googlecloud', 'google', 'cloud'];
 
-/** Cloud icon packs, imported under these names by `importLogos`. */
-const VENDOR_PACKS = new Set(['aws', 'azure', 'gcp']);
+/** The cloud a pack belongs to: aws, azure or gcp (also gcp-legacy, Google's older pack). */
+const vendorOf = (label: string) => /^(aws|azure|gcp)(?:-|$)/.exec(label)?.[1];
 
 /**
  * Plain words and other companies' names that a cloud pack must not claim on its own, so
- * `backup`, `policy` or `openai` keep their sysketch icon in any diagram. The vendor-prefixed
- * name still works: `aws-backup`, `azure-policy`, `azure-openai`.
+ * `backup`, `functions` or `openai` keep their sysketch icon in any diagram. They answer to the
+ * vendor-prefixed name instead: `aws-backup`, `gcp-functions`, `azure-openai`.
  */
 const PLAIN_WORDS = new Set([
   // AWS names once "Amazon"/"AWS" is dropped
@@ -217,7 +217,62 @@ const PLAIN_WORDS = new Set([
   'quotas',
   'sphere',
   'workbooks',
+  // Google Cloud names once "Cloud" is dropped, and the legacy pack's plain titles
+  'administration',
+  'billing',
+  'build',
+  'connectors',
+  'deploy',
+  'domains',
+  'endpoints',
+  'functions',
+  'generic',
+  'genomics',
+  'home',
+  'identity',
+  'interconnect',
+  'launcher',
+  'logging',
+  'monitoring',
+  'network',
+  'permissions',
+  'profiler',
+  'project',
+  'router',
+  'routes',
+  'scheduler',
+  'security',
+  'shell',
+  'storage',
+  'tasks',
+  'trace',
+  'transfer',
+  'workflows',
 ]);
+
+/** Google's legacy pack names its files in lowercase ("cloud functions"). */
+const PRETTY: Record<string, string> = {
+  pubsub: 'Pub/Sub',
+  bigquery: 'BigQuery',
+  vertexai: 'Vertex AI',
+  alloydb: 'AlloyDB',
+  cloudsql: 'Cloud SQL',
+};
+const ACRONYMS = new Set(['ai', 'api', 'apis', 'cdn', 'dns', 'gke', 'hsm', 'iam', 'iot', 'kms']);
+for (const w of ['ml', 'nat', 'os', 'sdk', 'sql', 'tpu', 'vm', 'vpc', 'vpn']) ACRONYMS.add(w);
+
+/** A cloud pack's title as a name: "cloud functions" -> "Cloud Functions". */
+function displayTitle(label: string, title: string): string {
+  if (!vendorOf(label) || title !== title.toLowerCase()) return title;
+  return (
+    PRETTY[normName(title)] ??
+    title
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => (ACRONYMS.has(w) ? w.toUpperCase() : w[0]!.toUpperCase() + w.slice(1)))
+      .join(' ')
+  );
+}
 
 /** Azure titles most of its pack with plain words ("Monitor", "Load Balancers"). */
 const brandedTitle = (title: string) => /^(azure|microsoft)\b/i.test(title);
@@ -248,11 +303,11 @@ interface Source {
 
 function sourceFrom(label: string, dir: string, index: LogoIndex, verified: boolean): Source {
   const keys = new Map<string, string>();
-  const vendor = VENDOR_PACKS.has(label);
+  const vendor = vendorOf(label);
   const add = (k: string, name: string) => {
-    const n = normName(k);
-    if (!n || keys.has(n) || (vendor && PLAIN_WORDS.has(n))) return;
-    keys.set(n, name);
+    let n = normName(k);
+    if (vendor && PLAIN_WORDS.has(n)) n = vendor + n; // backup -> awsbackup
+    if (n && !keys.has(n)) keys.set(n, name);
   };
   // An Azure icon with a plain title answers only to azure-<title> (azure-monitor), so a
   // `monitor` or `load-balancers` node in any other diagram keeps its sysketch icon.
@@ -263,6 +318,8 @@ function sourceFrom(label: string, dir: string, index: LogoIndex, verified: bool
     add(e.title, name);
     for (const a of e.aliases ?? []) add(a, name);
   }
+  // every cloud icon also answers to vendor + name: gcp-pubsub, aws-lambda, azure-cosmosdb
+  if (vendor) for (const name of Object.keys(index.logos)) add(`${vendor}${name}`, name);
   return { label, dir, index, keys, verified };
 }
 
@@ -486,7 +543,7 @@ export function createLogoResolver(
         }
         found = {
           name,
-          title: e.title,
+          title: displayTitle(s.label, e.title),
           source: s.label,
           mime: extname(e.file).toLowerCase() === '.png' ? 'image/png' : 'image/svg+xml',
           data: buf.toString('base64'),
@@ -532,7 +589,7 @@ export function createLogoResolver(
           const key = match.sort((a, b) => a.length - b.length || a.localeCompare(b))[0]!;
           hits.set(`${s.label}:${name}`, {
             key,
-            title: s.index.logos[name]!.title,
+            title: displayTitle(s.label, s.index.logos[name]!.title),
             source: s.label,
           });
         }

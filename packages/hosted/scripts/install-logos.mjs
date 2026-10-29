@@ -2,8 +2,8 @@
 // - Simple Icons: same checked install as `sysketch logos install simple-icons` (npm registry
 //   only, sha512 integrity). Always the latest release, so logos that brands asked Simple Icons
 //   to remove go away on the next deploy. Logos listed in blocked-logos.txt are removed.
-// - The official AWS and Azure architecture icon packs, published by AWS and Microsoft for
-//   architecture diagrams: the exact files in cloud-packs.json, checked against their sha256,
+// - The official AWS, Azure and Google Cloud architecture icon packs (Google's core and legacy
+//   packs), published by the providers for architecture diagrams: the exact files in cloud-packs.json, checked against their sha256,
 //   imported unaltered (same as `sysketch logos import <pack>.zip`). Never committed. A pack
 //   that can't be downloaded or doesn't match is skipped with a warning; /health lists the
 //   sources that made it.

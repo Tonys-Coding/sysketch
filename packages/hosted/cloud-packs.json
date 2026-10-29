@@ -8,5 +8,15 @@
     "url": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
     "sha256": "921594ccd1bf3d9c0a1bd7b6d924e050551a59342f2b353bb74bdcf761c35141",
     "page": "https://learn.microsoft.com/en-us/azure/architecture/icons/"
+  },
+  "gcp": {
+    "url": "https://services.google.com/fh/files/misc/core-products-icons.zip",
+    "sha256": "6531a10f58bc599c24d9a455d81dd757c1a03c3c43da9cddf639b859c1c1eece",
+    "page": "https://cloud.google.com/icons"
+  },
+  "gcp-legacy": {
+    "url": "https://services.google.com/fh/files/misc/google-cloud-legacy-icons.zip",
+    "sha256": "a6d9d7921758042538b462f03cf64614c2cebd96743b3ed63580a769fc7de3e9",
+    "page": "https://cloud.google.com/icons"
   }
 }

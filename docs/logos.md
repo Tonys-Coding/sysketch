@@ -26,7 +26,7 @@ npx sysketch logos import ~/Downloads/<icon-pack>.zip
 
 sysketch recognizes the provider and its file names. Everyday names then work: `s3`, `lambda`, `sqs`, `eks`, `route53` (AWS), `aks`, `cosmosdb`, `keyvault`, `servicebus` (Azure), `bigquery`, `cloudrun`, `gke`, `spanner` (Google Cloud). To update, import a newer pack the same way.
 
-Plain words stay sysketch icons in any diagram, so an AWS diagram's `monitor` or `backup` never turns into an Azure or AWS icon. Most Azure icons have plain names ("Monitor", "Load Balancers"), so write them with the prefix: `azure-monitor`, `azure-load-balancers`. The same goes for a few AWS names that are ordinary words (`aws-backup`, `aws-connect`) and for `azure-openai`, so `openai` keeps meaning OpenAI.
+Plain words stay sysketch icons in any diagram, so an AWS diagram's `monitor` or `backup` never turns into an Azure or AWS icon. Most Azure icons have plain names ("Monitor", "Load Balancers"), so write them with the prefix: `azure-monitor`, `azure-load-balancers`. The same goes for AWS and Google Cloud names that are ordinary words (`aws-backup`, `gcp-functions`, `gcp-monitoring`) and for `azure-openai`, so `openai` keeps meaning OpenAI. Any cloud icon also answers to its provider plus its name (`aws-lambda`, `azure-cosmosdb`, `gcp-pubsub`), which helps when a name is also a sysketch icon. Google's older icons are in a separate download ("Legacy icons"); import it as `npx sysketch logos import <zip> --as gcp-legacy` to get Pub/Sub, Firestore, Dataflow and other services the core set leaves out.
 
 ![Event-driven app on Azure, drawn with the official Azure icons](logos/azure-events.svg)
 
@@ -84,7 +84,7 @@ The examples in this repository only use logos that are clearly fine to publish:
 
 ## On the hosted server
 
-The [AI chat connector](../README.md#in-your-ai-chat-nothing-to-install) (`https://sysketch.vercel.app/mcp`) includes the latest Simple Icons logos and the official AWS and Azure architecture icons, drawn unaltered and only inside diagrams. It doesn't have the Google Cloud pack, and specs can't point it at logo folders; use the local version for those. Brand owners can ask for a logo to be removed by [opening an issue](https://github.com/Tonys-Coding/sysketch/issues).
+The [AI chat connector](../README.md#in-your-ai-chat-nothing-to-install) (`https://sysketch.vercel.app/mcp`) includes the latest Simple Icons logos and the official AWS, Azure and Google Cloud architecture icons (Google's core and legacy packs), drawn unaltered and only inside diagrams. Specs can't point it at logo folders; use the local version for your company's logos. Brand owners can ask for a logo to be removed by [opening an issue](https://github.com/Tonys-Coding/sysketch/issues).
 
 ## Commands
 
